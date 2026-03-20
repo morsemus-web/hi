@@ -15,33 +15,33 @@ function VideoPlayer({
   className?: string;
 }) {
   return (
-    <div className={`glass-card rounded-xl overflow-hidden ${className}`}>
+    <div className={`glass-card rounded-xl overflow-hidden group relative ${className}`}>
       <video
         ref={videoRef}
         preload="metadata"
         controls={playing}
-        className={`w-full block ${playing ? "" : "hidden"}`}
-      >
-        <source src="/demo.mp4" type="video/mp4" />
-      </video>
+        onEnded={() => {}}
+        className="w-full block"
+        src="/demo.mp4#t=59"
+      />
 
       {!playing && (
         <div
           onClick={onPlay}
-          className="aspect-video flex flex-col items-center justify-center gap-5 cursor-pointer hover:bg-surface-glass transition-colors duration-300"
+          className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/30 backdrop-blur-[2px] cursor-pointer transition-opacity duration-300"
         >
-          <div className="w-14 h-14 rounded-full border border-accent/20 flex items-center justify-center bg-accent/5">
+          <div className="w-14 h-14 rounded-full border border-accent/40 flex items-center justify-center bg-accent/20 group-hover:bg-accent/30 group-hover:scale-110 transition-all duration-300">
             <svg
-              width="18"
-              height="18"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
-              className="text-accent ml-0.5"
+              className="text-accent ml-1"
             >
               <polygon points="6,3 20,12 6,21" fill="currentColor" />
             </svg>
           </div>
-          <span className="text-[10px] font-light uppercase tracking-[0.2em] text-text-muted">
+          <span className="text-[10px] font-light uppercase tracking-[0.25em] text-white/70">
             Watch demo
           </span>
         </div>
@@ -70,6 +70,7 @@ export default function Hero() {
 
   function playDesktop() {
     if (videoRef.current) {
+      videoRef.current.currentTime = 0;
       videoRef.current.play();
       setPlaying(true);
     }
@@ -77,6 +78,7 @@ export default function Hero() {
 
   function playMobile() {
     if (mobileVideoRef.current) {
+      mobileVideoRef.current.currentTime = 0;
       mobileVideoRef.current.play();
       setPlaying(true);
     }

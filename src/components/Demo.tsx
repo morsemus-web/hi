@@ -6,8 +6,13 @@ export default function Demo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  function play() {
-    if (videoRef.current) {
+  function toggle() {
+    if (!videoRef.current) return;
+    if (playing) {
+      videoRef.current.pause();
+      setPlaying(false);
+    } else {
+      videoRef.current.currentTime = 0;
       videoRef.current.play();
       setPlaying(true);
     }
@@ -25,36 +30,31 @@ export default function Demo() {
         Scores stay on your desktop while you work.
       </p>
 
-      <div className="relative overflow-hidden border border-border rounded-none">
+      <div className="relative overflow-hidden border border-border rounded-xl group cursor-pointer" onClick={toggle}>
         <video
           ref={videoRef}
           preload="metadata"
           controls={playing}
-          className={`w-full block ${playing ? "" : "hidden"}`}
-        >
-          <source src="/demo.mp4" type="video/mp4" />
-        </video>
+          onEnded={() => setPlaying(false)}
+          className="w-full block"
+          src="/demo.mp4#t=59"
+        />
 
         {!playing && (
-          <div
-            onClick={play}
-            className="aspect-video flex flex-col items-center justify-center gap-6 cursor-pointer bg-surface hover:bg-surface-2 transition-colors duration-200"
-          >
-            <div className="w-12 h-12 border border-accent/20 flex items-center justify-center rounded-none">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300">
+            <div className="w-16 h-16 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center group-hover:bg-accent/30 group-hover:scale-110 transition-all duration-300">
               <svg
-                width="16"
-                height="16"
+                width="22"
+                height="22"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                className="text-accent/60 ml-0.5"
+                className="text-accent ml-1"
               >
-                <polygon points="6,3 20,12 6,21" fill="currentColor" stroke="none" />
+                <polygon points="6,3 20,12 6,21" fill="currentColor" />
               </svg>
             </div>
-            <span className="text-[10px] font-light uppercase tracking-[0.2em] text-text-muted">
-              Play demo
+            <span className="text-[10px] font-light uppercase tracking-[0.25em] text-white/70">
+              Watch demo
             </span>
           </div>
         )}
