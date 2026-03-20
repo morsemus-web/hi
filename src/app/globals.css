@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Geist Mono";
+  src: local("JetBrains Mono"), local("SF Mono"), local("Consolas");
+  font-display: swap;
+}
+
+@theme {
+  /* Dark premium foundation */
+  --color-bg: #000000;
+  --color-surface: #060606;
+  --color-surface-2: #0c0c0c;
+  --color-surface-3: #111111;
+  --color-surface-glass: rgba(255, 255, 255, 0.03);
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-hover: rgba(255, 255, 255, 0.12);
+
+  /* Text hierarchy */
+  --color-text-primary: #e8e8e8;
+  --color-text-dim: #999999;
+  --color-text-muted: #555555;
+
+  /* Accent: electric blue-green */
+  --color-accent: #00e5a0;
+  --color-accent-dim: rgba(0, 229, 160, 0.08);
+  --color-accent-glow: rgba(0, 229, 160, 0.15);
+
+  /* Sport identifiers */
+  --color-sport-cricket: #6ba3be;
+  --color-sport-football: #b8865e;
+  --color-sport-basketball: #b8a45e;
+  --color-sport-f1: #b85e5e;
+
+  /* Typography */
+  --font-sans: "Inter", "SF Pro Display", "Helvetica Neue", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+::selection {
+  background: rgba(0, 229, 160, 0.2);
+  color: var(--color-text-primary);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out both;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
