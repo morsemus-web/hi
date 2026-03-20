@@ -287,7 +287,7 @@ function BgBrowser() {
   );
 }
 
-const bgComponents: Record<string, () => JSX.Element> = {
+const bgComponents: Record<string, () => React.ReactElement> = {
   vscode: BgVSCode,
   meeting: BgMeeting,
   spreadsheet: BgSpreadsheet,
