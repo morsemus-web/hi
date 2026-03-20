@@ -21,7 +21,7 @@ export default function Contact() {
         </p>
 
         <div className="space-y-8">
-          <div className="glass-card rounded-xl p-6 border border-white/5">
+          <div className="glass-card rounded-xl p-6 border border-border">
             <h2 className="text-sm font-semibold mb-1">Email</h2>
             <p className="text-text-dim text-xs mb-3">Best for general questions and support</p>
             <a
@@ -32,7 +32,7 @@ export default function Contact() {
             </a>
           </div>
 
-          <div className="glass-card rounded-xl p-6 border border-white/5">
+          <div className="glass-card rounded-xl p-6 border border-border">
             <h2 className="text-sm font-semibold mb-1">Refunds</h2>
             <p className="text-text-dim text-xs mb-3">
               Founding Access comes with a 14-day refund policy. Just email us with your payment details.
@@ -45,7 +45,7 @@ export default function Contact() {
             </a>
           </div>
 
-          <div className="glass-card rounded-xl p-6 border border-white/5">
+          <div className="glass-card rounded-xl p-6 border border-border">
             <h2 className="text-sm font-semibold mb-1">Bug Reports & Feature Requests</h2>
             <p className="text-text-dim text-xs mb-3">
               Found a bug or have an idea for a feature? Let us know — we read every message.
@@ -58,7 +58,7 @@ export default function Contact() {
             </a>
           </div>
 
-          <div className="pt-4 border-t border-white/5">
+          <div className="pt-4 border-t border-border">
             <p className="text-text-muted/30 text-[10px] tracking-wider uppercase">
               We typically respond within 24 hours.
             </p>

@@ -163,7 +163,7 @@ export default function Problem() {
               >
                 {/* Left — Big stat */}
                 <div className="flex items-center gap-5 lg:gap-6">
-                  <div className="w-14 h-14 rounded-xl bg-white/[0.03] flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-overlay-2 flex items-center justify-center flex-shrink-0">
                     {p.icon}
                   </div>
                   <div>
@@ -178,7 +178,7 @@ export default function Problem() {
                 </div>
 
                 {/* Divider */}
-                <div className="hidden lg:block w-px h-20 bg-white/[0.06]" />
+                <div className="hidden lg:block w-px h-20 bg-border" />
 
                 {/* Right — Explanation */}
                 <div>

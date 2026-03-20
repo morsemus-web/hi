@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTheme } from "next-themes";
 
 const features = [
   {
@@ -82,6 +83,8 @@ const features = [
 export default function Features() {
   const [active, setActive] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const n = features.length;
 
   // Auto-rotate
@@ -206,31 +209,35 @@ export default function Features() {
                   <div
                     className="rounded-2xl p-8 border h-[260px] flex flex-col"
                     style={{
-                      background: i === active ? "rgba(10,10,10,0.95)" : "rgba(10,10,10,0.8)",
-                      borderColor: i === active ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)",
+                      background: i === active
+                        ? (isDark ? "rgba(10,10,10,0.95)" : "rgba(255,255,255,0.98)")
+                        : (isDark ? "rgba(10,10,10,0.8)" : "rgba(245,245,245,0.9)"),
+                      borderColor: i === active ? "rgba(0,229,160,0.15)" : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"),
                       boxShadow: i === active
-                        ? "0 0 40px rgba(0,229,160,0.08), 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,229,160,0.1)"
-                        : "0 10px 40px rgba(0,0,0,0.3)",
+                        ? (isDark
+                          ? "0 0 40px rgba(0,229,160,0.08), 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,229,160,0.1)"
+                          : "0 0 40px rgba(0,200,138,0.1), 0 20px 60px rgba(0,0,0,0.08), inset 0 1px 0 rgba(0,200,138,0.1)")
+                        : (isDark ? "0 10px 40px rgba(0,0,0,0.3)" : "0 10px 40px rgba(0,0,0,0.06)"),
                     }}
                   >
                     <div
                       className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-6"
                       style={{
-                        background: i === active ? "rgba(0,229,160,0.08)" : "rgba(255,255,255,0.03)",
-                        color: i === active ? "rgba(0,229,160,0.8)" : "rgba(255,255,255,0.25)",
+                        background: i === active ? "rgba(0,229,160,0.08)" : (isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"),
+                        color: i === active ? "rgba(0,229,160,0.8)" : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)"),
                       }}
                     >
                       {f.icon}
                     </div>
                     <h3
                       className="text-base font-semibold mb-3 transition-colors duration-500"
-                      style={{ color: i === active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.5)" }}
+                      style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.9)") : (isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)") }}
                     >
                       {f.title}
                     </h3>
                     <p
                       className="text-sm font-light leading-relaxed transition-colors duration-500"
-                      style={{ color: i === active ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.25)" }}
+                      style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)") : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)") }}
                     >
                       {f.desc}
                     </p>
@@ -244,7 +251,7 @@ export default function Features() {
           <div className="flex justify-center gap-4 mt-8">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+              className="w-10 h-10 rounded-full border border-border-hover flex items-center justify-center text-text-muted hover:text-text-primary hover:border-overlay-15 transition-all cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
@@ -257,14 +264,14 @@ export default function Features() {
                   key={i}
                   onClick={() => goTo(i)}
                   className={`rounded-full transition-all duration-300 cursor-pointer ${
-                    i === active ? "w-6 h-2 bg-accent/60" : "w-2 h-2 bg-white/15 hover:bg-white/25"
+                    i === active ? "w-6 h-2 bg-accent/60" : "w-2 h-2 bg-overlay-15 hover:bg-overlay-text-muted"
                   }`}
                 />
               ))}
             </div>
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+              className="w-10 h-10 rounded-full border border-border-hover flex items-center justify-center text-text-muted hover:text-text-primary hover:border-overlay-15 transition-all cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6" />
@@ -291,31 +298,33 @@ export default function Features() {
                   <div
                     className="rounded-2xl p-7 border h-[240px] flex flex-col"
                     style={{
-                      background: i === active ? "rgba(10,10,10,0.95)" : "rgba(10,10,10,0.8)",
-                      borderColor: i === active ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)",
+                      background: i === active
+                        ? (isDark ? "rgba(10,10,10,0.95)" : "rgba(255,255,255,0.98)")
+                        : (isDark ? "rgba(10,10,10,0.8)" : "rgba(245,245,245,0.9)"),
+                      borderColor: i === active ? "rgba(0,229,160,0.15)" : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"),
                       boxShadow: i === active
-                        ? "0 0 30px rgba(0,229,160,0.06), 0 15px 40px rgba(0,0,0,0.4)"
-                        : "0 8px 30px rgba(0,0,0,0.3)",
+                        ? (isDark ? "0 0 30px rgba(0,229,160,0.06), 0 15px 40px rgba(0,0,0,0.4)" : "0 0 30px rgba(0,200,138,0.08), 0 15px 40px rgba(0,0,0,0.06)")
+                        : (isDark ? "0 8px 30px rgba(0,0,0,0.3)" : "0 8px 30px rgba(0,0,0,0.04)"),
                     }}
                   >
                     <div
                       className="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-5"
                       style={{
-                        background: i === active ? "rgba(0,229,160,0.08)" : "rgba(255,255,255,0.03)",
-                        color: i === active ? "rgba(0,229,160,0.8)" : "rgba(255,255,255,0.25)",
+                        background: i === active ? "rgba(0,229,160,0.08)" : (isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"),
+                        color: i === active ? "rgba(0,229,160,0.8)" : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)"),
                       }}
                     >
                       {f.icon}
                     </div>
                     <h3
                       className="text-[15px] font-semibold mb-2"
-                      style={{ color: i === active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.5)" }}
+                      style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.9)") : (isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)") }}
                     >
                       {f.title}
                     </h3>
                     <p
                       className="text-xs font-light leading-relaxed"
-                      style={{ color: i === active ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.25)" }}
+                      style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)") : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)") }}
                     >
                       {f.desc}
                     </p>
@@ -339,7 +348,7 @@ export default function Features() {
                   key={i}
                   onClick={() => goTo(i)}
                   className={`rounded-full transition-all duration-300 cursor-pointer ${
-                    i === active ? "w-5 h-1.5 bg-accent/60" : "w-1.5 h-1.5 bg-white/15"
+                    i === active ? "w-5 h-1.5 bg-accent/60" : "w-1.5 h-1.5 bg-overlay-15"
                   }`}
                 />
               ))}

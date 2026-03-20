@@ -354,8 +354,8 @@ export default function LiveTracker() {
               onClick={() => setActive(s.id)}
               className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-[11px] uppercase tracking-[0.08em] sm:tracking-[0.12em] font-medium transition-all duration-300 cursor-pointer border ${
                 s.id === active
-                  ? "border-white/15 bg-white/5 text-white"
-                  : "border-white/5 text-text-muted/50 hover:border-white/10 hover:text-text-muted"
+                  ? "border-overlay-15 bg-overlay-5 text-text-primary"
+                  : "border-border text-text-muted/50 hover:border-border-hover hover:text-text-muted"
               }`}
             >
               <span className="text-xs sm:text-sm">{s.icon}</span>
@@ -366,7 +366,7 @@ export default function LiveTracker() {
 
         {/* Popout widget mockup */}
         <div className="max-w-[400px] mx-auto">
-          <div className="glass-card rounded-xl overflow-hidden" style={{ border: `1px solid ${activeSport.accent}15` }}>
+          <div className="rounded-xl overflow-hidden bg-[rgba(10,10,10,0.95)] backdrop-blur-xl border border-[rgba(255,255,255,0.06)]" style={{ borderColor: `${activeSport.accent}15` }}>
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
               <div
@@ -410,10 +410,10 @@ export default function LiveTracker() {
             { label: "Wagon Wheel", desc: "Every delivery mapped", icon: "🏏" },
             { label: "Track Map", desc: "Live driver positions", icon: "🏎" },
           ].map((f) => (
-            <div key={f.label} className="text-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
+            <div key={f.label} className="text-center p-4 rounded-lg bg-overlay-2 border border-border">
               <span className="text-xl mb-2 block">{f.icon}</span>
-              <p className="text-[11px] font-medium text-white/80 mb-0.5">{f.label}</p>
-              <p className="text-[9px] text-white/30">{f.desc}</p>
+              <p className="text-[11px] font-medium text-text-primary/80 mb-0.5">{f.label}</p>
+              <p className="text-[9px] text-text-muted/50">{f.desc}</p>
             </div>
           ))}
         </div>

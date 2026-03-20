@@ -56,7 +56,7 @@ function WaveformBars({ active }: { active: boolean }) {
         <div
           key={i}
           className={`w-[3px] rounded-full transition-all duration-150 ${
-            active ? "bg-accent/60" : "bg-white/10"
+            active ? "bg-accent/60" : "bg-overlay-15"
           }`}
           style={{
             height: active
@@ -145,7 +145,7 @@ export default function Commentary() {
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[11px] uppercase tracking-[0.12em] font-medium transition-all duration-300 cursor-pointer border ${
                 i === activeLang
                   ? `${lang.bgAccent} ${lang.accent}`
-                  : "border-white/5 text-text-muted/60 hover:border-white/10 hover:text-text-muted"
+                  : "border-border text-text-muted/60 hover:border-border-hover hover:text-text-muted"
               }`}
             >
               <span className="text-[10px] font-mono opacity-60">{lang.flag}</span>
@@ -179,7 +179,7 @@ export default function Commentary() {
                 className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer ${
                   playing
                     ? `${current.bgAccent} ${current.accent}`
-                    : "border-white/10 text-white/60 hover:border-white/20"
+                    : "border-border-hover text-text-muted hover:border-overlay-15"
                 }`}
               >
                 {playing ? (
@@ -202,9 +202,9 @@ export default function Commentary() {
 
             {/* Commentary text */}
             <div className={`rounded-lg p-4 border transition-all duration-500 ${
-              playing ? current.bgAccent : "bg-white/[0.02] border-white/5"
+              playing ? current.bgAccent : "bg-overlay-2 border-border"
             }`}>
-              <p className="text-[13px] sm:text-sm text-white/70 font-light leading-relaxed italic">
+              <p className="text-[13px] sm:text-sm text-overlay-text font-light leading-relaxed italic">
                 &ldquo;{current.commentary}&rdquo;
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function Commentary() {
                     key={lang.code}
                     onClick={() => playCommentary(i)}
                     className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                      i === activeLang ? `${current.accent.replace("text-", "bg-")} scale-125` : "bg-white/15 hover:bg-white/25"
+                      i === activeLang ? `${current.accent.replace("text-", "bg-")} scale-125` : "bg-overlay-15 hover:bg-overlay-text-muted"
                     }`}
                   />
                 ))}
@@ -237,7 +237,7 @@ export default function Commentary() {
             { label: "Latency", value: "<2s", sub: "Near real-time" },
             { label: "Quality", value: "HD", sub: "Crystal clear" },
           ].map((stat) => (
-            <div key={stat.label} className="text-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
+            <div key={stat.label} className="text-center p-4 rounded-lg bg-overlay-2 border border-border">
               <p className="text-lg font-semibold text-accent/80 font-mono">{stat.value}</p>
               <p className="text-[10px] uppercase tracking-[0.12em] text-text-muted/60 mt-0.5">{stat.label}</p>
               <p className="text-[9px] text-text-muted/30 mt-0.5">{stat.sub}</p>
@@ -264,11 +264,11 @@ export default function Commentary() {
                 key={s.name}
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.1em] border ${
                   s.live
-                    ? "border-white/10 text-text-muted/70"
-                    : "border-white/5 text-text-muted/30"
+                    ? "border-border-hover text-text-muted/70"
+                    : "border-border text-text-muted/30"
                 }`}
               >
-                <span className={`w-1 h-1 rounded-full ${s.live ? "bg-accent/60" : "bg-white/15"}`} />
+                <span className={`w-1 h-1 rounded-full ${s.live ? "bg-accent/60" : "bg-overlay-15"}`} />
                 {s.name}
                 {!s.live && <span className="text-[8px] text-text-muted/25 ml-0.5">soon</span>}
               </span>

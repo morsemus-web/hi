@@ -7,26 +7,33 @@
 }
 
 @theme {
-  /* Dark premium foundation */
-  --color-bg: #000000;
-  --color-surface: #060606;
-  --color-surface-2: #0c0c0c;
-  --color-surface-3: #111111;
-  --color-surface-glass: rgba(255, 255, 255, 0.03);
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-hover: rgba(255, 255, 255, 0.12);
+  /* Token registration — actual values set by :root / [data-theme] */
+  --color-bg: #faf8f5;
+  --color-surface: #f3f0ec;
+  --color-surface-2: #eae6e0;
+  --color-surface-3: #ddd8d1;
+  --color-surface-glass: rgba(0, 0, 0, 0.03);
+  --color-border: rgba(0, 0, 0, 0.10);
+  --color-border-hover: rgba(0, 0, 0, 0.18);
 
-  /* Text hierarchy */
-  --color-text-primary: #e8e8e8;
-  --color-text-dim: #999999;
-  --color-text-muted: #555555;
+  --color-text-primary: #1a1816;
+  --color-text-dim: #4a4540;
+  --color-text-muted: #7a756e;
 
-  /* Accent: electric blue-green */
-  --color-accent: #00e5a0;
-  --color-accent-dim: rgba(0, 229, 160, 0.08);
-  --color-accent-glow: rgba(0, 229, 160, 0.15);
+  --color-accent: #00b87a;
+  --color-accent-dim: rgba(0, 184, 122, 0.08);
+  --color-accent-glow: rgba(0, 184, 122, 0.14);
 
-  /* Sport identifiers */
+  /* Overlay tokens (replace hardcoded white/X patterns) */
+  --color-overlay-2: rgba(0, 0, 0, 0.03);
+  --color-overlay-5: rgba(0, 0, 0, 0.06);
+  --color-overlay-10: rgba(0, 0, 0, 0.12);
+  --color-overlay-15: rgba(0, 0, 0, 0.18);
+  --color-overlay-text: rgba(0, 0, 0, 0.75);
+  --color-overlay-text-dim: rgba(0, 0, 0, 0.55);
+  --color-overlay-text-muted: rgba(0, 0, 0, 0.35);
+
+  /* Sport identifiers (same in both themes) */
   --color-sport-cricket: #6ba3be;
   --color-sport-football: #b8865e;
   --color-sport-basketball: #b8a45e;
@@ -35,6 +42,54 @@
   /* Typography */
   --font-sans: "Inter", "SF Pro Display", "Helvetica Neue", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
+}
+
+/* Light theme (default) — warm ivory/off-white with contrast */
+:root {
+  --color-bg: #faf8f5;
+  --color-surface: #f3f0ec;
+  --color-surface-2: #eae6e0;
+  --color-surface-3: #ddd8d1;
+  --color-surface-glass: rgba(0, 0, 0, 0.03);
+  --color-border: rgba(0, 0, 0, 0.10);
+  --color-border-hover: rgba(0, 0, 0, 0.18);
+  --color-text-primary: #1a1816;
+  --color-text-dim: #4a4540;
+  --color-text-muted: #7a756e;
+  --color-accent: #00b87a;
+  --color-accent-dim: rgba(0, 184, 122, 0.08);
+  --color-accent-glow: rgba(0, 184, 122, 0.14);
+  --color-overlay-2: rgba(0, 0, 0, 0.03);
+  --color-overlay-5: rgba(0, 0, 0, 0.06);
+  --color-overlay-10: rgba(0, 0, 0, 0.12);
+  --color-overlay-15: rgba(0, 0, 0, 0.18);
+  --color-overlay-text: rgba(0, 0, 0, 0.75);
+  --color-overlay-text-dim: rgba(0, 0, 0, 0.55);
+  --color-overlay-text-muted: rgba(0, 0, 0, 0.35);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --color-bg: #000000;
+  --color-surface: #060606;
+  --color-surface-2: #0c0c0c;
+  --color-surface-3: #111111;
+  --color-surface-glass: rgba(255, 255, 255, 0.03);
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-hover: rgba(255, 255, 255, 0.12);
+  --color-text-primary: #e8e8e8;
+  --color-text-dim: #999999;
+  --color-text-muted: #555555;
+  --color-accent: #00e5a0;
+  --color-accent-dim: rgba(0, 229, 160, 0.08);
+  --color-accent-glow: rgba(0, 229, 160, 0.15);
+  --color-overlay-2: rgba(255, 255, 255, 0.02);
+  --color-overlay-5: rgba(255, 255, 255, 0.05);
+  --color-overlay-10: rgba(255, 255, 255, 0.10);
+  --color-overlay-15: rgba(255, 255, 255, 0.15);
+  --color-overlay-text: rgba(255, 255, 255, 0.7);
+  --color-overlay-text-dim: rgba(255, 255, 255, 0.5);
+  --color-overlay-text-muted: rgba(255, 255, 255, 0.3);
 }
 
 html {
@@ -50,6 +105,7 @@ body {
   overflow-x: hidden;
   font-weight: 300;
   letter-spacing: 0.01em;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
@@ -97,13 +153,13 @@ body {
 
 /* Glassmorphism card */
 .glass-card {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-surface-glass);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
   transition: all 0.3s ease;
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--color-overlay-5);
+  border-color: var(--color-border-hover);
 }
