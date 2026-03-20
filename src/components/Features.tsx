@@ -136,7 +136,7 @@ export default function Features() {
       opacity,
       transform: `perspective(1000px) translateX(${translateX}px) rotateY(${rotateY}deg) scale(${scale})`,
       zIndex: z,
-      pointerEvents: (isCenter ? "auto" : "auto") as const,
+      pointerEvents: "auto" as const,
     };
   }
 
