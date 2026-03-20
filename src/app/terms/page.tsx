@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Terms of Service — ScoreDeck",
+  title: "Terms of Service",
+  description:
+    "ScoreDeck Terms of Service — Founding Access pricing, refund policy, acceptable use, and intellectual property terms for the live sports scores desktop app.",
+  alternates: { canonical: "https://tryscoredeck.pro/terms" },
 };
 
 export default function Terms() {

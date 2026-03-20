@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy Policy — ScoreDeck",
+  title: "Privacy Policy",
+  description:
+    "ScoreDeck Privacy Policy — Learn how we collect, use, and protect your data. We never track browsing activity or sell personal information.",
+  alternates: { canonical: "https://tryscoredeck.pro/privacy" },
 };
 
 export default function Privacy() {

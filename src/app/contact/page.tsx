@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Contact — ScoreDeck",
+  title: "Contact Us",
+  description:
+    "Get in touch with the ScoreDeck team — support, refunds, bug reports, and feature requests for the live sports scores desktop app.",
+  alternates: { canonical: "https://tryscoredeck.pro/contact" },
 };
 
 export default function Contact() {
