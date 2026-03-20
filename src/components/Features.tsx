@@ -251,6 +251,7 @@ export default function Features() {
           <div className="flex justify-center gap-4 mt-8">
             <button
               onClick={prev}
+              aria-label="Previous feature"
               className="w-10 h-10 rounded-full border border-border-hover flex items-center justify-center text-text-muted hover:text-text-primary hover:border-overlay-15 transition-all cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -259,18 +260,22 @@ export default function Features() {
             </button>
             {/* Dots */}
             <div className="flex items-center gap-2">
-              {features.map((_, i) => (
+              {features.map((f, i) => (
                 <button
                   key={i}
                   onClick={() => goTo(i)}
-                  className={`rounded-full transition-all duration-300 cursor-pointer ${
-                    i === active ? "w-6 h-2 bg-accent/60" : "w-2 h-2 bg-overlay-15 hover:bg-overlay-text-muted"
+                  aria-label={`Go to feature: ${f.title}`}
+                  className={`rounded-full transition-all duration-300 cursor-pointer p-1 ${
+                    i === active ? "w-8 h-4 bg-accent/60" : "w-4 h-4 bg-overlay-15 hover:bg-overlay-text-muted"
                   }`}
-                />
+                >
+                  <span className={`block rounded-full mx-auto ${i === active ? "w-6 h-2 bg-accent/80" : "w-2 h-2 bg-current opacity-60"}`} />
+                </button>
               ))}
             </div>
             <button
               onClick={next}
+              aria-label="Next feature"
               className="w-10 h-10 rounded-full border border-border-hover flex items-center justify-center text-text-muted hover:text-text-primary hover:border-overlay-15 transition-all cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -338,23 +343,28 @@ export default function Features() {
           <div className="flex justify-center gap-3 mt-6">
             <button
               onClick={prev}
+              aria-label="Previous feature"
               className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
             </button>
             <div className="flex items-center gap-1.5">
-              {features.map((_, i) => (
+              {features.map((f, i) => (
                 <button
                   key={i}
                   onClick={() => goTo(i)}
-                  className={`rounded-full transition-all duration-300 cursor-pointer ${
-                    i === active ? "w-5 h-1.5 bg-accent/60" : "w-1.5 h-1.5 bg-overlay-15"
+                  aria-label={`Go to feature: ${f.title}`}
+                  className={`rounded-full transition-all duration-300 cursor-pointer p-1.5 ${
+                    i === active ? "w-8 h-5 bg-accent/60" : "w-5 h-5 bg-transparent"
                   }`}
-                />
+                >
+                  <span className={`block rounded-full mx-auto ${i === active ? "w-5 h-1.5 bg-accent/80" : "w-1.5 h-1.5 bg-overlay-15"}`} />
+                </button>
               ))}
             </div>
             <button
               onClick={next}
+              aria-label="Next feature"
               className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>

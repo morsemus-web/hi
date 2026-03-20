@@ -176,6 +176,7 @@ export default function Commentary() {
               </div>
               <button
                 onClick={() => playCommentary(activeLang)}
+                aria-label={playing ? "Pause commentary" : "Play commentary"}
                 className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer ${
                   playing
                     ? `${current.bgAccent} ${current.accent}`
@@ -216,10 +217,15 @@ export default function Commentary() {
                   <button
                     key={lang.code}
                     onClick={() => playCommentary(i)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                      i === activeLang ? `${current.accent.replace("text-", "bg-")} scale-125` : "bg-overlay-15 hover:bg-overlay-text-muted"
+                    aria-label={`Play ${lang.name} commentary`}
+                    className={`w-6 h-6 rounded-full transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                      i === activeLang ? `${current.accent.replace("text-", "bg-")} scale-110` : "bg-transparent hover:bg-overlay-5"
                     }`}
-                  />
+                  >
+                    <span className={`block w-2 h-2 rounded-full ${
+                      i === activeLang ? "bg-white/80" : "bg-overlay-15"
+                    }`} />
+                  </button>
                 ))}
               </div>
               <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-text-muted/40">
