@@ -70,35 +70,53 @@ export default function Terms() {
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">6. Intellectual Property</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">6. News Content & Editorial Policy</h2>
+            <p className="mb-3">
+              ScoreDeck publishes sports news, match previews, analysis, and commentary on tryscoredeck.pro/news. All news content is original editorial work and is provided free of charge.
+            </p>
+            <p className="mb-3">
+              <strong className="text-text-primary/80">Editorial Independence:</strong> Our sports desk operates with editorial independence. News coverage is not influenced by advertising, sponsorships, or commercial relationships.
+            </p>
+            <p className="mb-3">
+              <strong className="text-text-primary/80">Accuracy & Corrections:</strong> We strive for accuracy in all reporting. If you believe an article contains an error, please contact us at{" "}
+              <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">hello@tryscoredeck.pro</a>
+              . We will review and issue corrections promptly.
+            </p>
             <p>
-              ScoreDeck, its logo, design, and code are the property of ScoreDeck. Sports data displayed within the app is sourced from third-party providers and remains the property of the respective leagues and organizations.
+              <strong className="text-text-primary/80">Content Licensing:</strong> All news articles, analysis, and editorial content published on ScoreDeck are protected by copyright. You may share articles via their URL but may not reproduce, redistribute, or republish content without written permission.
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">7. Availability</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">7. Intellectual Property</h2>
+            <p>
+              ScoreDeck, its logo, design, and code are the property of ScoreDeck. Sports data displayed within the app and referenced in news articles is sourced from third-party providers and publicly available information, and remains the property of the respective leagues and organizations.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-text-primary mb-3">8. Availability</h2>
             <p>
               We strive for 99.9% uptime but do not guarantee uninterrupted service. Live scores depend on third-party data providers and may occasionally be delayed or unavailable.
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">8. Limitation of Liability</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">9. Limitation of Liability</h2>
             <p>
               ScoreDeck is provided "as is" without warranty of any kind. We are not liable for any damages arising from the use or inability to use the service, including but not limited to missed scores, data inaccuracies, or service interruptions.
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">9. Changes to Terms</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">10. Changes to Terms</h2>
             <p>
               We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the updated terms.
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">10. Contact</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">11. Contact</h2>
             <p>
               Questions about these terms? Reach us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">

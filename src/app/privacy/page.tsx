@@ -61,14 +61,27 @@ export default function Privacy() {
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">5. Cookies</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">5. News Content</h2>
+            <p className="mb-3">
+              ScoreDeck publishes sports news articles, match previews, and analysis on our website. News content is original editorial work produced by the ScoreDeck Sports Desk.
+            </p>
+            <p className="mb-3">
+              <strong className="text-text-primary/80">Google News:</strong> Our news section is integrated with Google News. By accessing our news content, you may be subject to Google&apos;s own privacy policies regarding content recommendation and display.
+            </p>
+            <p>
+              <strong className="text-text-primary/80">Third-Party Data:</strong> Sports statistics, scores, and match data referenced in our articles are sourced from publicly available information and third-party data providers. We attribute sources where applicable.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-text-primary mb-3">6. Cookies</h2>
             <p>
               Our website does not use any cookies. We use Google Analytics for anonymous usage statistics, which operates without cookies. The desktop app does not use cookies either.
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">6. Your Rights</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">7. Your Rights</h2>
             <p className="mb-3">You have the right to:</p>
             <ul className="list-disc list-inside space-y-2 text-text-dim/80">
               <li>Request access to your personal data</li>
@@ -79,14 +92,14 @@ export default function Privacy() {
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">7. Changes to This Policy</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">8. Changes to This Policy</h2>
             <p>
               We may update this policy from time to time. We will notify you of any significant changes via email or through the app.
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">8. Contact</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">9. Contact</h2>
             <p>
               Questions about this policy? Reach us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">

@@ -12,6 +12,7 @@ export default function Footer() {
       </div>
       <div className="flex gap-6">
         {[
+          { label: "News", href: "/news" },
           { label: "Privacy", href: "/privacy" },
           { label: "Terms", href: "/terms" },
           { label: "Contact", href: "/contact" },

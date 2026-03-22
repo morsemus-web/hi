@@ -6,9 +6,17 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/thanks"],
+        disallow: ["/api/", "/thanks", "/news/create"],
+      },
+      {
+        userAgent: "Googlebot-News",
+        allow: "/news/",
+        disallow: ["/api/", "/thanks", "/news/create"],
       },
     ],
-    sitemap: "https://tryscoredeck.pro/sitemap.xml",
+    sitemap: [
+      "https://tryscoredeck.pro/sitemap.xml",
+      "https://tryscoredeck.pro/news-sitemap.xml",
+    ],
   };
 }
