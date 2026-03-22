@@ -63,7 +63,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">5. Cookies</h2>
             <p>
-              Our website uses essential cookies only — no advertising or tracking cookies. The desktop app does not use cookies.
+              Our website does not use any cookies. We use Google Analytics for anonymous usage statistics, which operates without cookies. The desktop app does not use cookies either.
             </p>
           </section>
 
