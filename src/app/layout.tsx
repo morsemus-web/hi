@@ -41,6 +41,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://tryscoredeck.pro",
   },
+  other: {
+    "google-adsense-account": "ca-pub-7182949672912731",
+  },
   robots: {
     index: true,
     follow: true,
