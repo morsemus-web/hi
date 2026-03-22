@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import CheckoutButton from "./CheckoutButton";
 
-function useCountUp(target: number | null, duration = 1500) {
+function useCountUp(target: number | null, duration = 3000) {
   const [displayed, setDisplayed] = useState(0);
   useEffect(() => {
     if (target === null) return;
@@ -18,7 +18,7 @@ function useCountUp(target: number | null, duration = 1500) {
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
-  return target === null ? null : displayed;
+  return displayed;
 }
 
 export default function Pricing() {
@@ -123,11 +123,7 @@ export default function Pricing() {
             </CheckoutButton>
             <div className="flex items-center justify-center gap-2 mt-5 text-[10px] font-mono font-light text-text-muted">
               <span className="w-1.5 h-1.5 rounded-full bg-sport-f1/60 animate-[pulse-dot_2s_infinite]" />
-              {displayed !== null ? (
-                <>Only {displayed.toLocaleString()} spots remaining</>
-              ) : (
-                <span className="inline-block w-32 h-3 bg-overlay-5 animate-pulse rounded" />
-              )}
+              Only {displayed.toLocaleString()} spots remaining
             </div>
           </div>
         </div>

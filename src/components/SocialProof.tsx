@@ -20,7 +20,7 @@ const testimonials = [
   },
 ];
 
-function useCountUp(target: number | null, duration = 1500) {
+function useCountUp(target: number | null, duration = 3000) {
   const [displayed, setDisplayed] = useState(0);
   useEffect(() => {
     if (target === null) return;
@@ -35,7 +35,7 @@ function useCountUp(target: number | null, duration = 1500) {
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
-  return target === null ? null : displayed;
+  return displayed;
 }
 
 export default function SocialProof() {
@@ -55,11 +55,7 @@ export default function SocialProof() {
         <div className="inline-flex items-center gap-3 glass-card rounded-full px-6 py-3 mb-14">
           <span className="w-2 h-2 rounded-full bg-accent animate-[pulse-dot_2s_infinite]" />
           <span className="text-sm font-light text-text-dim">
-            {displayed !== null ? (
-              <><span className="font-mono font-medium text-accent">{displayed}+</span> users already joined the waitlist</>
-            ) : (
-              <span className="inline-block w-24 h-4 bg-overlay-5 animate-pulse rounded" />
-            )}
+            <span className="font-mono font-medium text-accent">{displayed}+</span> users already joined the waitlist
           </span>
         </div>
 

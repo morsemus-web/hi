@@ -50,7 +50,7 @@ function VideoPlayer({
   );
 }
 
-function useCountUp(target: number | null, duration = 1500) {
+function useCountUp(target: number | null, duration = 3000) {
   const [displayed, setDisplayed] = useState(0);
   useEffect(() => {
     if (target === null) return;
@@ -65,7 +65,7 @@ function useCountUp(target: number | null, duration = 1500) {
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
-  return target === null ? null : displayed;
+  return displayed;
 }
 
 export default function Hero() {
@@ -113,7 +113,7 @@ export default function Hero() {
       <div className="flex-1 max-w-xl animate-fade-in-up">
         <div className="inline-flex items-center gap-2 text-[10px] font-light uppercase tracking-[0.2em] text-text-muted mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-[pulse-dot_2s_infinite]" />
-          Launching in 30-45 days
+          Launching 29th April 2026
         </div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.03em] leading-[1.1] mb-6">
@@ -155,27 +155,15 @@ export default function Hero() {
             Limited to 1,000 founding users
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            {displayedBackers !== null ? (
-              <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
-            ) : (
-              <span className="inline-block w-6 h-3 bg-overlay-5 animate-pulse rounded" />
-            )}
+            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
             <span>backed</span>
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            {displayedWaitlist !== null ? (
-              <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedWaitlist}+</span>
-            ) : (
-              <span className="inline-block w-8 h-3 bg-overlay-5 animate-pulse rounded" />
-            )}
+            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedWaitlist}+</span>
             <span>waitlisted</span>
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            {displayedRemaining !== null ? (
-              <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining}</span>
-            ) : (
-              <span className="inline-block w-8 h-3 bg-overlay-5 animate-pulse rounded" />
-            )}
+            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining}</span>
             <span>spots left</span>
           </span>
         </div>
