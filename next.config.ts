@@ -35,6 +35,21 @@ const nextConfig: NextConfig = {
         { key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400" },
       ],
     },
+    {
+      source: "/news/:path*",
+      headers: [
+        { key: "Access-Control-Allow-Origin", value: "*" },
+        { key: "Access-Control-Allow-Methods", value: "GET, OPTIONS" },
+        { key: "Access-Control-Allow-Headers", value: "Content-Type" },
+      ],
+    },
+    {
+      source: "/news-sitemap.xml",
+      headers: [
+        { key: "Access-Control-Allow-Origin", value: "*" },
+        { key: "Content-Type", value: "application/xml" },
+      ],
+    },
   ],
 };
 

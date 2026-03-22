@@ -39,7 +39,7 @@ export async function generateMetadata({
   };
 }
 
-function renderContent(content: string) {
+function renderContent(content: string, images?: Record<string, string>) {
   const lines = content.split("\n");
   const elements: React.ReactNode[] = [];
   let i = 0;
@@ -50,6 +50,28 @@ function renderContent(content: string) {
       i++;
       continue;
     }
+
+    // Handle (image-N) references
+    const imageMatch = trimmed.match(/^\(image-(\d+)\)$/);
+    if (imageMatch && images) {
+      const ref = `image-${imageMatch[1]}`;
+      const url = images[ref];
+      if (url) {
+        elements.push(
+          <figure key={i} className="my-6">
+            <img
+              src={url}
+              alt={`Article image ${imageMatch[1]}`}
+              className="w-full rounded-lg"
+              loading="lazy"
+            />
+          </figure>
+        );
+      }
+      i++;
+      continue;
+    }
+
     if (trimmed.startsWith("## ")) {
       elements.push(
         <h2
@@ -179,7 +201,7 @@ export default async function ArticlePage({
         <hr className="border-border my-8" />
 
         <div className="text-sm text-text-dim leading-relaxed">
-          {renderContent(article.content)}
+          {renderContent(article.content, article.images)}
         </div>
 
         {/* In-article ad */}

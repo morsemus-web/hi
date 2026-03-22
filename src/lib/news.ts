@@ -8,6 +8,7 @@ export interface NewsArticle {
   publishedAt: string; // ISO date
   updatedAt?: string;
   image?: string;
+  images?: Record<string, string>;
   tags: string[];
 }
 

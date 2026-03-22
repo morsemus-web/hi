@@ -3,12 +3,28 @@
 import { useState } from "react";
 import Link from "next/link";
 
+interface ImageSlot {
+  file: File | null;
+  uploading: boolean;
+  url: string | null;
+  ref: string;
+}
+
 export default function CreateNews() {
   const [passcode, setPasscode] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [published, setPublished] = useState(false);
+
+  const [images, setImages] = useState<ImageSlot[]>(
+    Array.from({ length: 5 }, (_, i) => ({
+      file: null,
+      uploading: false,
+      url: null,
+      ref: `image-${i + 1}`,
+    }))
+  );
 
   const [form, setForm] = useState({
     title: "",
@@ -48,9 +64,49 @@ export default function CreateNews() {
       .replace(/^-|-$/g, "");
   }
 
+  async function uploadImage(index: number) {
+    const slot = images[index];
+    if (!slot.file) return;
+
+    const updated = [...images];
+    updated[index] = { ...slot, uploading: true };
+    setImages(updated);
+
+    try {
+      const formData = new FormData();
+      formData.append("passcode", passcode);
+      formData.append("file", slot.file);
+      formData.append("ref", slot.ref);
+
+      const res = await fetch("/api/news/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        updated[index] = { ...slot, uploading: false, url: data.url };
+      } else {
+        updated[index] = { ...slot, uploading: false };
+        setError(data.error || "Upload failed");
+      }
+    } catch {
+      updated[index] = { ...slot, uploading: false };
+      setError("Image upload failed");
+    }
+    setImages(updated);
+  }
+
   async function publishArticle() {
     setError("");
     setLoading(true);
+
+    const imageMap: Record<string, string> = {};
+    for (const slot of images) {
+      if (slot.url) {
+        imageMap[slot.ref] = slot.url;
+      }
+    }
+
     try {
       const res = await fetch("/api/news", {
         method: "POST",
@@ -61,6 +117,7 @@ export default function CreateNews() {
             ...form,
             slug: form.slug || generateSlug(form.title),
             tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+            images: Object.keys(imageMap).length > 0 ? imageMap : undefined,
             publishedAt: new Date().toISOString(),
           },
         }),
@@ -220,12 +277,52 @@ export default function CreateNews() {
             />
           </div>
 
+          {/* Image Uploads */}
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-text-muted block mb-2">
+              Images (up to 5)
+            </label>
+            <p className="text-[10px] text-text-muted/50 mb-3">
+              Upload images, then use <code className="text-accent/70">(image-1)</code>, <code className="text-accent/70">(image-2)</code>, etc. in content to place them.
+            </p>
+            <div className="space-y-3">
+              {images.map((slot, idx) => (
+                <div key={slot.ref} className="flex items-center gap-3">
+                  <span className="text-[10px] text-text-muted/60 font-mono w-16 shrink-0">
+                    {slot.ref}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      const updated = [...images];
+                      updated[idx] = { ...slot, file, url: null };
+                      setImages(updated);
+                    }}
+                    className="flex-1 text-xs text-text-dim file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-medium file:bg-overlay-5 file:text-text-primary file:cursor-pointer"
+                  />
+                  <button
+                    onClick={() => uploadImage(idx)}
+                    disabled={!slot.file || slot.uploading || !!slot.url}
+                    className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-md bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {slot.uploading ? "..." : slot.url ? "Done" : "Upload"}
+                  </button>
+                  {slot.url && (
+                    <span className="text-sport-cricket text-[10px]">Uploaded</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="text-[10px] uppercase tracking-wider text-text-muted block mb-2">
               Content (Markdown)
             </label>
             <p className="text-[10px] text-text-muted/50 mb-2">
-              Use ## for headings, - for bullet points. Regular text becomes paragraphs.
+              Use ## for headings, - for bullet points, (image-N) for images. Regular text becomes paragraphs.
             </p>
             <textarea
               value={form.content}

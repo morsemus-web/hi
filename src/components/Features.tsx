@@ -83,8 +83,12 @@ const features = [
 export default function Features() {
   const [active, setActive] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+
+  useEffect(() => setMounted(true), []);
+
+  const isDark = mounted ? resolvedTheme === "dark" : true;
   const n = features.length;
 
   // Auto-rotate

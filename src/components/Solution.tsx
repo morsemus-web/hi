@@ -328,8 +328,12 @@ const bgComponents: Record<string, React.FC<{ isDark: boolean }>> = {
 export default function Solution() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+
+  useEffect(() => setMounted(true), []);
+
+  const isDark = mounted ? resolvedTheme === "dark" : true;
 
   useEffect(() => {
     if (paused) return;

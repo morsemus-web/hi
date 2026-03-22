@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -34,6 +35,14 @@ export default function Navbar() {
               </button>
             </li>
           ))}
+          <li>
+            <Link
+              href="/news"
+              className="text-[11px] font-light uppercase tracking-[0.12em] text-text-muted hover:text-text-dim transition-colors duration-200"
+            >
+              News
+            </Link>
+          </li>
         </ul>
       </div>
       <div className="flex items-center gap-3">

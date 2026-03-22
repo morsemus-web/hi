@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       category: article.category || "general",
       author: article.author || "ScoreDeck Sports Desk",
       tags: article.tags || [],
+      images: article.images || null,
       published_at: article.publishedAt || new Date().toISOString(),
     });
 
