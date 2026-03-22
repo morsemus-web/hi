@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { articles, getArticle, getCategoryStyle } from "@/lib/news";
+import AdUnit from "@/components/AdUnit";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
@@ -181,6 +182,13 @@ export default async function ArticlePage({
           {renderContent(article.content)}
         </div>
 
+        {/* In-article ad */}
+        <AdUnit
+          slot="3730255461"
+          layout="in-article"
+          className="my-8"
+        />
+
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mt-10 pt-8 border-t border-border">
           {article.tags.map((tag) => (
@@ -209,6 +217,13 @@ export default async function ArticlePage({
             Join Free Waitlist
           </Link>
         </div>
+
+        {/* Multiplex ad */}
+        <AdUnit
+          slot="2446628807"
+          format="autorelaxed"
+          className="mt-10"
+        />
       </article>
     </main>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { articles, getCategoryStyle } from "@/lib/news";
+import AdUnit from "@/components/AdUnit";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -59,9 +60,16 @@ export default function NewsPage() {
 
         {/* Articles grid */}
         <div className="space-y-6">
-          {articles.map((article) => (
+          {articles.map((article, i) => (
+            <div key={article.slug}>
+            {i > 0 && i % 2 === 0 && (
+              <AdUnit
+                slot="5072792142"
+                layoutKey="-fb+5y+3y-dx+b1"
+                className="my-6"
+              />
+            )}
             <Link
-              key={article.slug}
               href={`/news/${article.slug}`}
               className="block glass-card rounded-xl p-6 sm:p-8 hover:border-accent/20 transition-all duration-300 group"
             >
@@ -99,8 +107,16 @@ export default function NewsPage() {
                 </span>
               </div>
             </Link>
+            </div>
           ))}
         </div>
+
+        {/* Multiplex ad */}
+        <AdUnit
+          slot="2446628807"
+          format="autorelaxed"
+          className="mt-12"
+        />
       </div>
     </main>
   );
