@@ -64,12 +64,12 @@ export default function Home() {
       <Solution />
       <Features />
       <Commentary />
-      <LatestNews />
       <LiveTracker />
       <HowItWorks />
       <Pricing />
       <SocialProof />
       <FinalCTA />
+      <LatestNews />
       <Footer />
     </>
   );
