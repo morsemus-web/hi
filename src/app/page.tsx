@@ -4,6 +4,7 @@ import Problem from "@/components/Problem";
 import Solution from "@/components/Solution";
 import Features from "@/components/Features";
 import Commentary from "@/components/Commentary";
+import LatestNews from "@/components/LatestNews";
 import LiveTracker from "@/components/LiveTracker";
 import HowItWorks from "@/components/HowItWorks";
 import Pricing from "@/components/Pricing";
@@ -63,6 +64,7 @@ export default function Home() {
       <Solution />
       <Features />
       <Commentary />
+      <LatestNews />
       <LiveTracker />
       <HowItWorks />
       <Pricing />
