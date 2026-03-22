@@ -50,22 +50,45 @@ function VideoPlayer({
   );
 }
 
+function useCountUp(target: number | null, duration = 1500) {
+  const [displayed, setDisplayed] = useState(0);
+  useEffect(() => {
+    if (target === null) return;
+    const start = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.round(eased * target));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return target === null ? null : displayed;
+}
+
 export default function Hero() {
-  const [backers, setBackers] = useState({ count: 4, remaining: 996 });
-  const [waitlistCount, setWaitlistCount] = useState(200);
+  const [backerCount, setBackerCount] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mobileVideoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
+  const displayedBackers = useCountUp(backerCount);
+  const displayedWaitlist = useCountUp(waitlistCount);
+  const displayedRemaining = useCountUp(remaining);
+
   useEffect(() => {
     fetch("/api/backers")
       .then((r) => r.json())
-      .then(setBackers)
-      .catch(() => {});
+      .then((d) => { setBackerCount(d.count); setRemaining(d.remaining); })
+      .catch(() => { setBackerCount(4); setRemaining(996); });
     fetch("/api/waitlist")
       .then((r) => r.json())
       .then((d) => setWaitlistCount(d.count))
-      .catch(() => {});
+      .catch(() => setWaitlistCount(200));
   }, []);
 
   function playDesktop() {
@@ -132,15 +155,27 @@ export default function Hero() {
             Limited to 1,000 founding users
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{backers.count}</span>
+            {displayedBackers !== null ? (
+              <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
+            ) : (
+              <span className="inline-block w-6 h-3 bg-overlay-5 animate-pulse rounded" />
+            )}
             <span>backed</span>
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{waitlistCount}+</span>
+            {displayedWaitlist !== null ? (
+              <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedWaitlist}+</span>
+            ) : (
+              <span className="inline-block w-8 h-3 bg-overlay-5 animate-pulse rounded" />
+            )}
             <span>waitlisted</span>
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{backers.remaining}</span>
+            {displayedRemaining !== null ? (
+              <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining}</span>
+            ) : (
+              <span className="inline-block w-8 h-3 bg-overlay-5 animate-pulse rounded" />
+            )}
             <span>spots left</span>
           </span>
         </div>

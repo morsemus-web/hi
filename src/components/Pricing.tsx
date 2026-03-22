@@ -3,14 +3,33 @@
 import { useEffect, useState } from "react";
 import CheckoutButton from "./CheckoutButton";
 
+function useCountUp(target: number | null, duration = 1500) {
+  const [displayed, setDisplayed] = useState(0);
+  useEffect(() => {
+    if (target === null) return;
+    const start = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.round(eased * target));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return target === null ? null : displayed;
+}
+
 export default function Pricing() {
-  const [remaining, setRemaining] = useState(1000);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const displayed = useCountUp(remaining);
 
   useEffect(() => {
     fetch("/api/backers")
       .then((r) => r.json())
       .then((d) => setRemaining(d.remaining))
-      .catch(() => {});
+      .catch(() => setRemaining(996));
   }, []);
 
   return (
@@ -104,7 +123,11 @@ export default function Pricing() {
             </CheckoutButton>
             <div className="flex items-center justify-center gap-2 mt-5 text-[10px] font-mono font-light text-text-muted">
               <span className="w-1.5 h-1.5 rounded-full bg-sport-f1/60 animate-[pulse-dot_2s_infinite]" />
-              Only {remaining.toLocaleString()} spots remaining
+              {displayed !== null ? (
+                <>Only {displayed.toLocaleString()} spots remaining</>
+              ) : (
+                <span className="inline-block w-32 h-3 bg-overlay-5 animate-pulse rounded" />
+              )}
             </div>
           </div>
         </div>
