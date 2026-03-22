@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { articles, getArticle, getCategoryStyle } from "@/lib/news";
-import AdUnit from "@/components/AdUnit";
+import { InArticleAd, MultiplexAd } from "@/components/ArticleAds";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
@@ -183,11 +183,7 @@ export default async function ArticlePage({
         </div>
 
         {/* In-article ad */}
-        <AdUnit
-          slot="3730255461"
-          layout="in-article"
-          className="my-8"
-        />
+        <InArticleAd />
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mt-10 pt-8 border-t border-border">
@@ -219,11 +215,7 @@ export default async function ArticlePage({
         </div>
 
         {/* Multiplex ad */}
-        <AdUnit
-          slot="2446628807"
-          format="autorelaxed"
-          className="mt-10"
-        />
+        <MultiplexAd />
       </article>
     </main>
   );

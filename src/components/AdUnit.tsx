@@ -15,10 +15,19 @@ export default function AdUnit({ slot, format = "fluid", layout, layoutKey, clas
 
   useEffect(() => {
     if (pushed.current) return;
-    try {
-      ((window as unknown as Record<string, unknown[]>).adsbygoogle = (window as unknown as Record<string, unknown[]>).adsbygoogle || []).push({});
-      pushed.current = true;
-    } catch {}
+    const timer = setTimeout(() => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ads = (window as any).adsbygoogle;
+        if (ads) {
+          ads.push({});
+          pushed.current = true;
+        }
+      } catch {
+        // AdSense script not loaded
+      }
+    }, 200);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
