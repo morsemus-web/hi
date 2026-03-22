@@ -141,6 +141,12 @@ export default function RootLayout({
         />
         <Script
           async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7182949672912731"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        <Script
+          async
           src="https://news.google.com/swg/js/v1/swg-basic.js"
           strategy="afterInteractive"
         />
