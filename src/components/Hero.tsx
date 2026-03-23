@@ -154,6 +154,10 @@ export default function Hero() {
             <span className="w-1 h-1 rounded-full bg-sport-f1/60" />
             Limited to 1,000 founding users
           </span>
+          span className="col-span-3 flex items-center gap-2 sm:col-span-1">
+            <span className="w-1 h-1 rounded-full bg-sport-f1/60" />
+            Starting at 5$/Month on Launch
+          </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
             <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
             <span>backed</span>
