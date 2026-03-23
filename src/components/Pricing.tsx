@@ -23,6 +23,7 @@ function useCountUp(target: number | null, duration = 3000) {
 
 export default function Pricing() {
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [postLaunchOpen, setPostLaunchOpen] = useState(false);
   const displayed = useCountUp(remaining);
 
   useEffect(() => {
@@ -93,11 +94,15 @@ export default function Pricing() {
             <span className="text-[10px] font-mono font-light text-accent/50 tracking-wider block mb-6 uppercase">
               Founding Access
             </span>
-            <div className="text-4xl font-semibold tracking-tighter mb-1 font-mono text-text-primary">
-              $29
+            <div className="flex items-baseline gap-3 mb-1">
+              <span className="text-lg font-mono text-text-muted line-through">$39</span>
+              <span className="text-4xl font-semibold tracking-tighter font-mono text-text-primary">$29</span>
             </div>
-            <p className="text-text-muted text-[10px] font-light uppercase tracking-[0.15em] mb-8">
+            <p className="text-text-muted text-[10px] font-light uppercase tracking-[0.15em] mb-2">
               One-time &middot; Lifetime
+            </p>
+            <p className="text-accent/70 text-[10px] font-light tracking-[0.05em] mb-8">
+              For the first 1,000 founding members
             </p>
             <ul className="space-y-3.5 mb-8">
               {[
@@ -124,6 +129,121 @@ export default function Pricing() {
             <div className="flex items-center justify-center gap-2 mt-5 text-[10px] font-mono font-light text-text-muted">
               <span className="w-1.5 h-1.5 rounded-full bg-sport-f1/60 animate-[pulse-dot_2s_infinite]" />
               Only {displayed.toLocaleString()} spots remaining
+            </div>
+          </div>
+        </div>
+
+        {/* Post-Launch Plans */}
+        <div className="mt-12 border-t border-border pt-8">
+          <button
+            onClick={() => setPostLaunchOpen(!postLaunchOpen)}
+            className="w-full flex items-center justify-between text-left group cursor-pointer"
+            aria-expanded={postLaunchOpen}
+            aria-label="Toggle post-launch plans"
+          >
+            <div>
+              <p className="text-[10px] font-light uppercase tracking-[0.25em] text-text-muted mb-1">
+                After Launch
+              </p>
+              <p className="text-sm font-light text-text-dim">
+                See post-launch subscription plans
+              </p>
+            </div>
+            <svg
+              className={`w-4 h-4 text-text-muted transition-transform duration-300 ${postLaunchOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+
+          <div
+            className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+            style={{ gridTemplateRows: postLaunchOpen ? "1fr" : "0fr" }}
+          >
+            <div className="overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8">
+                {/* Free */}
+                <div className="glass-card rounded-xl p-6 md:p-8">
+                  <span className="text-[10px] font-mono font-light text-text-muted/50 tracking-wider block mb-4 uppercase">
+                    Free
+                  </span>
+                  <div className="text-2xl font-semibold tracking-tighter font-mono text-text-primary mb-1">
+                    $0
+                  </div>
+                  <p className="text-text-muted text-[10px] font-light uppercase tracking-[0.15em] mb-6">
+                    Forever
+                  </p>
+                  <ul className="space-y-3">
+                    {[
+                      "Up to 2 live matches",
+                      "2 sports included",
+                      "Basic system tray",
+                    ].map((f) => (
+                      <li key={f} className="text-xs font-light text-text-dim flex items-center gap-3">
+                        <span className="w-1 h-1 rounded-full bg-text-muted/40" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Pro Monthly */}
+                <div className="glass-card rounded-xl p-6 md:p-8">
+                  <span className="text-[10px] font-mono font-light text-accent/50 tracking-wider block mb-4 uppercase">
+                    Pro Monthly
+                  </span>
+                  <div className="text-2xl font-semibold tracking-tighter font-mono text-text-primary mb-1">
+                    $5<span className="text-sm font-light text-text-muted">/mo</span>
+                  </div>
+                  <p className="text-text-muted text-[10px] font-light uppercase tracking-[0.15em] mb-6">
+                    Billed quarterly &middot; $15/quarter
+                  </p>
+                  <ul className="space-y-3">
+                    {[
+                      "Unlimited live matches",
+                      "All 4 sports + all features",
+                      "Priority support",
+                    ].map((f) => (
+                      <li key={f} className="text-xs font-light text-text-primary flex items-center gap-3">
+                        <span className="w-1 h-1 rounded-full bg-accent/50" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Pro Annual */}
+                <div className="glass-card rounded-xl p-6 md:p-8 relative border-accent/15">
+                  <div className="absolute top-3 right-3 text-[9px] font-mono font-medium uppercase tracking-wider text-accent bg-accent/10 px-2.5 py-1 rounded-full">
+                    Best Value
+                  </div>
+                  <span className="text-[10px] font-mono font-light text-accent/50 tracking-wider block mb-4 uppercase">
+                    Pro Annual
+                  </span>
+                  <div className="text-2xl font-semibold tracking-tighter font-mono text-text-primary mb-1">
+                    $49<span className="text-sm font-light text-text-muted">/yr</span>
+                  </div>
+                  <p className="text-text-muted text-[10px] font-light uppercase tracking-[0.15em] mb-6">
+                    Billed annually &middot; Save 18%
+                  </p>
+                  <ul className="space-y-3">
+                    {[
+                      "Unlimited live matches",
+                      "All 4 sports + all features",
+                      "Priority support",
+                    ].map((f) => (
+                      <li key={f} className="text-xs font-light text-text-primary flex items-center gap-3">
+                        <span className="w-1 h-1 rounded-full bg-accent/50" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
