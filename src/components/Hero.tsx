@@ -145,7 +145,7 @@ export default function Hero() {
             Join Free Waitlist
           </button>
           <CheckoutButton className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-text-primary border border-border hover:border-accent/30 hover:text-accent transition-all duration-200 cursor-pointer rounded-md">
-            Get Early Access — $29
+            Get Early Access — <s>$39</s> $29
           </CheckoutButton>
         </div>
 
