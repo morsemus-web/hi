@@ -1,31 +1,35 @@
-const steps = [
-  {
-    num: "01",
-    title: "Select your teams",
-    desc: "Choose from Cricket, Football, Basketball, or F1. Follow the matches that matter to you.",
-  },
-  {
-    num: "02",
-    title: "Keep working",
-    desc: "ScoreDeck sits quietly above your taskbar. No windows to manage, no tabs to juggle.",
-  },
-  {
-    num: "03",
-    title: "Get live updates",
-    desc: "Scores, key events, and alerts delivered automatically. Goals, wickets, overtakes — instantly.",
-  },
-];
+import { getTranslations } from "next-intl/server";
 
-export default function HowItWorks() {
+export default async function HowItWorks() {
+  const t = await getTranslations("HowItWorks");
+
+  const steps = [
+    {
+      num: "01",
+      title: t("step1Title"),
+      desc: t("step1Desc"),
+    },
+    {
+      num: "02",
+      title: t("step2Title"),
+      desc: t("step2Desc"),
+    },
+    {
+      num: "03",
+      title: t("step3Title"),
+      desc: t("step3Desc"),
+    },
+  ];
+
   return (
     <section className="py-24 md:py-32 px-6 md:px-8 border-t border-border">
       <div className="max-w-[900px] mx-auto">
         <div className="text-center mb-16">
           <p className="text-[10px] font-light uppercase tracking-[0.25em] text-text-muted mb-4">
-            How it works
+            {t("sectionLabel")}
           </p>
           <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-text-primary">
-            Simple by design
+            {t("headline")}
           </h2>
         </div>
 

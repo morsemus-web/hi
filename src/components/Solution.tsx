@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 const slides = [
   {
@@ -326,10 +327,18 @@ const bgComponents: Record<string, React.FC<{ isDark: boolean }>> = {
 };
 
 export default function Solution() {
+  const t = useTranslations("Solution");
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
+
+  const bgLabels: Record<string, string> = {
+    vscode: t("bgLabel_vscode"),
+    meeting: t("bgLabel_meeting"),
+    spreadsheet: t("bgLabel_spreadsheet"),
+    browser: t("bgLabel_browser"),
+  };
 
   useEffect(() => setMounted(true), []);
 
@@ -388,13 +397,13 @@ export default function Solution() {
           <div className="md:sticky md:top-32">
             <div className="text-center md:text-left mb-8 md:mb-10">
               <p className="text-[10px] font-light uppercase tracking-[0.25em] text-accent/60 mb-4">
-                The solution
+                {t("sectionLabel")}
               </p>
               <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] mb-4 text-text-primary">
-                Meet ScoreDeck
+                {t("headline")}
               </h2>
               <p className="text-text-dim text-sm font-light leading-relaxed max-w-md mx-auto md:mx-0">
-                A lightweight overlay on your desktop. Live scores, key moments, zero interruptions.
+                {t("description")}
               </p>
             </div>
 
@@ -439,7 +448,7 @@ export default function Solution() {
                     <p className={`text-[9px] mt-0.5 transition-all duration-300 ${
                       i === active ? "text-text-dim/60 opacity-100" : "text-text-muted/20 opacity-0 group-hover:opacity-60"
                     }`}>
-                      {s.bgLabel}
+                      {bgLabels[s.bg]}
                     </p>
                   </div>
                   <div className={`w-0.5 h-6 rounded-full transition-all duration-500 ${
@@ -456,7 +465,7 @@ export default function Solution() {
               {/* Context badge */}
               <div className="mb-5 flex justify-center md:justify-start">
                 <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-text-muted/40 bg-overlay-5 px-3 py-1.5 rounded-lg border border-overlay-5 backdrop-blur-sm">
-                  {slide.bgLabel}
+                  {bgLabels[slide.bg]}
                 </span>
               </div>
 

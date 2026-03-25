@@ -18,7 +18,7 @@ export async function GET() {
 
     if (error) throw error;
 
-    const total = (count || 0) + 4; // 4 early backers before launch
+    const total = (count || 0) + 44; // 44 early backers before launch
     return NextResponse.json({
       count: total,
       max: MAX_BACKERS,

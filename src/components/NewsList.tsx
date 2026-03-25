@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { type NewsArticle, getCategoryStyle } from "@/lib/news";
 import AdUnit from "./AdUnit";
 
 export default function NewsList({ articles }: { articles: NewsArticle[] }) {
+  const t = useTranslations("News");
   return (
     <div className="space-y-6">
       {articles.map((article, i) => (
@@ -47,10 +49,10 @@ export default function NewsList({ articles }: { articles: NewsArticle[] }) {
 
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-text-muted/50 font-light">
-                By {article.author}
+                {t("by")} {article.author}
               </span>
               <span className="text-[10px] text-accent/60 font-medium uppercase tracking-wider group-hover:text-accent transition-colors">
-                Read more &rarr;
+                {t("readMore")} &rarr;
               </span>
             </div>
           </Link>

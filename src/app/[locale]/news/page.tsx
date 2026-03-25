@@ -1,20 +1,28 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { articles, getCategoryStyle } from "@/lib/news";
 import NewsList from "@/components/NewsList";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 
-export const metadata: Metadata = {
-  title: "Sports News — Cricket, Football, NBA & F1 Updates",
-  description:
-    "Latest sports news, analysis, and match previews for Cricket, Football (Soccer), NBA Basketball, and Formula 1. Expert coverage from the ScoreDeck Sports Desk.",
-  alternates: { canonical: "https://tryscoredeck.pro/news" },
-  openGraph: {
-    title: "Sports News — ScoreDeck",
-    description:
-      "Latest sports news, analysis, and match previews for Cricket, Football, NBA Basketball, and Formula 1.",
-    type: "website",
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  const localeMap: Record<string, string> = {};
+  for (const l of routing.locales) {
+    localeMap[l] = `https://tryscoredeck.pro/${l}/news`;
+  }
+  return {
+    title: t("newsTitle"),
+    description: t("newsDescription"),
+    alternates: { canonical: `https://tryscoredeck.pro/${locale}/news`, languages: localeMap },
+    openGraph: {
+      title: t("newsTitle"),
+      description: t("newsDescription"),
+      type: "website",
+    },
+  };
+}
 
 const categories = [
   { key: "all", label: "All" },
@@ -24,7 +32,8 @@ const categories = [
   { key: "f1", label: "F1" },
 ];
 
-export default function NewsPage() {
+export default async function NewsPage() {
+  const t = await getTranslations("News");
   return (
     <main className="min-h-screen bg-bg text-text-primary">
       <div className="max-w-[960px] mx-auto px-6 py-20">
@@ -32,14 +41,14 @@ export default function NewsPage() {
           href="/"
           className="text-[10px] uppercase tracking-[0.2em] text-accent/60 hover:text-accent transition-colors"
         >
-          &larr; Back to ScoreDeck
+          &larr; {t("backToScoreDeck")}
         </Link>
 
         <h1 className="text-3xl font-bold mt-8 mb-2 tracking-tight">
-          Sports News
+          {t("title")}
         </h1>
         <p className="text-text-dim text-sm font-light mb-10">
-          Match previews, analysis, and updates from the ScoreDeck Sports Desk.
+          {t("subtitle")}
         </p>
 
         {/* Category filters */}

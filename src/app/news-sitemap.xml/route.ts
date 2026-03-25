@@ -5,7 +5,7 @@ export async function GET() {
     .map(
       (article) => `
     <url>
-      <loc>https://tryscoredeck.pro/news/${article.slug}</loc>
+      <loc>https://tryscoredeck.pro/en/news/${article.slug}</loc>
       <news:news>
         <news:publication>
           <news:name>ScoreDeck</news:name>

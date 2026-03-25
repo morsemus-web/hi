@@ -1,4 +1,11 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+
 export default function Footer() {
+  const t = useTranslations("Footer");
+
   return (
     <footer className="py-10 px-6 md:px-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
       <div className="flex items-center gap-3">
@@ -12,18 +19,18 @@ export default function Footer() {
       </div>
       <div className="flex gap-6">
         {[
-          { label: "News", href: "/news" },
-          { label: "Privacy", href: "/privacy" },
-          { label: "Terms", href: "/terms" },
-          { label: "Contact", href: "/contact" },
+          { label: t("news"), href: "/news" },
+          { label: t("privacy"), href: "/privacy" },
+          { label: t("terms"), href: "/terms" },
+          { label: t("contact"), href: "/contact" },
         ].map((link) => (
-          <a
+          <Link
             key={link.label}
             href={link.href}
             className="text-text-muted/40 text-[10px] font-light tracking-wider hover:text-text-muted transition-colors duration-200"
           >
             {link.label}
-          </a>
+          </Link>
         ))}
       </div>
     </footer>

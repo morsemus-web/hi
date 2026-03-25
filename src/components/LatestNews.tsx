@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { articles as allArticles, getCategoryStyle } from "@/lib/news";
 
 export default function LatestNews() {
+  const t = useTranslations("LatestNews");
   const articles = allArticles.slice(0, 5);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -35,10 +37,10 @@ export default function LatestNews() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-[10px] font-light uppercase tracking-[0.25em] text-accent/60 mb-3">
-              From the desk
+              {t("sectionLabel")}
             </p>
             <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-text-primary">
-              Latest News
+              {t("headline")}
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -47,7 +49,7 @@ export default function LatestNews() {
                 onClick={() => scroll("left")}
                 disabled={!canScrollLeft}
                 className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-hover transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                aria-label="Scroll left"
+                aria-label={t("scrollLeft")}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 18l-6-6 6-6" />
@@ -57,7 +59,7 @@ export default function LatestNews() {
                 onClick={() => scroll("right")}
                 disabled={!canScrollRight}
                 className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-hover transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                aria-label="Scroll right"
+                aria-label={t("scrollRight")}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 18l6-6-6-6" />
@@ -68,7 +70,7 @@ export default function LatestNews() {
               href="/news"
               className="text-[10px] font-medium uppercase tracking-[0.12em] text-accent hover:text-accent/80 transition-colors"
             >
-              View all &rarr;
+              {t("viewAll")} &rarr;
             </Link>
           </div>
         </div>
@@ -111,7 +113,7 @@ export default function LatestNews() {
                 </p>
 
                 <span className="text-[9px] text-accent/60 font-medium uppercase tracking-wider group-hover:text-accent transition-colors">
-                  Read more &rarr;
+                  {t("readMore")} &rarr;
                 </span>
               </div>
             </Link>

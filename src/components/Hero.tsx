@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import CheckoutButton from "./CheckoutButton";
 
 function VideoPlayer({
@@ -8,11 +9,13 @@ function VideoPlayer({
   playing,
   onPlay,
   className = "",
+  watchDemoLabel,
 }: {
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   playing: boolean;
   onPlay: () => void;
   className?: string;
+  watchDemoLabel: string;
 }) {
   return (
     <div className={`glass-card rounded-xl overflow-hidden group relative ${className}`}>
@@ -42,7 +45,7 @@ function VideoPlayer({
             </svg>
           </div>
           <span className="text-[10px] font-light uppercase tracking-[0.25em] text-white/70">
-            Watch demo
+            {watchDemoLabel}
           </span>
         </div>
       )}
@@ -69,6 +72,7 @@ function useCountUp(target: number | null, duration = 3000) {
 }
 
 export default function Hero() {
+  const t = useTranslations("Hero");
   const [backerCount, setBackerCount] = useState<number | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
@@ -84,7 +88,7 @@ export default function Hero() {
     fetch("/api/backers")
       .then((r) => r.json())
       .then((d) => { setBackerCount(d.count); setRemaining(d.remaining); })
-      .catch(() => { setBackerCount(4); setRemaining(996); });
+      .catch(() => { setBackerCount(44); setRemaining(956); });
     fetch("/api/waitlist")
       .then((r) => r.json())
       .then((d) => setWaitlistCount(d.count))
@@ -113,17 +117,17 @@ export default function Hero() {
       <div className="flex-1 max-w-xl animate-fade-in-up">
         <div className="inline-flex items-center gap-2 text-[10px] font-light uppercase tracking-[0.2em] text-text-muted mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-[pulse-dot_2s_infinite]" />
-          Launching 29th April 2026
+          {t("launching")}
         </div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.03em] leading-[1.1] mb-6">
-          Stop opening apps
+          {t("headline1")}
           <br />
-          <span className="text-accent">for scores.</span>
+          <span className="text-accent">{t("headline2")}</span>
         </h1>
 
         <p className="text-text-dim text-base md:text-lg font-light max-w-md mb-8 leading-relaxed">
-          ScoreDeck is a desktop overlay that gives you live sports updates and key moments — without interrupting your work.
+          {t("description")}
         </p>
 
         {/* Mobile-only video: between description and CTAs */}
@@ -132,6 +136,7 @@ export default function Hero() {
             videoRef={mobileVideoRef}
             playing={playing}
             onPlay={playMobile}
+            watchDemoLabel={t("watchDemo")}
           />
         </div>
 
@@ -142,33 +147,33 @@ export default function Hero() {
             }
             className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors duration-200 cursor-pointer rounded-md"
           >
-            Join Free Waitlist
+            {t("joinFreeWaitlist")}
           </button>
           <CheckoutButton className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-text-primary border border-border hover:border-accent/30 hover:text-accent transition-all duration-200 cursor-pointer rounded-md">
-            Get Early Access — <s>$39</s> $29
+            {t.rich("getEarlyAccess", { s: (chunks) => <s>{chunks}</s> })}
           </CheckoutButton>
         </div>
 
         <div className="grid grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-2 text-[10px] font-light uppercase tracking-[0.15em] text-text-muted">
           <span className="col-span-3 flex items-center gap-2 sm:col-span-1">
             <span className="w-1 h-1 rounded-full bg-sport-f1/60" />
-            Limited to 1,000 founding users
+            {t("limitedTo")}
           </span>
           <span className="col-span-3 flex items-center gap-2 sm:col-span-1">
             <span className="w-1 h-1 rounded-full bg-sport-f1/60" />
-            Starting at 5$/Month on Launch
+            {t("startingAt")}
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
             <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
-            <span>backed</span>
+            <span>{t("backed")}</span>
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
             <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedWaitlist}+</span>
-            <span>waitlisted</span>
+            <span>{t("waitlisted")}</span>
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
             <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining}</span>
-            <span>spots left</span>
+            <span>{t("spotsLeft")}</span>
           </span>
         </div>
       </div>
@@ -179,6 +184,7 @@ export default function Hero() {
           videoRef={videoRef}
           playing={playing}
           onPlay={playDesktop}
+          watchDemoLabel={t("watchDemo")}
         />
       </div>
     </section>

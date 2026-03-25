@@ -1,63 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-const painPoints = [
-  {
-    number: "20×",
-    highlight: "per day",
-    title: "Tab switching addiction",
-    desc: "ESPN, Cricbuzz, F1 Live, NBA app — you open them \"just for a second\" then lose 5 minutes. Multiply that by every match day.",
-    stat: "20× daily context switches",
-    color: "text-red-400",
-    bgColor: "bg-red-500/5",
-    borderColor: "border-red-500/10",
-    accentRgb: "239,68,68",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-400/60">
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8" />
-        <path d="M12 17v4" />
-        <path d="M7 8h3M14 8h3M7 12h10" />
-      </svg>
-    ),
-  },
-  {
-    number: "15min",
-    highlight: "lost each time",
-    title: "Focus destroyed",
-    desc: "Research shows it takes 15 minutes to regain deep focus after a single interruption. A quick score check is never just a quick check.",
-    stat: "~2 hours lost per match day",
-    color: "text-amber-400",
-    bgColor: "bg-amber-500/5",
-    borderColor: "border-amber-500/10",
-    accentRgb: "245,158,11",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400/60">
-        <path d="M12 2a10 10 0 1 0 10 10" />
-        <path d="M12 12l7-7" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
-  },
-  {
-    number: "73%",
-    highlight: "missed",
-    title: "Key moments gone",
-    desc: "Goals, wickets, overtakes, buzzer-beaters — they happen in seconds. If you're not watching, you miss them. Then you're scrambling to find a replay.",
-    stat: "You only catch 1 in 4 key moments",
-    color: "text-cyan-400",
-    bgColor: "bg-cyan-500/5",
-    borderColor: "border-cyan-500/10",
-    accentRgb: "6,182,212",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400/60">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 6v6l4 2" />
-      </svg>
-    ),
-  },
-];
+import { useTranslations } from "next-intl";
 
 function ExpandCard({ children, index, accentRgb }: { children: React.ReactNode; index: number; accentRgb: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -110,6 +54,7 @@ function ExpandCard({ children, index, accentRgb }: { children: React.ReactNode;
 }
 
 export default function Problem() {
+  const t = useTranslations("Problem");
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,6 +76,63 @@ export default function Problem() {
     return () => observer.disconnect();
   }, []);
 
+  const painPoints = [
+    {
+      number: t("card1Number"),
+      highlight: t("card1Highlight"),
+      title: t("card1Title"),
+      desc: t("card1Desc"),
+      stat: t("card1Stat"),
+      color: "text-red-400",
+      bgColor: "bg-red-500/5",
+      borderColor: "border-red-500/10",
+      accentRgb: "239,68,68",
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-400/60">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8" />
+          <path d="M12 17v4" />
+          <path d="M7 8h3M14 8h3M7 12h10" />
+        </svg>
+      ),
+    },
+    {
+      number: t("card2Number"),
+      highlight: t("card2Highlight"),
+      title: t("card2Title"),
+      desc: t("card2Desc"),
+      stat: t("card2Stat"),
+      color: "text-amber-400",
+      bgColor: "bg-amber-500/5",
+      borderColor: "border-amber-500/10",
+      accentRgb: "245,158,11",
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400/60">
+          <path d="M12 2a10 10 0 1 0 10 10" />
+          <path d="M12 12l7-7" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      ),
+    },
+    {
+      number: t("card3Number"),
+      highlight: t("card3Highlight"),
+      title: t("card3Title"),
+      desc: t("card3Desc"),
+      stat: t("card3Stat"),
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/5",
+      borderColor: "border-cyan-500/10",
+      accentRgb: "6,182,212",
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400/60">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <section className="py-24 md:py-36 px-6 md:px-8 border-t border-border">
       <div className="max-w-[1280px] mx-auto">
@@ -145,12 +147,12 @@ export default function Problem() {
           }}
         >
           <p className="text-[10px] font-light uppercase tracking-[0.25em] text-red-400/60 mb-4">
-            The problem
+            {t("sectionLabel")}
           </p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.03em] text-text-primary leading-[1.1]">
-            You&apos;re bleeding focus
+            {t("headline1")}
             <br />
-            <span className="text-text-muted/40">just to check a score.</span>
+            <span className="text-text-muted/40">{t("headline2")}</span>
           </h2>
         </div>
 
@@ -195,7 +197,7 @@ export default function Problem() {
         {/* Bottom callout */}
         <div className="mt-16 text-center">
           <p className="text-text-muted/30 text-xs font-light tracking-wider uppercase">
-            There&apos;s a better way &darr;
+            {t("betterWay")} &darr;
           </p>
         </div>
       </div>

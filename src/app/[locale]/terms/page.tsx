@@ -1,13 +1,24 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
+import { routing } from "@/i18n/routing";
 
-export const metadata = {
-  title: "Terms of Service",
-  description:
-    "ScoreDeck Terms of Service — Founding Access pricing, refund policy, acceptable use, and intellectual property terms for the live sports scores desktop app.",
-  alternates: { canonical: "https://tryscoredeck.pro/terms" },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  const localeMap: Record<string, string> = {};
+  for (const l of routing.locales) {
+    localeMap[l] = `https://tryscoredeck.pro/${l}/terms`;
+  }
+  return {
+    title: t("termsTitle"),
+    description: t("termsDescription"),
+    alternates: { canonical: `https://tryscoredeck.pro/${locale}/terms`, languages: localeMap },
+  };
+}
 
-export default function Terms() {
+export default async function Terms() {
+  const t = await getTranslations("Terms");
   return (
     <main className="min-h-screen bg-bg text-text-primary">
       <div className="max-w-[680px] mx-auto px-6 py-20">
@@ -15,11 +26,11 @@ export default function Terms() {
           href="/"
           className="text-[10px] uppercase tracking-[0.2em] text-accent/60 hover:text-accent transition-colors"
         >
-          &larr; Back to ScoreDeck
+          &larr; {t("backToScoreDeck")}
         </Link>
 
-        <h1 className="text-3xl font-bold mt-8 mb-2 tracking-tight">Terms of Service</h1>
-        <p className="text-text-muted/40 text-xs mb-12">Last updated: March 20, 2026</p>
+        <h1 className="text-3xl font-bold mt-8 mb-2 tracking-tight">{t("title")}</h1>
+        <p className="text-text-muted/40 text-xs mb-12">{t("lastUpdated")}</p>
 
         <div className="space-y-10 text-sm text-text-dim leading-relaxed">
           <section>

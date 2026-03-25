@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export default function ThanksPage() {
+  const t = useTranslations("Thanks");
   useEffect(() => {
     // Extract email from URL params if Dodo passes it
     const params = new URLSearchParams(window.location.search);
@@ -38,25 +40,22 @@ export default function ThanksPage() {
         </div>
 
         <h1 className="text-3xl font-extrabold tracking-tight mb-4">
-          You&apos;re a <span className="text-accent">lifetime backer</span>!
+          You&apos;re a <span className="text-accent">{t("highlight")}</span>!
         </h1>
 
         <p className="text-text-dim text-base leading-relaxed mb-4">
-          Thank you for backing ScoreDeck. Your $29 lifetime access is confirmed.
-          You&apos;ll get every future update, every new sport, and an early backer
-          badge — forever.
+          {t("description")}
         </p>
 
         <p className="text-text-muted text-sm mb-8">
-          We&apos;ll send you a download link as soon as ScoreDeck is ready. Check
-          your email for a confirmation.
+          {t("emailNote")}
         </p>
 
         <Link
           href="/"
           className="inline-block px-8 py-3 rounded-xl bg-accent text-black font-bold hover:opacity-90 transition-all"
         >
-          Back to Home
+          {t("backToHome")}
         </Link>
       </div>
     </div>

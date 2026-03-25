@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 const features = [
   {
@@ -12,8 +13,6 @@ const features = [
         <path d="M6 21h12" />
       </svg>
     ),
-    title: "Always-On Overlay",
-    desc: "Lives above your taskbar. Always visible, never in the way.",
   },
   {
     icon: (
@@ -21,8 +20,6 @@ const features = [
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
       </svg>
     ),
-    title: "Real-Time Updates",
-    desc: "Instant scores. No refresh needed. Background sync keeps everything current.",
   },
   {
     icon: (
@@ -31,8 +28,6 @@ const features = [
         <circle cx="12" cy="7" r="4" />
       </svg>
     ),
-    title: "Personalized Feed",
-    desc: "Follow only your teams and matches. Pin what matters most.",
   },
   {
     icon: (
@@ -43,8 +38,6 @@ const features = [
         <rect x="14" y="13" width="8" height="8" rx="1" />
       </svg>
     ),
-    title: "Multi-Match View",
-    desc: "Track multiple games at once. Cricket, Football, Basketball, and F1.",
   },
   {
     icon: (
@@ -53,8 +46,6 @@ const features = [
         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
     ),
-    title: "Key Alerts",
-    desc: "Goals, wickets, overtakes — instant notifications right on your toolbar.",
   },
   {
     icon: (
@@ -63,8 +54,6 @@ const features = [
         <circle cx="12" cy="12" r="3" />
       </svg>
     ),
-    title: "Stealth Mode",
-    desc: "Reduce opacity, go compact. Stay updated without anyone noticing.",
   },
   {
     icon: (
@@ -75,12 +64,21 @@ const features = [
         <line x1="8" y1="23" x2="16" y2="23" />
       </svg>
     ),
-    title: "Live Commentary",
-    desc: "Listen to matches in English, Hindi, Spanish, or German. The next best thing to watching.",
   },
 ];
 
 export default function Features() {
+  const t = useTranslations("Features");
+  const featureTexts = [
+    { title: t("f1Title"), desc: t("f1Desc") },
+    { title: t("f2Title"), desc: t("f2Desc") },
+    { title: t("f3Title"), desc: t("f3Desc") },
+    { title: t("f4Title"), desc: t("f4Desc") },
+    { title: t("f5Title"), desc: t("f5Desc") },
+    { title: t("f6Title"), desc: t("f6Desc") },
+    { title: t("f7Title"), desc: t("f7Desc") },
+  ];
+
   const [active, setActive] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -187,10 +185,10 @@ export default function Features() {
       <div className="max-w-[1280px] mx-auto">
         <div className="text-center mb-16 md:mb-20">
           <p className="text-[10px] font-light uppercase tracking-[0.25em] text-text-muted mb-4">
-            Features
+            {t("sectionLabel")}
           </p>
           <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-text-primary">
-            Everything you need. Nothing you don&apos;t.
+            {t("headline")}
           </h2>
         </div>
 
@@ -237,13 +235,13 @@ export default function Features() {
                       className="text-base font-semibold mb-3 transition-colors duration-500"
                       style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.9)") : (isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)") }}
                     >
-                      {f.title}
+                      {featureTexts[i].title}
                     </h3>
                     <p
                       className="text-sm font-light leading-relaxed transition-colors duration-500"
                       style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)") : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)") }}
                     >
-                      {f.desc}
+                      {featureTexts[i].desc}
                     </p>
                   </div>
                 </div>
@@ -255,7 +253,7 @@ export default function Features() {
           <div className="flex justify-center gap-4 mt-8">
             <button
               onClick={prev}
-              aria-label="Previous feature"
+              aria-label={t("prevFeature")}
               className="w-10 h-10 rounded-full border border-border-hover flex items-center justify-center text-text-muted hover:text-text-primary hover:border-overlay-15 transition-all cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -268,7 +266,7 @@ export default function Features() {
                 <button
                   key={i}
                   onClick={() => goTo(i)}
-                  aria-label={`Go to feature: ${f.title}`}
+                  aria-label={`Go to feature: ${featureTexts[i].title}`}
                   className={`rounded-full transition-all duration-300 cursor-pointer p-1 ${
                     i === active ? "w-8 h-4 bg-accent/60" : "w-4 h-4 bg-overlay-15 hover:bg-overlay-text-muted"
                   }`}
@@ -279,7 +277,7 @@ export default function Features() {
             </div>
             <button
               onClick={next}
-              aria-label="Next feature"
+              aria-label={t("nextFeature")}
               className="w-10 h-10 rounded-full border border-border-hover flex items-center justify-center text-text-muted hover:text-text-primary hover:border-overlay-15 transition-all cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -329,13 +327,13 @@ export default function Features() {
                       className="text-[15px] font-semibold mb-2"
                       style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.9)") : (isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)") }}
                     >
-                      {f.title}
+                      {featureTexts[i].title}
                     </h3>
                     <p
                       className="text-xs font-light leading-relaxed"
                       style={{ color: i === active ? (isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)") : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)") }}
                     >
-                      {f.desc}
+                      {featureTexts[i].desc}
                     </p>
                   </div>
                 </div>
@@ -347,7 +345,7 @@ export default function Features() {
           <div className="flex justify-center gap-3 mt-6">
             <button
               onClick={prev}
-              aria-label="Previous feature"
+              aria-label={t("prevFeature")}
               className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
@@ -357,7 +355,7 @@ export default function Features() {
                 <button
                   key={i}
                   onClick={() => goTo(i)}
-                  aria-label={`Go to feature: ${f.title}`}
+                  aria-label={`Go to feature: ${featureTexts[i].title}`}
                   className={`rounded-full transition-all duration-300 cursor-pointer p-1.5 ${
                     i === active ? "w-8 h-5 bg-accent/60" : "w-5 h-5 bg-transparent"
                   }`}
@@ -368,7 +366,7 @@ export default function Features() {
             </div>
             <button
               onClick={next}
-              aria-label="Next feature"
+              aria-label={t("nextFeature")}
               className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>

@@ -1,24 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const testimonials = [
-  {
-    quote: "Finally, I can watch the IPL without my boss noticing I have 5 tabs open.",
-    name: "Arjun K.",
-    role: "Software Developer",
-  },
-  {
-    quote: "I trade during match days. ScoreDeck means I never miss a goal or a candle.",
-    name: "Marcus T.",
-    role: "Day Trader",
-  },
-  {
-    quote: "It's like having a sports ticker built into my desktop. Clean and minimal.",
-    name: "Sarah L.",
-    role: "Product Designer",
-  },
-];
+import { useTranslations } from "next-intl";
 
 function useCountUp(target: number | null, duration = 3000) {
   const [displayed, setDisplayed] = useState(0);
@@ -39,8 +22,27 @@ function useCountUp(target: number | null, duration = 3000) {
 }
 
 export default function SocialProof() {
+  const t = useTranslations("SocialProof");
   const [count, setCount] = useState<number | null>(null);
   const displayed = useCountUp(count);
+
+  const testimonials = [
+    {
+      quote: t("t1Quote"),
+      name: t("t1Name"),
+      role: t("t1Role"),
+    },
+    {
+      quote: t("t2Quote"),
+      name: t("t2Name"),
+      role: t("t2Role"),
+    },
+    {
+      quote: t("t3Quote"),
+      name: t("t3Name"),
+      role: t("t3Role"),
+    },
+  ];
 
   useEffect(() => {
     fetch("/api/waitlist")
@@ -55,23 +57,23 @@ export default function SocialProof() {
         <div className="inline-flex items-center gap-3 glass-card rounded-full px-6 py-3 mb-14">
           <span className="w-2 h-2 rounded-full bg-accent animate-[pulse-dot_2s_infinite]" />
           <span className="text-sm font-light text-text-dim">
-            <span className="font-mono font-medium text-accent">{displayed}+</span> users already joined the waitlist
+            <span className="font-mono font-medium text-accent">{displayed}+</span> {t("waitlistJoined")}
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {testimonials.map((t, i) => (
+          {testimonials.map((item, i) => (
             <div
               key={i}
               className="glass-card rounded-xl p-8 text-left animate-fade-in-up"
               style={{ animationDelay: `${i * 0.1 + 0.1}s` }}
             >
               <p className="text-sm font-light text-text-dim leading-relaxed mb-6 italic">
-                &ldquo;{t.quote}&rdquo;
+                &ldquo;{item.quote}&rdquo;
               </p>
               <div>
-                <p className="text-xs font-medium text-text-primary">{t.name}</p>
-                <p className="text-[10px] font-light text-text-muted">{t.role}</p>
+                <p className="text-xs font-medium text-text-primary">{item.name}</p>
+                <p className="text-[10px] font-light text-text-muted">{item.role}</p>
               </div>
             </div>
           ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const languages = [
   {
@@ -83,6 +84,7 @@ function AnimatedWaveform({ active }: { active: boolean }) {
 }
 
 export default function Commentary() {
+  const t = useTranslations("Commentary");
   const [activeLang, setActiveLang] = useState(0);
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -125,14 +127,13 @@ export default function Commentary() {
       <div className="max-w-[1000px] mx-auto">
         <div className="text-center mb-14">
           <p className="text-[10px] font-light uppercase tracking-[0.25em] text-accent/60 mb-4">
-            Live Commentary
+            {t("sectionLabel")}
           </p>
           <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-text-primary mb-4">
-            Listen to matches live.
+            {t("headline")}
           </h2>
           <p className="text-text-dim text-sm md:text-base font-light max-w-lg mx-auto leading-relaxed">
-            The next best thing to watching. Real-time commentary in 4 languages —
-            stream it while you work, commute, or just can&apos;t watch.
+            {t("description")}
           </p>
         </div>
 
@@ -171,12 +172,12 @@ export default function Commentary() {
                   {current.sport}
                 </p>
                 <p className={`text-[11px] uppercase tracking-[0.12em] font-medium ${current.accent}`}>
-                  {current.name} Commentary
+                  {current.name} {t("commentary")}
                 </p>
               </div>
               <button
                 onClick={() => playCommentary(activeLang)}
-                aria-label={playing ? "Pause commentary" : "Play commentary"}
+                aria-label={playing ? t("pauseCommentary") : t("playCommentary")}
                 className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer ${
                   playing
                     ? `${current.bgAccent} ${current.accent}`
@@ -229,7 +230,7 @@ export default function Commentary() {
                 ))}
               </div>
               <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-text-muted/40">
-                {playing ? "Now playing" : "Tap to listen"}
+                {playing ? t("nowPlaying") : t("tapToListen")}
               </p>
             </div>
           </div>
@@ -238,10 +239,10 @@ export default function Commentary() {
         {/* Bottom features row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-[650px] mx-auto">
           {[
-            { label: "Languages", value: "4", sub: "EN · HI · ES · DE" },
-            { label: "Sports", value: "6+", sub: "More coming soon" },
-            { label: "Latency", value: "<2s", sub: "Near real-time" },
-            { label: "Quality", value: "HD", sub: "Crystal clear" },
+            { label: t("languages"), value: "4", sub: "EN · HI · ES · DE" },
+            { label: t("sports"), value: "6+", sub: t("moreComing") },
+            { label: t("latency"), value: "<2s", sub: t("nearRealTime") },
+            { label: t("quality"), value: "HD", sub: t("crystalClear") },
           ].map((stat) => (
             <div key={stat.label} className="text-center p-4 rounded-lg bg-overlay-2 border border-border">
               <p className="text-lg font-semibold text-accent/80 font-mono">{stat.value}</p>
@@ -253,7 +254,7 @@ export default function Commentary() {
 
         {/* Sports coverage */}
         <div className="mt-8 text-center">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted/40 mb-3">Available for</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted/40 mb-3">{t("availableFor")}</p>
           <div className="flex flex-wrap justify-center gap-3">
             {[
               { name: "Cricket", live: true },
@@ -276,7 +277,7 @@ export default function Commentary() {
               >
                 <span className={`w-1 h-1 rounded-full ${s.live ? "bg-accent/60" : "bg-overlay-15"}`} />
                 {s.name}
-                {!s.live && <span className="text-[8px] text-text-muted/25 ml-0.5">soon</span>}
+                {!s.live && <span className="text-[8px] text-text-muted/25 ml-0.5">{t("soon")}</span>}
               </span>
             ))}
           </div>

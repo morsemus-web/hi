@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const sports = [
   { id: "football", label: "Football", icon: "⚽", accent: "#f97316" },
@@ -320,8 +321,15 @@ function F1Viz({ tick }: { tick: number }) {
 }
 
 export default function LiveTracker() {
+  const t = useTranslations("LiveTracker");
   const [active, setActive] = useState<SportId>("football");
   const [tick, setTick] = useState(0);
+
+  const sportLabels: Record<string, string> = {
+    football: t("football"),
+    cricket: t("cricket"),
+    f1: t("formula1"),
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setTick((t) => t + 1), 1200);
@@ -335,14 +343,13 @@ export default function LiveTracker() {
       <div className="max-w-[1000px] mx-auto">
         <div className="text-center mb-14">
           <p className="text-[10px] font-light uppercase tracking-[0.25em] text-accent/60 mb-4">
-            Popout Live Tracker
+            {t("sectionLabel")}
           </p>
           <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-text-primary mb-4">
-            A live game, in your corner.
+            {t("headline")}
           </h2>
           <p className="text-text-dim text-sm md:text-base font-light max-w-lg mx-auto leading-relaxed">
-            Detach a floating PiP widget that shows the spatial flow of the game in real-time.
-            Always on top. Never in the way.
+            {t("description")}
           </p>
         </div>
 
@@ -359,7 +366,7 @@ export default function LiveTracker() {
               }`}
             >
               <span className="text-xs sm:text-sm">{s.icon}</span>
-              {s.label}
+              {sportLabels[s.id]}
             </button>
           ))}
         </div>
@@ -399,16 +406,16 @@ export default function LiveTracker() {
 
           {/* Caption */}
           <p className="text-center text-[10px] text-text-muted/40 mt-4 font-light">
-            Floating widget • Always on top • Draggable
+            {t("caption")}
           </p>
         </div>
 
         {/* Feature highlights */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-12 max-w-[600px] mx-auto">
           {[
-            { label: "Mini Pitch", desc: "Ball & zone tracking", icon: "⚽" },
-            { label: "Wagon Wheel", desc: "Every delivery mapped", icon: "🏏" },
-            { label: "Track Map", desc: "Live driver positions", icon: "🏎" },
+            { label: t("miniPitch"), desc: t("miniPitchDesc"), icon: "⚽" },
+            { label: t("wagonWheel"), desc: t("wagonWheelDesc"), icon: "🏏" },
+            { label: t("trackMap"), desc: t("trackMapDesc"), icon: "🏎" },
           ].map((f) => (
             <div key={f.label} className="text-center p-4 rounded-lg bg-overlay-2 border border-border">
               <span className="text-xl mb-2 block">{f.icon}</span>

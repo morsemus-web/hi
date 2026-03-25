@@ -1,5 +1,6 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { articles, getArticle, getCategoryStyle } from "@/lib/news";
 import { InArticleAd, MultiplexAd } from "@/components/ArticleAds";
 import type { Metadata } from "next";
@@ -116,6 +117,7 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const t = await getTranslations("News");
   const article = getArticle(slug);
   if (!article) notFound();
 
@@ -167,7 +169,7 @@ export default async function ArticlePage({
           href="/news"
           className="text-[10px] uppercase tracking-[0.2em] text-accent/60 hover:text-accent transition-colors"
         >
-          &larr; Back to News
+          &larr; {t("backToNews")}
         </Link>
 
         <div className="flex items-center gap-3 mt-8 mb-4">
@@ -195,7 +197,7 @@ export default async function ArticlePage({
         </h1>
 
         <p className="text-text-dim text-sm font-light mb-2">
-          By {article.author}
+          {t("by")} {article.author}
         </p>
 
         <hr className="border-border my-8" />
@@ -222,17 +224,16 @@ export default async function ArticlePage({
         {/* CTA */}
         <div className="glass-card rounded-xl p-6 sm:p-8 mt-10 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-accent/60 mb-2">
-            Never miss a moment
+            {t("tryScoreDeck")}
           </p>
           <p className="text-sm text-text-dim font-light mb-5">
-            Get live scores for Cricket, Football, Basketball & F1 right on your
-            desktop.
+            {t("tryScoreDeck")}
           </p>
           <Link
             href="/#waitlist"
             className="inline-block px-6 py-2.5 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors rounded-md"
           >
-            Join Free Waitlist
+            {t("getScoreDeck")}
           </Link>
         </div>
 
