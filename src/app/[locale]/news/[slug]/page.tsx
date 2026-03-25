@@ -3,25 +3,28 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { articles, getArticle, getCategoryStyle } from "@/lib/news";
 import { InArticleAd, MultiplexAd } from "@/components/ArticleAds";
+import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+  return routing.locales.flatMap((locale) =>
+    articles.map((a) => ({ locale, slug: a.slug }))
+  );
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const article = getArticle(slug);
   if (!article) return {};
   return {
     title: article.title,
     description: article.description,
     authors: [{ name: article.author }],
-    alternates: { canonical: `https://tryscoredeck.pro/news/${article.slug}` },
+    alternates: { canonical: `https://tryscoredeck.pro/${locale}/news/${article.slug}` },
     openGraph: {
       title: article.title,
       description: article.description,
@@ -114,7 +117,7 @@ function renderContent(content: string, images?: Record<string, string>) {
 export default async function ArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
   const { slug } = await params;
   const t = await getTranslations("News");
