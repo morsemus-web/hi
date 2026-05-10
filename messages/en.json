@@ -9,7 +9,7 @@
     "toggleTheme": "Toggle theme"
   },
   "Hero": {
-    "launching": "Launching 29th April 2026",
+    "launching": "Launching Soon",
     "headline1": "Stop opening apps",
     "headline2": "for scores.",
     "description": "ScoreDeck is a desktop overlay that gives you live sports updates and key moments — without interrupting your work.",
@@ -20,6 +20,7 @@
     "backed": "backed",
     "waitlisted": "waitlisted",
     "spotsLeft": "spots left",
+    "tryLiveCricket": "Try Live Cricket Now",
     "watchDemo": "Watch demo"
   },
   "Problem": {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import CheckoutButton from "./CheckoutButton";
 
 function VideoPlayer({
@@ -176,6 +177,20 @@ export default function Hero() {
             <span>{t("spotsLeft")}</span>
           </span>
         </div>
+
+        {/* Try Live Cricket CTA */}
+        <Link
+          href="/live-cricket-now"
+          className="mt-6 inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-sport-cricket/10 border border-sport-cricket/20 hover:bg-sport-cricket/20 hover:border-sport-cricket/30 transition-all duration-300 group"
+        >
+          <span className="w-2 h-2 rounded-full bg-sport-cricket animate-[pulse-dot_2s_infinite]" />
+          <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-sport-cricket">
+            {t("tryLiveCricket")}
+          </span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sport-cricket/60 group-hover:translate-x-0.5 transition-transform">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
 
       {/* Desktop-only: Video in right column */}

@@ -9,7 +9,7 @@
     "toggleTheme": "Cambiar tema"
   },
   "Hero": {
-    "launching": "Lanzamiento 29 de abril de 2026",
+    "launching": "Lanzamiento Próximamente",
     "headline1": "Deja de abrir apps",
     "headline2": "para ver marcadores.",
     "description": "ScoreDeck es una superposición de escritorio que te da actualizaciones deportivas en vivo y momentos clave — sin interrumpir tu trabajo.",
@@ -20,6 +20,7 @@
     "backed": "respaldaron",
     "waitlisted": "en lista",
     "spotsLeft": "plazas restantes",
+    "tryLiveCricket": "Prueba Cricket en Vivo Ahora",
     "watchDemo": "Ver demo"
   },
   "Problem": {
