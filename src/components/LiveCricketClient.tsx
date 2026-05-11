@@ -34,7 +34,7 @@ interface ParsedMatch extends MatchData {
 }
 
 /* ── Constants ── */
-const API_URL = "https://live-cricket-score-api-production.up.railway.app/all_matches";
+const API_URL = "/api/cricket";
 const POLL_INTERVAL = 5000;
 const JUNK_BOWLERS = ["IPL", "TATA IPL", "Over", "score not found", ""];
 
