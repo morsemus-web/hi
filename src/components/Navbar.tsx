@@ -5,13 +5,32 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import LocaleSwitcher from "./LocaleSwitcher";
+import { supabase } from "@/lib/supabase";
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("Navbar");
 
-  useEffect(() => setMounted(true), []);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    window.location.reload();
+  }
 
   function scrollTo(id: string) {
     document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
@@ -24,7 +43,6 @@ export default function Navbar() {
   const navItems = [
     { key: "features", section: "#features" },
     { key: "pricing", section: "#pricing" },
-    { key: "waitlist", section: "#waitlist" },
   ] as const;
 
   return (
@@ -82,20 +100,26 @@ export default function Navbar() {
             )}
           </button>
         )}
-        <button
-          onClick={() => scrollTo("#waitlist")}
-          className="hidden sm:block text-[11px] font-light uppercase tracking-[0.1em] text-text-muted hover:text-text-dim transition-colors duration-200 cursor-pointer"
-        >
-          {t("joinWaitlist")}
-        </button>
-        <a
-          href="https://chaddhafateh.gumroad.com/l/tgdwsy?wanted=true"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.1em] text-bg bg-accent hover:bg-accent/90 px-3 sm:px-5 py-2 transition-colors duration-200 cursor-pointer rounded-md"
-        >
-          {t("getEarlyAccess")}
-        </a>
+        {user ? (
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:block text-[10px] font-mono text-text-muted">
+              {user.email}
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.1em] text-text-primary border border-border hover:border-text-muted px-3 sm:px-5 py-2 transition-colors duration-200 cursor-pointer rounded-md"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.1em] text-bg bg-accent hover:bg-accent/90 px-3 sm:px-5 py-2 transition-colors duration-200 cursor-pointer rounded-md"
+          >
+            Sign In
+          </Link>
+        )}
       </div>
     </nav>
   );

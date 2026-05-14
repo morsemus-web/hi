@@ -191,6 +191,10 @@ export default async function LocaleLayout({ children, params }: Props) {
             });
           `}
         </Script>
+        <Script
+          src="https://js.dodopayments.com/v1/checkout.js"
+          strategy="beforeInteractive"
+        />
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>

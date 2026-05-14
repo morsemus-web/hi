@@ -118,7 +118,7 @@ export default function Hero() {
       <div className="flex-1 max-w-xl animate-fade-in-up">
         <div className="inline-flex items-center gap-2 text-[10px] font-light uppercase tracking-[0.2em] text-text-muted mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-[pulse-dot_2s_infinite]" />
-          {t("launching")}
+          {t("liveNow")}
         </div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.03em] leading-[1.1] mb-6">
@@ -142,17 +142,20 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">
+          <Link
+            href="/download"
+            className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors duration-200 cursor-pointer rounded-md inline-block"
+          >
+            {t("downloadForWindows")}
+          </Link>
           <button
             onClick={() =>
-              document.querySelector("#waitlist")?.scrollIntoView({ behavior: "smooth" })
+              document.querySelector("#pricing")?.scrollIntoView({ behavior: "smooth" })
             }
-            className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors duration-200 cursor-pointer rounded-md"
+            className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-text-primary border border-border hover:border-accent/30 hover:text-accent transition-all duration-200 cursor-pointer rounded-md"
           >
-            {t("joinFreeWaitlist")}
+            {t("viewPricing")}
           </button>
-          <CheckoutButton className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-text-primary border border-border hover:border-accent/30 hover:text-accent transition-all duration-200 cursor-pointer rounded-md">
-            {t.rich("getEarlyAccess", { s: (chunks) => <s>{chunks}</s> })}
-          </CheckoutButton>
         </div>
 
         <div className="grid grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-2 text-[10px] font-light uppercase tracking-[0.15em] text-text-muted">
@@ -168,10 +171,7 @@ export default function Hero() {
             <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
             <span>{t("backed")}</span>
           </span>
-          <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedWaitlist}+</span>
-            <span>{t("waitlisted")}</span>
-          </span>
+
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
             <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining}</span>
             <span>{t("spotsLeft")}</span>
