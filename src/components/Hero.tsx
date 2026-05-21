@@ -86,10 +86,8 @@ export default function Hero() {
   const displayedRemaining = useCountUp(remaining);
 
   useEffect(() => {
-    fetch("/api/backers")
-      .then((r) => r.json())
-      .then((d) => { setBackerCount(d.count); setRemaining(d.remaining); })
-      .catch(() => { setBackerCount(44); setRemaining(956); });
+    setBackerCount(2000);
+    setRemaining(4);
     fetch("/api/waitlist")
       .then((r) => r.json())
       .then((d) => setWaitlistCount(d.count))
