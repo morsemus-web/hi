@@ -156,16 +156,19 @@ function getMatchState(statusText: string) {
   // Clean all emojis for sleek typography
   let cleanText = statusText.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "").trim();
   
-  const isCompleted = t.includes("won") || t.includes("beat") || t.includes("draw") || t.includes("tied") || t.includes("completed") || t.includes("abandoned") || t.includes("no result");
-  const isUpcoming = t.includes("starts at") || t.includes("starts in") || t.includes("starting") || t.includes("preview") || t.includes("yet to begin") || t.includes("pm") || t.includes("am");
-  const isLive = !isCompleted && !isUpcoming && (t.includes("need") || t.includes("opted to") || t.includes("trail by") || t.includes("lead by") || t.includes("chose to") || /\d+[\-\/]\d+/.test(t) || t.includes("ov") || t.includes("overs"));
+  // Extract the status part after " - " (e.g. "RCB vs GT - RCB won" → "RCB won")
+  const statusPart = t.includes(" - ") ? t.split(" - ").slice(1).join(" - ").trim() : t;
+  
+  const isCompleted = statusPart.includes("won") || statusPart.includes("beat") || statusPart.includes("draw") || statusPart.includes("tied") || statusPart.includes("completed") || statusPart.includes("abandoned") || statusPart.includes("no result");
+  const isUpcoming = statusPart.includes("starts at") || statusPart.includes("starts in") || statusPart.includes("starting") || statusPart.includes("preview") || statusPart.includes("yet to begin") || /\b\d{1,2}:\d{2}\b/.test(statusPart) || /\b(am|pm)\b/i.test(statusPart);
+  const isLive = !isCompleted && !isUpcoming && (statusPart.includes("need") || statusPart.includes("opted to") || statusPart.includes("trail") || statusPart.includes("lead") || statusPart.includes("chose to") || statusPart.includes("innings break") || statusPart.includes("break") || /\d+[\-\/]\d+/.test(t) || statusPart.includes("ov") || statusPart.includes("overs"));
   
   let statusDisplay = cleanText;
   if (cleanText.includes(" - ")) {
-    statusDisplay = cleanText.split(" - ")[1].trim();
+    statusDisplay = cleanText.split(" - ").slice(1).join(" - ").trim();
   }
   
-  return { isLive, statusDisplay };
+  return { isLive, isCompleted, isUpcoming, statusDisplay };
 }
 
 function filterMatch(match: ParsedMatch, filter: FilterKey): boolean {
@@ -390,8 +393,12 @@ export default function LiveCricketClient() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<ParsedMatch | null>(null);
+  const selectedMatchRef = useRef<ParsedMatch | null>(null);
   const [matchDetailsMap, setMatchDetailsMap] = useState<Record<string, MatchDetails>>({});
   const fetchedIdsRef = useRef<Set<string>>(new Set());
+
+  // Keep ref in sync with state so fetchMatches can read it without depending on it
+  useEffect(() => { selectedMatchRef.current = selectedMatch; }, [selectedMatch]);
 
   const fetchMatches = useCallback(async () => {
     try {
@@ -404,9 +411,10 @@ export default function LiveCricketClient() {
         setLastUpdated(new Date());
         setError(null);
 
-        // Keep selected match details synced
-        if (selectedMatch) {
-          const updated = processed.find(m => m.id === selectedMatch.id);
+        // Keep selected match details synced via ref (avoids dependency loop)
+        const currentSelected = selectedMatchRef.current;
+        if (currentSelected) {
+          const updated = processed.find(m => m.id === currentSelected.id);
           if (updated) setSelectedMatch(updated);
         }
 
@@ -434,13 +442,13 @@ export default function LiveCricketClient() {
     } finally {
       setLoading(false);
     }
-  }, [selectedMatch]);
+  }, []);
 
   const processMatches = (raw: MatchData[]): ParsedMatch[] => {
     return raw.map((m) => {
       const { team1, team2, matchInfo } = parseTitle(m.title);
       const { shortTeam1, shortTeam2 } = parseShortTeams(m.status_text);
-      const { isLive, statusDisplay } = getMatchState(m.status_text);
+      const { isLive, isCompleted: stateCompleted, isUpcoming, statusDisplay } = getMatchState(m.status_text);
       return { ...m, team1, team2, shortTeam1, shortTeam2, matchInfo, isLive, statusDisplay };
     });
   };
@@ -656,19 +664,16 @@ export default function LiveCricketClient() {
           <div className="space-y-10">
             {Object.entries(groupedMatches).map(([leagueName, leagueMatches]) => (
               <div key={leagueName} className="space-y-4">
-                {/* League Heading Grouped Header Chevron + See all */}
-                <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-4 mt-2">
-                  <div className="flex items-center gap-2 group cursor-pointer">
-                    <span className="text-sm font-black uppercase tracking-wider text-text-primary hover:text-sport-cricket transition-colors">
+                {/* League Heading Grouped Header Chevron */}
+                <div className="flex items-center border-b border-border/60 pb-2.5 mb-4 mt-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black uppercase tracking-wider text-text-primary">
                       {leagueName}
                     </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-muted hover:text-sport-cricket transition-colors shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-muted shrink-0">
                       <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <button className="text-[10px] font-bold uppercase tracking-widest text-sport-cricket hover:underline cursor-pointer bg-transparent border-0 py-0 px-1">
-                    See all
-                  </button>
                 </div>
 
                 {/* Match Grid */}
@@ -734,7 +739,13 @@ function MatchCard({ match, details }: { match: ParsedMatch; details: MatchDetai
   const targetVal = currentRuns + runsNeeded;
 
   // Resolve winner details for muting logic
-  const isCompleted = !match.isLive && !(match.statusDisplay || "").toLowerCase().includes("starts") && !(match.status_text || "").toLowerCase().includes("starts");
+  const statusLower = (match.statusDisplay || "").toLowerCase();
+  const fullStatusLower = (match.status_text || "").toLowerCase();
+  const isCompleted = !match.isLive && (
+    statusLower.includes("won") || statusLower.includes("beat") || statusLower.includes("draw") || 
+    statusLower.includes("tied") || statusLower.includes("no result") || statusLower.includes("abandoned") ||
+    fullStatusLower.includes("won") || fullStatusLower.includes("beat")
+  );
   const isT1Winner = isCompleted && isTeamWinner(match, match.shortTeam1, match.team1);
   const isT2Winner = isCompleted && isTeamWinner(match, match.shortTeam2, match.team2);
   
@@ -1502,28 +1513,71 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
                       </div>
                     </div>
 
-                    {/* Summary boxes (Extras + Yet to Bat) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="glass-card rounded-xl p-4 border border-border space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-text-muted uppercase tracking-wider">Extras:</span>
-                          <span className="font-mono text-text-primary font-bold">{details.innings[safeInningsIdx]?.extras || "—"}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs pt-2 border-t border-border/40">
-                          <span className="font-semibold text-sport-cricket uppercase tracking-wider">Total:</span>
-                          <span className="font-mono text-sport-cricket font-extrabold">{details.innings[safeInningsIdx]?.total || "—"}</span>
-                        </div>
-                      </div>
+                    {/* Summary boxes (Extras + Total + Yet to Bat) */}
+                    {(() => {
+                      const inn = details.innings[safeInningsIdx];
+                      const rawExtras = inn?.extras || "";
+                      // Parse extras into structured data: "7 (b 1, lb 1, w 3, nb 2, p 0)" → { total: 7, breakdown items }
+                      const extrasTotal = rawExtras.match(/^(\d+)/)?.[1] || "0";
+                      const extrasBreakdown = rawExtras.match(/\((.+)\)/)?.[1] || "";
+                      const extrasItems = extrasBreakdown.split(",").map(s => s.trim()).filter(Boolean);
+                      // Parse total: "254-5 (20 Overs, RR: 12.7)" → score, overs, runRate
+                      const rawTotal = inn?.total || "";
+                      const totalScore = rawTotal.match(/^([0-9\-\/]+)/)?.[1]?.replace("-", "/") || "—";
+                      const totalOvers = rawTotal.match(/\(([0-9.]+)/)?.[1] || "";
+                      const totalRR = rawTotal.match(/RR:\s*([0-9.]+)/)?.[1] || "";
+                      const hasYetToBat = inn?.yetToBat && inn.yetToBat.length > 0;
+                      return (
+                        <div className={`grid gap-4 ${hasYetToBat ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+                          <div className="glass-card rounded-xl p-4 border border-border space-y-3">
+                            {/* Extras row */}
+                            <div className="flex justify-between items-start text-xs">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-text-muted">Extras</span>
+                              <div className="text-right">
+                                <span className="font-mono font-bold text-text-primary">{extrasTotal}</span>
+                                {extrasItems.length > 0 && (
+                                  <div className="flex flex-wrap justify-end gap-1.5 mt-1">
+                                    {extrasItems.map((item, i) => (
+                                      <span key={i} className="text-[9px] font-mono text-text-muted bg-overlay-2 px-1.5 py-0.5 rounded">
+                                        {item}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {/* Total row */}
+                            <div className="flex justify-between items-center text-xs pt-2.5 border-t border-border/40">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-sport-cricket">Total</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-sport-cricket font-extrabold text-sm">{totalScore}</span>
+                                {totalOvers && (
+                                  <span className="text-[9px] font-mono text-text-muted bg-overlay-2 px-1.5 py-0.5 rounded">{totalOvers} Ov</span>
+                                )}
+                                {totalRR && (
+                                  <span className="text-[9px] font-mono text-text-muted bg-overlay-2 px-1.5 py-0.5 rounded">RR {totalRR}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
-                      <div className="glass-card rounded-xl p-4 border border-border">
-                        <h4 className="text-[9px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
-                          Yet to Bat
-                        </h4>
-                        <p className="text-xs font-light text-text-dim leading-relaxed">
-                          {details.innings[safeInningsIdx]?.yetToBat.join(", ") || "—"}
-                        </p>
-                      </div>
-                    </div>
+                          {hasYetToBat && (
+                            <div className="glass-card rounded-xl p-4 border border-border">
+                              <h4 className="text-[9px] font-bold uppercase tracking-wider text-text-muted mb-2">
+                                Yet to Bat
+                              </h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                {inn.yetToBat.map((player, pIdx) => (
+                                  <span key={pIdx} className="text-[10px] font-medium text-text-dim bg-overlay-2 px-2 py-1 rounded-md">
+                                    {player}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Bowling scorecard */}
                     <div className="glass-card rounded-xl border border-border overflow-hidden">
