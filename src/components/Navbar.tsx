@@ -70,36 +70,6 @@ export default function Navbar() {
               {t("news")}
             </Link>
           </li>
-          {/* Live Sports Dropdown */}
-          <li className="relative group/sports">
-            <button
-              className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-accent hover:text-accent/80 transition-colors duration-200 cursor-pointer"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <span>{t("liveSports")}</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/sports:translate-y-0.5 transition-transform">
-                <path d="m6 9 6 6 6-6"/>
-              </svg>
-            </button>
-            
-            {/* Dropdown Card */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 glass-card border border-border/80 rounded-xl py-2.5 shadow-2xl opacity-0 invisible group-hover/sports:opacity-100 group-hover/sports:visible transition-all duration-200">
-              <Link
-                href="/cricket"
-                className="flex items-center gap-2.5 px-4 py-2.5 text-[10px] font-medium uppercase tracking-wider text-text-muted hover:text-accent hover:bg-accent/5 transition-colors duration-150"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                Cricket Live
-              </Link>
-              <Link
-                href="/soccer"
-                className="flex items-center gap-2.5 px-4 py-2.5 text-[10px] font-medium uppercase tracking-wider text-text-muted hover:text-sport-football hover:bg-sport-football/5 transition-colors duration-150"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-sport-football animate-pulse" />
-                Football Live
-              </Link>
-            </div>
-          </li>
         </ul>
       </div>
       <div className="flex items-center gap-3">
