@@ -220,7 +220,7 @@ function parseInningsScore(inningsTotal: string) {
   if (!inningsTotal) return { score: "", overs: "" };
   // inningsTotal is like "254-5 (20.0 Ovs)" or "162-10 (19.3)"
   const scoreMatch = inningsTotal.match(/^([0-9\/\-]+)/);
-  const oversMatch = inningsTotal.match(/\(([0-9\.]+)\s*(?:Ovs|ov|Overs)?\)/i);
+  const oversMatch = inningsTotal.match(/\(([0-9\.]+)/);
   
   const score = scoreMatch ? scoreMatch[1].replace("-", "/") : "";
   const overs = oversMatch ? oversMatch[1] : "";
@@ -280,7 +280,25 @@ function getCardSubtitle(match: ParsedMatch, details: MatchDetails | null) {
 function parseTitle(rawTitle: string) {
   let title = rawTitle.replace(/&amp;/g, "&").replace(/&#x27;/g, "'");
   const pipeParts = title.split(" | ");
-  let fullSection = pipeParts.length >= 3 ? pipeParts[2] : pipeParts[pipeParts.length - 1];
+  
+  // Find the pipe part that contains " vs " and is NOT "Cricbuzz"
+  let fullSection = "";
+  for (let i = pipeParts.length - 1; i >= 0; i--) {
+    const part = pipeParts[i].trim();
+    if (part.toLowerCase() !== "cricbuzz" && part.toLowerCase() !== "cricbuzz.com") {
+      if (part.includes(" vs ")) {
+        fullSection = part;
+        break;
+      }
+    }
+  }
+  
+  // Fallback if no part has " vs "
+  if (!fullSection) {
+    const nonCricbuzzParts = pipeParts.filter(p => p.trim().toLowerCase() !== "cricbuzz");
+    fullSection = nonCricbuzzParts[nonCricbuzzParts.length - 1]?.trim() || "";
+  }
+  
   fullSection = fullSection.replace(/\s*Live Cricket Stream.*$/i, "").trim();
 
   let team1 = "", team2 = "", matchInfo = "";
@@ -343,10 +361,6 @@ function getIndividualScores(match: ParsedMatch) {
   const t1 = match.shortTeam1.toUpperCase();
   const t2 = match.shortTeam2.toUpperCase();
   
-  if (!match.score || match.score === "score not found") {
-    return { score1, score2 };
-  }
-  
   const regex1 = new RegExp(`\\b${t1}\\s+([0-9/&\\s-]+(?:\\([0-9.]+\\))?)`, "i");
   const regex2 = new RegExp(`\\b${t2}\\s+([0-9/&\\s-]+(?:\\([0-9.]+\\))?)`, "i");
   
@@ -356,7 +370,7 @@ function getIndividualScores(match: ParsedMatch) {
   if (match1) score1 = match1[1].trim();
   if (match2) score2 = match2[1].trim();
   
-  if (!score1 && !score2) {
+  if (!score1 && !score2 && match.score && match.score !== "score not found") {
     const matchScoreUpper = match.score.toUpperCase();
     if (matchScoreUpper.startsWith(t1)) {
       score1 = match.score.replace(new RegExp(`^${t1}\\s+`, "i"), "");
@@ -844,8 +858,26 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
   const [details, setDetails] = useState<MatchDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"live" | "scorecard" | "commentary" | "playing11" | "table" | "graphs">("live");
+  const [activeTab, setActiveTab] = useState<"live" | "scorecard" | "commentary" | "playing11" | "table" | "graphs">(
+    match.isLive ? "live" : "scorecard"
+  );
   const [inningsIdx, setInningsIdx] = useState(0);
+
+  const getShortName = (fullName: string) => {
+    const fLower = fullName.toLowerCase();
+    const t1Lower = (match.team1 || "").toLowerCase();
+    const s1Lower = (match.shortTeam1 || "").toLowerCase();
+    const t2Lower = (match.team2 || "").toLowerCase();
+    const s2Lower = (match.shortTeam2 || "").toLowerCase();
+    
+    if (fLower.includes(t1Lower) || fLower.includes(s1Lower) || t1Lower.includes(fLower) || s1Lower.includes(fLower)) {
+      return match.shortTeam1;
+    }
+    if (fLower.includes(t2Lower) || fLower.includes(s2Lower) || t2Lower.includes(fLower) || s2Lower.includes(fLower)) {
+      return match.shortTeam2;
+    }
+    return fullName;
+  };
 
   // Escaping Drawer close on ESC key
   useEffect(() => {
@@ -888,6 +920,9 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
 
   // Determine active live innings index safely
   const liveInningsIdx = details && details.innings.length > 0 ? details.innings.length - 1 : 0;
+
+  // Resolve if the match is completed
+  const isMatchCompleted = !match.isLive && !(match.statusDisplay || "").toLowerCase().includes("starts") && !(match.status_text || "").toLowerCase().includes("starts");
 
   // Resolve dynamically updated scores for completed/inactive matches
   const totalScore1 = details && details.innings.length > 0
@@ -988,13 +1023,13 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
         {/* Dynamic Tabs Navigation (Matches Football style) */}
         <div className="flex border-b border-border bg-surface px-2 sm:px-4 overflow-x-auto whitespace-nowrap scrollbar-none shrink-0">
           {([
-            { key: "live", label: "Live Center" },
-            { key: "scorecard", label: "Scorecard" },
-            { key: "commentary", label: "Commentary" },
-            { key: "playing11", label: "Playing XI" },
-            { key: "table", label: "Table" },
-            { key: "graphs", label: "Run Graphs" }
-          ] as const).map((tab) => (
+            ...(match.isLive ? [{ key: "live" as const, label: "Live Center" }] : []),
+            { key: "scorecard" as const, label: "Scorecard" },
+            { key: "commentary" as const, label: "Commentary" },
+            { key: "playing11" as const, label: "Playing XI" },
+            { key: "table" as const, label: "Table" },
+            { key: "graphs" as const, label: "Run Graphs" }
+          ]).map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -1054,21 +1089,23 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               {/* TAB 1: Live Center */}
               {activeTab === "live" && (
                 <div className="space-y-6">
-                  {/* Win Probability Indicator */}
-                  <div className="glass-card rounded-xl p-4 border border-border space-y-2.5">
-                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
-                      <span className="text-sport-cricket">{details.probability.label1} {details.probability.team1}%</span>
-                      <span className="text-text-muted">Win Probability</span>
-                      <span className="text-sport-football">{details.probability.label2} {details.probability.team2}%</span>
+                   {/* Win Probability Indicator */}
+                  {!isMatchCompleted && (
+                    <div className="glass-card rounded-xl p-4 border border-border space-y-2.5">
+                      <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                        <span className="text-sport-cricket">{details.probability.label1} {details.probability.team1}%</span>
+                        <span className="text-text-muted">Win Probability</span>
+                        <span className="text-sport-football">{details.probability.label2} {details.probability.team2}%</span>
+                      </div>
+                      {/* Visual bar slider */}
+                      <div className="w-full h-2 rounded-full bg-sport-football/40 overflow-hidden flex">
+                        <div
+                          className="bg-sport-cricket h-full transition-all duration-1000"
+                          style={{ width: `${details.probability.team1}%` }}
+                        />
+                      </div>
                     </div>
-                    {/* Visual bar slider */}
-                    <div className="w-full h-2 rounded-full bg-sport-football/40 overflow-hidden flex">
-                      <div
-                        className="bg-sport-cricket h-full transition-all duration-1000"
-                        style={{ width: `${details.probability.team1}%` }}
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   {/* Crease stats card */}
                   <div className="glass-card rounded-xl overflow-hidden border border-border">
@@ -1197,148 +1234,213 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               )}
 
               {/* TAB 2: Scorecard */}
-              {activeTab === "scorecard" && (
-                <div className="space-y-6">
-                  {/* Innings selector tab */}
-                  <div className="flex gap-2 p-1 bg-overlay-2 border border-border rounded-xl w-fit shrink-0">
-                    {details.innings.map((inn, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setInningsIdx(idx)}
-                        className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider cursor-pointer transition-all ${
-                          inningsIdx === idx
-                            ? "bg-bg border border-border text-sport-cricket shadow-sm"
-                            : "text-text-muted hover:text-text-primary"
-                        }`}
-                      >
-                        {inn.team}
-                      </button>
-                    ))}
-                  </div>
+              {activeTab === "scorecard" && (() => {
+                const isTestMatch = match.matchInfo?.toLowerCase().includes("test") || match.title?.toLowerCase().includes("test");
+                const maxInningsCount = isTestMatch ? 4 : 2;
+                const displayedInnings = details.innings.slice(0, maxInningsCount);
+                const safeInningsIdx = Math.min(inningsIdx, displayedInnings.length - 1);
 
-                  {/* Batting details */}
-                  <div className="glass-card rounded-xl border border-border overflow-hidden">
-                    <div className="px-4 py-3 bg-overlay/30 border-b border-border flex justify-between items-center">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-text-muted">
-                        Batting Card
-                      </span>
-                      <span className="text-xs font-mono font-bold text-sport-cricket">
-                        {details.innings[inningsIdx]?.total}
-                      </span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs font-light min-w-[450px]">
-                        <thead>
-                          <tr className="border-b border-border text-[8px] font-bold uppercase tracking-wider text-text-muted/60 bg-overlay-2/30">
-                            <th className="px-4 py-2.5">Batter</th>
-                            <th className="px-4 py-2.5">Dismissal</th>
-                            <th className="px-4 py-2.5 text-right">R</th>
-                            <th className="px-4 py-2.5 text-right">B</th>
-                            <th className="px-4 py-2.5 text-right">4s</th>
-                            <th className="px-4 py-2.5 text-right">6s</th>
-                            <th className="px-4 py-2.5 text-right">SR</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {details.innings[inningsIdx]?.batters.map((b, idx) => (
-                            <tr key={idx} className="border-b border-border/30 last:border-0 hover:bg-overlay-2/30 transition-colors">
-                              <td className="px-4 py-2.5 font-semibold text-text-primary flex items-center gap-2.5">
-                                <img
-                                  src={getPlayerImage(b.name)}
-                                  alt={b.name}
-                                  className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
-                                  onError={(e) => {
-                                    e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
-                                  }}
-                                />
-                                <span className="truncate">{b.name}</span>
-                              </td>
-                              <td className="px-4 py-2.5 text-text-muted text-[10px] italic font-mono truncate max-w-[120px]">{b.dismissal}</td>
-                              <td className="px-4 py-2.5 text-right font-mono font-bold text-sport-cricket">{b.runs}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{b.balls}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{b.fours}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{b.sixes}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-sport-cricket">{b.sr}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                const getBattingTeamShortName = (innIdx: number) => {
+                  const inn = details.innings[innIdx];
+                  if (!inn || inn.batters.length === 0) {
+                    return innIdx === 0 ? match.shortTeam1 : match.shortTeam2;
+                  }
+                  const firstBatter = inn.batters[0].name.toLowerCase();
+                  
+                  for (const [teamName, squad] of Object.entries(details.teams)) {
+                    const inSquad = squad.some(
+                      (p) => p.toLowerCase().includes(firstBatter) || firstBatter.includes(p.toLowerCase())
+                    );
+                    if (inSquad) {
+                      const tNameLower = teamName.toLowerCase();
+                      if (tNameLower.includes(match.team1.toLowerCase()) || tNameLower.includes(match.shortTeam1.toLowerCase())) {
+                        return match.shortTeam1;
+                      }
+                      if (tNameLower.includes(match.team2.toLowerCase()) || tNameLower.includes(match.shortTeam2.toLowerCase())) {
+                        return match.shortTeam2;
+                      }
+                      return teamName.replace(/[^A-Z]/g, "") || teamName.substring(0, 3).toUpperCase();
+                    }
+                  }
+                  return innIdx === 0 ? match.shortTeam1 : match.shortTeam2;
+                };
 
-                  {/* Summary boxes (Extras + Yet to Bat) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="glass-card rounded-xl p-4 border border-border space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-semibold text-text-muted uppercase tracking-wider">Extras:</span>
-                        <span className="font-mono text-text-primary font-bold">{details.innings[inningsIdx]?.extras || "—"}</span>
+                const getInningsTeams = (innIdx: number) => {
+                  const inn = details.innings[innIdx];
+                  let battingTeam = innIdx === 0 ? match.team1 : match.team2;
+                  let bowlingTeam = innIdx === 0 ? match.team2 : match.team1;
+                  
+                  if (!inn || inn.batters.length === 0) {
+                    return { battingTeam, bowlingTeam };
+                  }
+                  const firstBatter = inn.batters[0].name.toLowerCase();
+                  
+                  for (const [teamName, squad] of Object.entries(details.teams)) {
+                    const inSquad = squad.some(
+                      (p) => p.toLowerCase().includes(firstBatter) || firstBatter.includes(p.toLowerCase())
+                    );
+                    if (inSquad) {
+                      battingTeam = teamName;
+                      const otherTeam = Object.keys(details.teams).find(name => name !== teamName);
+                      if (otherTeam) {
+                        bowlingTeam = otherTeam;
+                      }
+                      break;
+                    }
+                  }
+                  return { battingTeam, bowlingTeam };
+                };
+
+                const currentTeams = getInningsTeams(safeInningsIdx);
+
+                return (
+                  <div className="space-y-6">
+                    {/* Innings selector tab */}
+                    <div className="flex gap-2 p-1 bg-overlay-2 border border-border rounded-xl w-fit shrink-0">
+                      {displayedInnings.map((inn, idx) => {
+                        const prefix = idx === 0 || (isTestMatch && idx === 1) ? "1st Innings" : "2nd Innings";
+                        const labelText = `${prefix} - ${getBattingTeamShortName(idx)}`;
+
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => setInningsIdx(idx)}
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider cursor-pointer transition-all ${
+                              safeInningsIdx === idx
+                                ? "bg-bg border border-border text-sport-cricket shadow-sm"
+                                : "text-text-muted hover:text-text-primary"
+                            }`}
+                          >
+                            {labelText}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Batting details */}
+                    <div className="glass-card rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-overlay/30 border-b border-border flex justify-between items-center">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-sport-cricket">
+                          {currentTeams.battingTeam} Batting Card
+                        </span>
+                        <span className="text-xs font-mono font-bold text-sport-cricket">
+                          {details.innings[safeInningsIdx]?.total}
+                        </span>
                       </div>
-                      <div className="flex justify-between items-center text-xs pt-2 border-t border-border/40">
-                        <span className="font-semibold text-sport-cricket uppercase tracking-wider">Total:</span>
-                        <span className="font-mono text-sport-cricket font-extrabold">{details.innings[inningsIdx]?.total || "—"}</span>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs font-light min-w-[450px]">
+                          <thead>
+                            <tr className="border-b border-border text-[8px] font-bold uppercase tracking-wider text-text-muted/60 bg-overlay-2/30">
+                              <th className="px-4 py-2.5">Batter</th>
+                              <th className="px-4 py-2.5">Dismissal</th>
+                              <th className="px-4 py-2.5 text-right">R</th>
+                              <th className="px-4 py-2.5 text-right">B</th>
+                              <th className="px-4 py-2.5 text-right">4s</th>
+                              <th className="px-4 py-2.5 text-right">6s</th>
+                              <th className="px-4 py-2.5 text-right">SR</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {details.innings[safeInningsIdx]?.batters.map((b, idx) => (
+                              <tr key={idx} className="border-b border-border/30 last:border-0 hover:bg-overlay-2/30 transition-colors">
+                                <td className="px-4 py-2.5 font-semibold text-text-primary flex items-center gap-2.5">
+                                  <img
+                                    src={getPlayerImage(b.name)}
+                                    alt={b.name}
+                                    className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
+                                    }}
+                                  />
+                                  <span className="truncate">{b.name}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-text-muted text-[10px] italic font-mono truncate max-w-[120px]">{b.dismissal}</td>
+                                <td className="px-4 py-2.5 text-right font-mono font-bold text-sport-cricket">{b.runs}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{b.balls}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{b.fours}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{b.sixes}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-sport-cricket">{b.sr}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
 
-                    <div className="glass-card rounded-xl p-4 border border-border">
-                      <h4 className="text-[9px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
-                        Yet to Bat
-                      </h4>
-                      <p className="text-xs font-light text-text-dim leading-relaxed">
-                        {details.innings[inningsIdx]?.yetToBat.join(", ") || "—"}
-                      </p>
-                    </div>
-                  </div>
+                    {/* Summary boxes (Extras + Yet to Bat) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="glass-card rounded-xl p-4 border border-border space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-text-muted uppercase tracking-wider">Extras:</span>
+                          <span className="font-mono text-text-primary font-bold">{details.innings[safeInningsIdx]?.extras || "—"}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs pt-2 border-t border-border/40">
+                          <span className="font-semibold text-sport-cricket uppercase tracking-wider">Total:</span>
+                          <span className="font-mono text-sport-cricket font-extrabold">{details.innings[safeInningsIdx]?.total || "—"}</span>
+                        </div>
+                      </div>
 
-                  {/* Bowling scorecard */}
-                  <div className="glass-card rounded-xl border border-border overflow-hidden">
-                    <div className="px-4 py-3 bg-overlay/30 border-b border-border">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-text-muted">
-                        Bowling Card
-                      </span>
+                      <div className="glass-card rounded-xl p-4 border border-border">
+                        <h4 className="text-[9px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
+                          Yet to Bat
+                        </h4>
+                        <p className="text-xs font-light text-text-dim leading-relaxed">
+                          {details.innings[safeInningsIdx]?.yetToBat.join(", ") || "—"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs font-light min-w-[400px]">
-                        <thead>
-                          <tr className="border-b border-border text-[8px] font-bold uppercase tracking-wider text-text-muted/60 bg-overlay-2/30">
-                            <th className="px-4 py-2.5">Bowler</th>
-                            <th className="px-4 py-2.5 text-right">O</th>
-                            <th className="px-4 py-2.5 text-right">M</th>
-                            <th className="px-4 py-2.5 text-right">R</th>
-                            <th className="px-4 py-2.5 text-right">W</th>
-                            <th className="px-4 py-2.5 text-right">WD</th>
-                            <th className="px-4 py-2.5 text-right">NB</th>
-                            <th className="px-4 py-2.5 text-right">ECON</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {details.innings[inningsIdx]?.bowlers.map((bw, idx) => (
-                            <tr key={idx} className="border-b border-border/30 last:border-0 hover:bg-overlay-2/30 transition-colors">
-                              <td className="px-4 py-2.5 font-semibold text-text-primary flex items-center gap-2.5">
-                                <img
-                                  src={getPlayerImage(bw.name)}
-                                  alt={bw.name}
-                                  className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
-                                  onError={(e) => {
-                                    e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
-                                  }}
-                                />
-                                <span className="truncate">{bw.name}</span>
-                              </td>
-                              <td className="px-4 py-2.5 text-right font-mono font-semibold">{bw.overs}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.maidens}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.runs}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-sport-cricket font-bold">{bw.wickets}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.wd}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.nb}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-sport-cricket">{bw.econ}</td>
+
+                    {/* Bowling scorecard */}
+                    <div className="glass-card rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-overlay/30 border-b border-border">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#b8865e]">
+                          {currentTeams.bowlingTeam} Bowling Card
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs font-light min-w-[400px]">
+                          <thead>
+                            <tr className="border-b border-border text-[8px] font-bold uppercase tracking-wider text-text-muted/60 bg-overlay-2/30">
+                              <th className="px-4 py-2.5">Bowler</th>
+                              <th className="px-4 py-2.5 text-right">O</th>
+                              <th className="px-4 py-2.5 text-right">M</th>
+                              <th className="px-4 py-2.5 text-right">R</th>
+                              <th className="px-4 py-2.5 text-right">W</th>
+                              <th className="px-4 py-2.5 text-right">WD</th>
+                              <th className="px-4 py-2.5 text-right">NB</th>
+                              <th className="px-4 py-2.5 text-right">ECON</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {details.innings[safeInningsIdx]?.bowlers.map((bw, idx) => (
+                              <tr key={idx} className="border-b border-border/30 last:border-0 hover:bg-overlay-2/30 transition-colors">
+                                <td className="px-4 py-2.5 font-semibold text-text-primary flex items-center gap-2.5">
+                                  <img
+                                    src={getPlayerImage(bw.name)}
+                                    alt={bw.name}
+                                    className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
+                                    }}
+                                  />
+                                  <span className="truncate">{bw.name}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-mono font-semibold">{bw.overs}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.maidens}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.runs}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-sport-cricket font-bold">{bw.wickets}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.wd}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text-muted">{bw.nb}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-sport-cricket">{bw.econ}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* TAB 3: Commentary */}
               {activeTab === "commentary" && (
@@ -1366,39 +1468,42 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               {/* TAB 4: Playing XI */}
               {activeTab === "playing11" && (
                 <div className="space-y-6">
-                  {Object.entries(details.teams).map(([teamName, squad], idx) => (
-                    <div key={idx} className="glass-card border border-border rounded-xl overflow-hidden">
-                      <div className="px-4 py-3 bg-overlay/30 border-b border-border flex items-center gap-3">
-                        <img
-                          src={getTeamLogo(teamName)}
-                          alt={teamName}
-                          className="w-7 h-7 rounded-full bg-overlay-2 shrink-0 object-contain p-0.5"
-                          onError={(e) => {
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=1f2937&color=6ba3be&rounded=true&bold=true&size=48`;
-                          }}
-                        />
-                        <span className="text-[9px] font-black uppercase tracking-wider text-text-primary">
-                          {teamName} XI
-                        </span>
+                  {Object.entries(details.teams).map(([teamName, squad], idx) => {
+                    const resolvedShortName = getShortName(teamName);
+                    return (
+                      <div key={idx} className="glass-card border border-border rounded-xl overflow-hidden">
+                        <div className="px-4 py-3 bg-overlay/30 border-b border-border flex items-center gap-3">
+                          <img
+                            src={getTeamLogo(resolvedShortName)}
+                            alt={teamName}
+                            className="w-7 h-7 rounded-full bg-overlay-2 shrink-0 object-contain p-0.5"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(resolvedShortName)}&background=1f2937&color=6ba3be&rounded=true&bold=true&size=48`;
+                            }}
+                          />
+                          <span className="text-[9px] font-black uppercase tracking-wider text-text-primary">
+                            {teamName} XI
+                          </span>
+                        </div>
+                        <div className="p-3 divide-y divide-border/20">
+                          {squad.map((player, pIdx) => (
+                            <div key={pIdx} className="flex items-center gap-3 py-2 text-xs font-light hover:bg-overlay-2/20 px-2 rounded-lg transition-colors">
+                              <span className="font-mono text-text-muted/40 w-4 text-[9px]">#{pIdx + 1}</span>
+                              <img
+                                src={getPlayerImage(player)}
+                                alt={player}
+                                className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
+                                onError={(e) => {
+                                  e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
+                                }}
+                              />
+                              <span className="font-semibold text-text-primary">{player}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="p-3 divide-y divide-border/20">
-                        {squad.map((player, pIdx) => (
-                          <div key={pIdx} className="flex items-center gap-3 py-2 text-xs font-light hover:bg-overlay-2/20 px-2 rounded-lg transition-colors">
-                            <span className="font-mono text-text-muted/40 w-4 text-[9px]">#{pIdx + 1}</span>
-                            <img
-                              src={getPlayerImage(player)}
-                              alt={player}
-                              className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
-                              onError={(e) => {
-                                e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
-                              }}
-                            />
-                            <span className="font-semibold text-text-primary">{player}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
