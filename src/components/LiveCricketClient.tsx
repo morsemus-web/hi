@@ -68,6 +68,8 @@ interface MatchDetails {
   status: string;
   title: string;
   statusText: string;
+  startDate: string;
+  locationName: string;
   timeline: { ball: string; text: string; type: string; score: string }[];
   innings: InningsData[];
   teams: Record<string, string[]>;
@@ -90,14 +92,13 @@ const FILTERS = [
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-/* ── Real Player Face Headshots ── */
+/* ── Real Player Face Headshots via Bing CDN ── */
 function getPlayerImage(name: string): string {
-  // Clean names to remove trailing indicators like (c) or (wk) or *
   const cleanPlayerName = name.replace(/\(c\)|\(wk\)|\*/gi, "").trim();
   return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(cleanPlayerName + " headshot cricket png")}&w=80&h=80&c=7&rs=1&p=0`;
 }
 
-/* ── Real Logos Mapper ── */
+/* ── Real Logos Mapper via Bing CDN ── */
 function getTeamLogo(shortName: string): string {
   const cleanName = shortName.toUpperCase().trim();
   const fullNames: Record<string, string> = {
@@ -128,6 +129,23 @@ function getTeamLogo(shortName: string): string {
 
   const nameToSearch = fullNames[cleanName] || `${cleanName} cricket team`;
   return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(nameToSearch + " logo png")}&w=80&h=80&c=7&rs=1&p=0`;
+}
+
+/* ── Date Formatting Helper ── */
+function formatMatchTime(isoString: string) {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleString([], {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (e) {
+    return isoString;
+  }
 }
 
 /* ── Parsing Helpers ── */
@@ -327,9 +345,8 @@ export default function LiveCricketClient() {
           </p>
         </div>
 
-        {/* English Commentary Beta Banner */}
+        {/* English Commentary Beta Banner (No Emojis) */}
         <div className="mb-8 p-4 rounded-xl bg-sport-cricket/5 border border-sport-cricket/20 flex items-center gap-3 animate-fade-in shadow-[0_4px_20px_rgba(0,0,0,0.1)]">
-          <span className="text-xl shrink-0">🎙️</span>
           <div className="min-w-0 flex-1">
             <h4 className="text-[11px] font-black uppercase tracking-wider text-sport-cricket">
               Crex Audio Commentary Beta
@@ -390,10 +407,9 @@ export default function LiveCricketClient() {
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state (No Emojis) */}
         {!loading && !error && filtered.length === 0 && (
           <div className="glass-card rounded-xl p-12 text-center animate-fade-in">
-            <div className="text-4xl mb-4">🏏</div>
             <p className="text-text-dim text-sm font-light mb-2">No matches found</p>
             <p className="text-text-muted text-xs font-light">
               {filter !== "all" ? "Try a different filter or check back later." : "Check back later for live matches."}
@@ -531,7 +547,9 @@ function MatchCard({ match }: { match: ParsedMatch }) {
                 {score1.replace(/^[A-Z]+ /, "")}
               </p>
             ) : (
-              <p className="text-[10px] text-text-muted/50 font-light truncate mt-1">Yet to bat</p>
+              <p className="text-[10px] text-text-muted/50 font-light truncate mt-1">
+                {match.isLive ? "Yet to bat" : "—"}
+              </p>
             )}
           </div>
         </div>
@@ -560,7 +578,9 @@ function MatchCard({ match }: { match: ParsedMatch }) {
                 {score2.replace(/^[A-Z]+ /, "")}
               </p>
             ) : (
-              <p className="text-[10px] text-text-muted/50 font-light truncate mt-1">Yet to bat</p>
+              <p className="text-[10px] text-text-muted/50 font-light truncate mt-1">
+                {match.isLive ? "Yet to bat" : "—"}
+              </p>
             )}
           </div>
           <img
@@ -718,6 +738,14 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
   // Determine active live innings index safely
   const liveInningsIdx = details && details.innings.length > 0 ? details.innings.length - 1 : 0;
 
+  // Resolve dynamically updated scores for completed/inactive matches
+  const totalScore1 = details && details.innings.length > 0
+    ? details.innings[0]?.total.split(" (")[0]
+    : "";
+  const totalScore2 = details && details.innings.length > 1
+    ? details.innings[1]?.total.split(" (")[0]
+    : "";
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
@@ -763,6 +791,10 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-wide text-text-primary leading-tight truncate max-w-full">
                 {match.shortTeam1}
               </span>
+              {/* Dynamic Score Resolution */}
+              {totalScore1 && (
+                <span className="text-xs font-mono font-bold text-text-dim mt-1">{totalScore1}</span>
+              )}
             </div>
 
             {/* Score box */}
@@ -770,7 +802,9 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               <div className="text-sm font-mono font-black text-text-primary bg-overlay-2 border border-border rounded-lg py-1 px-2 shadow-inner min-w-[70px]">
                 {match.score && match.score !== "score not found" 
                   ? match.score.replace(/^[A-Z]+ /, "") 
-                  : "VS"}
+                  : (totalScore1 && totalScore2
+                      ? `${totalScore1} vs ${totalScore2}`
+                      : "VS")}
               </div>
               <span className="text-[8px] font-mono uppercase text-sport-cricket font-bold mt-1.5 tracking-wider animate-pulse">
                 {match.isLive ? "LIVE NOW" : "COMPLETED"}
@@ -792,6 +826,10 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-wide text-text-primary leading-tight truncate max-w-full">
                 {match.shortTeam2}
               </span>
+              {/* Dynamic Score Resolution */}
+              {totalScore2 && (
+                <span className="text-xs font-mono font-bold text-text-dim mt-1">{totalScore2}</span>
+              )}
             </div>
           </div>
         </div>
@@ -811,7 +849,7 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
               onClick={() => setActiveTab(tab.key)}
               className={`px-3 sm:px-4 py-3 border-b-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 activeTab === tab.key
-                  ? "border-sport-cricket text-sport-cricket"
+                  ? "border-sport-cricket border-b-2 border-sport-cricket text-sport-cricket"
                   : "border-transparent text-text-muted hover:text-text-dim"
               }`}
             >
@@ -837,10 +875,28 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
 
           {details && (
             <div className="space-y-6 animate-fade-in">
-              {/* Dynamic Status strip banner */}
+              {/* Dynamic Status strip banner (No Emojis) */}
               {details.statusText && (
                 <div className="p-3.5 rounded-lg text-center bg-sport-cricket/5 border border-sport-cricket/20 text-xs font-semibold uppercase tracking-wider text-sport-cricket shadow-sm">
-                  📢 {details.statusText}
+                  {details.statusText}
+                </div>
+              )}
+
+              {/* Dynamic Timing & Venue Widget (Parsed from Google JSON-LD schema) */}
+              {(details.startDate || details.locationName) && (
+                <div className="glass-card rounded-xl p-4 border border-border space-y-2.5 text-xs font-mono text-text-muted">
+                  {details.startDate && (
+                    <div className="flex justify-between items-center">
+                      <span>Match Schedule:</span>
+                      <span className="text-text-dim font-bold">{formatMatchTime(details.startDate)}</span>
+                    </div>
+                  )}
+                  {details.locationName && (
+                    <div className="flex justify-between items-start gap-4">
+                      <span>Match Venue:</span>
+                      <span className="text-text-dim font-bold text-right max-w-[70%]">{details.locationName}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

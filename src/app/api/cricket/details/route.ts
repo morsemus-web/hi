@@ -65,6 +65,27 @@ export async function GET(request: Request) {
     const statusText = $comm(".text-cbTxtLive, .my-2.text-cbLive").first().text().trim() || 
                        $comm(".text-cbTxtSec").first().text().trim() || "";
 
+    // Parse structured JSON-LD data for timing and venue
+    let startDate = "";
+    let locationName = "";
+    $comm('script[type="application/ld+json"]').each((_, el) => {
+      try {
+        const scriptHtml = $comm(el).html();
+        if (scriptHtml) {
+          const parsed = JSON.parse(scriptHtml.trim());
+          const event = Array.isArray(parsed) 
+            ? parsed.find(p => p['@type'] === 'SportsEvent') 
+            : (parsed['@type'] === 'SportsEvent' ? parsed : null);
+          if (event) {
+            startDate = event.startDate || "";
+            locationName = event.location?.name || "";
+          }
+        }
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+    });
+
     // 3. Parse Live commentary ball-by-ball timeline
     const timeline: any[] = [];
     $comm("div.flex.gap-4, div.flex.mx-4").each((_, el) => {
@@ -241,6 +262,8 @@ export async function GET(request: Request) {
       status: "success",
       title,
       statusText,
+      startDate,
+      locationName,
       timeline: timeline.slice(0, 15), // Return last 15 balls for timelines
       innings: inningsList,
       teams,
