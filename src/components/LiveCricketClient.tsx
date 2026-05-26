@@ -541,11 +541,90 @@ export default function LiveCricketClient() {
 
         {/* Loading state */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-32 gap-4">
-            <div className="w-10 h-10 rounded-full border-2 border-sport-cricket/20 border-t-sport-cricket animate-spin" />
-            <p className="text-text-muted text-xs font-light uppercase tracking-wider">
-              Fetching live scores...
-            </p>
+          <div className="space-y-10 animate-fade-in">
+            {/* Skeleton league header */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-4 mt-2">
+                <div className="h-4 w-48 rounded bg-overlay-2 animate-pulse" />
+                <div className="h-3 w-12 rounded bg-overlay-2 animate-pulse" />
+              </div>
+              {/* Skeleton match cards grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="glass-card rounded-2xl border border-border/60 p-5 space-y-4">
+                    {/* Header skeleton */}
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-28 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-16 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    {/* Subtitle skeleton */}
+                    <div className="h-3 w-3/4 rounded bg-overlay-2 animate-pulse" />
+                    {/* Team 1 skeleton */}
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-[26px] h-[26px] rounded-full bg-overlay-2 animate-pulse" />
+                        <div className="h-3 w-32 rounded bg-overlay-2 animate-pulse" />
+                      </div>
+                      <div className="h-4 w-14 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    {/* Team 2 skeleton */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-[26px] h-[26px] rounded-full bg-overlay-2 animate-pulse" />
+                        <div className="h-3 w-28 rounded bg-overlay-2 animate-pulse" />
+                      </div>
+                      <div className="h-4 w-14 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    {/* Status skeleton */}
+                    <div className="mt-1">
+                      <div className="h-3 w-40 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    {/* Footer links skeleton */}
+                    <div className="flex items-center gap-4 pt-3 border-t border-border/30">
+                      <div className="h-3 w-16 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-20 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Second skeleton league group */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-4 mt-2">
+                <div className="h-4 w-36 rounded bg-overlay-2 animate-pulse" />
+                <div className="h-3 w-12 rounded bg-overlay-2 animate-pulse" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[5, 6].map((i) => (
+                  <div key={i} className="glass-card rounded-2xl border border-border/60 p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-24 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-16 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    <div className="h-3 w-2/3 rounded bg-overlay-2 animate-pulse" />
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-[26px] h-[26px] rounded-full bg-overlay-2 animate-pulse" />
+                        <div className="h-3 w-32 rounded bg-overlay-2 animate-pulse" />
+                      </div>
+                      <div className="h-4 w-14 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-[26px] h-[26px] rounded-full bg-overlay-2 animate-pulse" />
+                        <div className="h-3 w-28 rounded bg-overlay-2 animate-pulse" />
+                      </div>
+                      <div className="h-4 w-14 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                    <div className="mt-1"><div className="h-3 w-40 rounded bg-overlay-2 animate-pulse" /></div>
+                    <div className="flex items-center gap-4 pt-3 border-t border-border/30">
+                      <div className="h-3 w-16 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-20 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1047,9 +1126,65 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
         {/* Drawer Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 custom-scrollbar">
           {loading && !details && (
-            <div className="py-16 text-center space-y-3">
-              <div className="w-8 h-8 rounded-full border-2 border-sport-cricket/20 border-t-sport-cricket animate-spin mx-auto" />
-              <p className="text-xs text-text-muted uppercase tracking-wider">Loading detailed match facts...</p>
+            <div className="space-y-6 animate-fade-in">
+              {/* Status banner skeleton */}
+              <div className="h-10 w-full rounded-lg bg-overlay-2 animate-pulse" />
+              {/* Venue/Schedule skeleton */}
+              <div className="glass-card rounded-xl p-4 border border-border space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="h-3 w-24 rounded bg-overlay-2 animate-pulse" />
+                  <div className="h-3 w-40 rounded bg-overlay-2 animate-pulse" />
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="h-3 w-20 rounded bg-overlay-2 animate-pulse" />
+                  <div className="h-3 w-52 rounded bg-overlay-2 animate-pulse" />
+                </div>
+              </div>
+              {/* Batting card skeleton */}
+              <div className="glass-card rounded-xl border border-border overflow-hidden">
+                <div className="px-4 py-3 bg-overlay/30 border-b border-border flex justify-between items-center">
+                  <div className="h-3 w-36 rounded bg-overlay-2 animate-pulse" />
+                  <div className="h-3 w-20 rounded bg-overlay-2 animate-pulse" />
+                </div>
+                <div className="p-4 space-y-3">
+                  {/* Table header skeleton */}
+                  <div className="flex items-center gap-4">
+                    <div className="h-2 w-16 rounded bg-overlay-2 animate-pulse" />
+                    {[1,2,3,4,5].map(i => <div key={i} className="h-2 w-6 rounded bg-overlay-2 animate-pulse ml-auto" />)}
+                  </div>
+                  {/* Row skeletons */}
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="flex items-center gap-3 py-2">
+                      <div className="w-6 h-6 rounded-full bg-overlay-2 animate-pulse shrink-0" />
+                      <div className="h-3 rounded bg-overlay-2 animate-pulse" style={{ width: `${100 - i * 8}px` }} />
+                      <div className="h-3 w-6 rounded bg-overlay-2 animate-pulse ml-auto" />
+                      <div className="h-3 w-6 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-5 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-5 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-8 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Bowling card skeleton */}
+              <div className="glass-card rounded-xl border border-border overflow-hidden">
+                <div className="px-4 py-3 bg-overlay/30 border-b border-border">
+                  <div className="h-3 w-32 rounded bg-overlay-2 animate-pulse" />
+                </div>
+                <div className="p-4 space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3 py-2">
+                      <div className="w-6 h-6 rounded-full bg-overlay-2 animate-pulse shrink-0" />
+                      <div className="h-3 rounded bg-overlay-2 animate-pulse" style={{ width: `${90 - i * 6}px` }} />
+                      <div className="h-3 w-6 rounded bg-overlay-2 animate-pulse ml-auto" />
+                      <div className="h-3 w-5 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-6 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-5 rounded bg-overlay-2 animate-pulse" />
+                      <div className="h-3 w-8 rounded bg-overlay-2 animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
