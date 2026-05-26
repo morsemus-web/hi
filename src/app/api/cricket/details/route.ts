@@ -53,8 +53,14 @@ export async function GET(request: Request) {
   try {
     // 1. Fetch pages concurrently
     const [commRes, scRes] = await Promise.all([
-      fetch(commUrl, { headers, cache: "no-store" }).then((r) => r.text()),
-      fetch(scUrl, { headers, cache: "no-store" }).then((r) => r.text()),
+      fetch(commUrl, { headers, cache: "no-store" }).then((r) => {
+        if (!r.ok) throw new Error(`Commentary page returned status ${r.status}`);
+        return r.text();
+      }),
+      fetch(scUrl, { headers, cache: "no-store" }).then((r) => {
+        if (!r.ok) throw new Error(`Scorecard page returned status ${r.status}`);
+        return r.text();
+      }),
     ]);
 
     const $comm = cheerio.load(commRes);
@@ -219,6 +225,35 @@ export async function GET(request: Request) {
       }
     });
 
+    // 5.5 Parse Player of the Match (Man of the Match) with robust fallbacks
+    let playerOfTheMatch = "";
+    const momElement = $sc(".cb-mom-name").first();
+    if (momElement.length > 0) {
+      playerOfTheMatch = momElement.text().trim();
+    } else {
+      $sc(".cb-mom-bg a, a[href*='/profiles/'], div, span").each((_, el) => {
+        const text = $sc(el).text().trim();
+        if (/Player\s*of\s*the\s*Match|Man\s*of\s*the\s*Match/i.test(text)) {
+          const nextText = $sc(el).next().text().trim();
+          const siblingText = $sc(el).siblings("a").first().text().trim();
+          const candidate = nextText || siblingText || "";
+          if (candidate && candidate.length > 2 && candidate.length < 35 && !/player|match/i.test(candidate)) {
+            playerOfTheMatch = candidate;
+            return false;
+          }
+        }
+      });
+    }
+
+    if (!playerOfTheMatch) {
+      const commPageText = $comm("body").text();
+      const momMatch = commPageText.match(/(?:Player|Man)\s*of\s*the\s*Match\s*:\s*([A-Za-z\s]+?)(?:\s{2,}|,|\n|\.|$)/i) || 
+                       commPageText.match(/(?:Player|Man)\s*of\s*the\s*Match\s+is\s+([A-Za-z\s]+?)(?:\s{2,}|,|\n|\.|$)/i);
+      if (momMatch && momMatch[1].trim().length < 35) {
+        playerOfTheMatch = momMatch[1].trim();
+      }
+    }
+
     // 6. Generate points table fallback if not parsed
     const pointsTable = [
       { pos: 1, team: "Royal Challengers Bengaluru", short: "RCB", p: 14, w: 10, l: 4, pts: 20, nrr: "+0.840" },
@@ -264,6 +299,7 @@ export async function GET(request: Request) {
       statusText,
       startDate,
       locationName,
+      playerOfTheMatch,
       timeline: timeline.slice(0, 15), // Return last 15 balls for timelines
       innings: inningsList,
       teams,

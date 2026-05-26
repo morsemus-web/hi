@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 
 /* ── Types ── */
@@ -70,6 +70,7 @@ interface MatchDetails {
   statusText: string;
   startDate: string;
   locationName: string;
+  playerOfTheMatch?: string;
   timeline: { ball: string; text: string; type: string; score: string }[];
   innings: InningsData[];
   teams: Record<string, string[]>;
@@ -148,6 +149,133 @@ function formatMatchTime(isoString: string) {
   }
 }
 
+/* ── Google Sports Specific Helpers ── */
+function getMatchState(statusText: string) {
+  const t = (statusText || "").toLowerCase();
+  
+  // Clean all emojis for sleek typography
+  let cleanText = statusText.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "").trim();
+  
+  const isCompleted = t.includes("won") || t.includes("beat") || t.includes("draw") || t.includes("tied") || t.includes("completed") || t.includes("abandoned") || t.includes("no result");
+  const isUpcoming = t.includes("starts at") || t.includes("starts in") || t.includes("starting") || t.includes("preview") || t.includes("yet to begin") || t.includes("pm") || t.includes("am");
+  const isLive = !isCompleted && !isUpcoming && (t.includes("need") || t.includes("opted to") || t.includes("trail by") || t.includes("lead by") || t.includes("chose to") || /\d+[\-\/]\d+/.test(t) || t.includes("ov") || t.includes("overs"));
+  
+  let statusDisplay = cleanText;
+  if (cleanText.includes(" - ")) {
+    statusDisplay = cleanText.split(" - ")[1].trim();
+  }
+  
+  return { isLive, statusDisplay };
+}
+
+function filterMatch(match: ParsedMatch, filter: FilterKey): boolean {
+  if (filter === "all") return true;
+  
+  const league = getLeagueName(match).toLowerCase();
+  
+  if (filter === "ipl") {
+    return league.includes("ipl") || league.includes("indian premier league");
+  }
+  
+  if (filter === "international") {
+    return !league.includes("ipl") && 
+           !league.includes("indian premier league") && 
+           !league.includes("county") && 
+           !league.includes("championship");
+  }
+  
+  if (filter === "county") {
+    return league.includes("county") || league.includes("championship");
+  }
+  
+  return true;
+}
+
+function formatGoogleStyleTime(isoString: string) {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    
+    const tomorrow = new Date();
+    tomorrow.setDate(now.getDate() + 1);
+    const isTomorrow = d.toDateString() === tomorrow.toDateString();
+    
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) {
+      return `TODAY, ${timeStr}`;
+    } else if (isTomorrow) {
+      return `TOMORROW, ${timeStr}`;
+    } else {
+      const dayStr = d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+      return `${dayStr.toUpperCase()}, ${timeStr}`;
+    }
+  } catch (e) {
+    return isoString;
+  }
+}
+
+function parseInningsScore(inningsTotal: string) {
+  if (!inningsTotal) return { score: "", overs: "" };
+  // inningsTotal is like "254-5 (20.0 Ovs)" or "162-10 (19.3)"
+  const scoreMatch = inningsTotal.match(/^([0-9\/\-]+)/);
+  const oversMatch = inningsTotal.match(/\(([0-9\.]+)\s*(?:Ovs|ov|Overs)?\)/i);
+  
+  const score = scoreMatch ? scoreMatch[1].replace("-", "/") : "";
+  const overs = oversMatch ? oversMatch[1] : "";
+  return { score, overs };
+}
+
+function getTarget(innings0Total: string) {
+  if (!innings0Total) return 0;
+  const scoreMatch = innings0Total.match(/^(\d+)/);
+  if (scoreMatch) {
+    return parseInt(scoreMatch[1]) + 1;
+  }
+  return 0;
+}
+
+function isTeamWinner(match: ParsedMatch, teamShort: string, teamFull: string) {
+  const status = (match.statusDisplay || match.status_text || "").toLowerCase();
+  const tShort = (teamShort || "").toLowerCase();
+  const tFull = (teamFull || "").toLowerCase();
+  
+  return status.includes(`${tShort} won`) || 
+         status.includes(`${tFull} won`) || 
+         status.includes(`${tShort} won`) || 
+         status.includes(`${tFull} won`);
+}
+
+function getCardSubtitle(match: ParsedMatch, details: MatchDetails | null) {
+  const parts: string[] = [];
+  
+  const matchInfoParts = match.matchInfo ? match.matchInfo.split(",") : [];
+  const stage = matchInfoParts[0]?.trim(); // e.g. "Qualifier 1"
+  
+  if (stage) {
+    parts.push(stage);
+  }
+  
+  if (details?.locationName) {
+    parts.push(details.locationName);
+  }
+  
+  if (details?.startDate) {
+    try {
+      const d = new Date(details.startDate);
+      parts.push(d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }));
+    } catch(e) {}
+  }
+  
+  const series = getLeagueName(match);
+  if (series && !parts.includes(series)) {
+    parts.push(series);
+  }
+  
+  return parts.join(", ");
+}
+
 /* ── Parsing Helpers ── */
 function parseTitle(rawTitle: string) {
   let title = rawTitle.replace(/&amp;/g, "&").replace(/&#x27;/g, "'");
@@ -176,30 +304,6 @@ function parseShortTeams(statusText: string) {
     shortTeam1: parts[0]?.trim() || "??",
     shortTeam2: parts[1]?.trim() || "??",
   };
-}
-
-function getMatchState(statusText: string) {
-  const statusDisplay = statusText.split(" - ").slice(1).join(" - ");
-  const isLive = !/won|stumps|draw|preview|abandoned|no result/i.test(statusDisplay);
-  return { isLive, statusDisplay };
-}
-
-function filterMatch(match: ParsedMatch, filter: FilterKey): boolean {
-  if (filter === "all") return true;
-  const t = match.title.toLowerCase();
-  if (filter === "ipl") return t.includes("premier league") || t.includes("ipl");
-  if (filter === "international") return t.includes("tour") || t.includes("t20 world cup") || t.includes("test") || t.includes("odi");
-  if (filter === "county") return t.includes("county");
-  return true;
-}
-
-function processMatches(raw: MatchData[]): ParsedMatch[] {
-  return raw.map((m) => {
-    const { team1, team2, matchInfo } = parseTitle(m.title);
-    const { shortTeam1, shortTeam2 } = parseShortTeams(m.status_text);
-    const { isLive, statusDisplay } = getMatchState(m.status_text);
-    return { ...m, team1, team2, shortTeam1, shortTeam2, matchInfo, isLive, statusDisplay };
-  });
 }
 
 // Grouping Helper to Match Soccer League Layout
@@ -272,6 +376,8 @@ export default function LiveCricketClient() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<ParsedMatch | null>(null);
+  const [matchDetailsMap, setMatchDetailsMap] = useState<Record<string, MatchDetails>>({});
+  const fetchedIdsRef = useRef<Set<string>>(new Set());
 
   const fetchMatches = useCallback(async () => {
     try {
@@ -279,7 +385,7 @@ export default function LiveCricketClient() {
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const data = await res.json();
       if (data.status === "success" && Array.isArray(data.matches)) {
-        const processed = processMatches(data.matches);
+        const processed = processMatches(data.status_text || data.matches);
         setMatches(processed);
         setLastUpdated(new Date());
         setError(null);
@@ -289,6 +395,25 @@ export default function LiveCricketClient() {
           const updated = processed.find(m => m.id === selectedMatch.id);
           if (updated) setSelectedMatch(updated);
         }
+
+        // Dynamic background details pre-fetch for schedule start timings and venues
+        processed.forEach(async (m) => {
+          const hasBeenFetched = fetchedIdsRef.current.has(m.id);
+          if (!hasBeenFetched || m.isLive) {
+            try {
+              const detailRes = await fetch(`${DETAILS_API_URL}?id=${m.id}`);
+              if (detailRes.ok) {
+                const detailData = await detailRes.json();
+                if (detailData.status === "success") {
+                  fetchedIdsRef.current.add(m.id);
+                  setMatchDetailsMap((prev) => ({ ...prev, [m.id]: detailData }));
+                }
+              }
+            } catch (e) {
+              console.error("Error background details pre-fetch:", m.id, e);
+            }
+          }
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch scores");
@@ -296,6 +421,15 @@ export default function LiveCricketClient() {
       setLoading(false);
     }
   }, [selectedMatch]);
+
+  const processMatches = (raw: MatchData[]): ParsedMatch[] => {
+    return raw.map((m) => {
+      const { team1, team2, matchInfo } = parseTitle(m.title);
+      const { shortTeam1, shortTeam2 } = parseShortTeams(m.status_text);
+      const { isLive, statusDisplay } = getMatchState(m.status_text);
+      return { ...m, team1, team2, shortTeam1, shortTeam2, matchInfo, isLive, statusDisplay };
+    });
+  };
 
   useEffect(() => {
     fetchMatches();
@@ -377,11 +511,18 @@ export default function LiveCricketClient() {
               </button>
             ))}
           </div>
-          {lastUpdated && (
-            <span className="text-[9px] font-mono text-text-muted/40 uppercase tracking-wider">
-              Updated {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1 select-none">
+            {lastUpdated && (
+              <span className="text-[9px] font-mono text-text-muted/40 uppercase tracking-wider">
+                Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+            {error && matches.length > 0 && (
+              <span className="text-[9px] font-mono text-red-400 font-bold uppercase tracking-wider animate-pulse">
+                Connection offline: showing cached scores
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Loading state */}
@@ -394,8 +535,8 @@ export default function LiveCricketClient() {
           </div>
         )}
 
-        {/* Error state */}
-        {error && !loading && (
+        {/* Error state (when no matches are cached/loaded) */}
+        {error && !loading && matches.length === 0 && (
           <div className="glass-card rounded-xl p-8 text-center animate-fade-in">
             <p className="text-sport-f1 text-sm font-light mb-4">{error}</p>
             <button
@@ -408,7 +549,7 @@ export default function LiveCricketClient() {
         )}
 
         {/* Empty state (No Emojis) */}
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && (!error || matches.length > 0) && filtered.length === 0 && (
           <div className="glass-card rounded-xl p-12 text-center animate-fade-in">
             <p className="text-text-dim text-sm font-light mb-2">No matches found</p>
             <p className="text-text-muted text-xs font-light">
@@ -418,29 +559,34 @@ export default function LiveCricketClient() {
         )}
 
         {/* Match Grouping Blocks (Matches Football Design Pattern) */}
-        {!loading && !error && filtered.length > 0 && (
+        {!loading && filtered.length > 0 && (
           <div className="space-y-10">
             {Object.entries(groupedMatches).map(([leagueName, leagueMatches]) => (
               <div key={leagueName} className="space-y-4">
-                {/* League Heading */}
-                <div className="flex items-center gap-3 border-b border-border/60 pb-2">
-                  <span className="text-lg font-bold tracking-tight text-text-primary">
-                    {leagueName}
-                  </span>
-                  <span className="text-[10px] font-mono bg-overlay border border-border px-2 py-0.5 rounded text-text-muted">
-                    {leagueMatches.length} fixtures
-                  </span>
+                {/* League Heading Grouped Header Chevron + See all */}
+                <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-4 mt-2">
+                  <div className="flex items-center gap-2 group cursor-pointer">
+                    <span className="text-sm font-black uppercase tracking-wider text-text-primary hover:text-sport-cricket transition-colors">
+                      {leagueName}
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-muted hover:text-sport-cricket transition-colors shrink-0">
+                      <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <button className="text-[10px] font-bold uppercase tracking-widest text-sport-cricket hover:underline cursor-pointer bg-transparent border-0 py-0 px-1">
+                    See all
+                  </button>
                 </div>
 
                 {/* Match Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {leagueMatches.map((match) => (
                     <div
                       key={match.id}
                       onClick={() => setSelectedMatch(match)}
-                      className="cursor-pointer group"
+                      className="cursor-pointer group animate-fade-in"
                     >
-                      <MatchCard match={match} />
+                      <MatchCard match={match} details={matchDetailsMap[match.id] || null} />
                     </div>
                   ))}
                 </div>
@@ -466,7 +612,7 @@ export default function LiveCricketClient() {
 }
 
 /* ── Match Card ── */
-function MatchCard({ match }: { match: ParsedMatch }) {
+function MatchCard({ match, details }: { match: ParsedMatch; details: MatchDetails | null }) {
   const validBowler =
     match.current_bowler?.name && !JUNK_BOWLERS.includes(match.current_bowler.name);
 
@@ -488,207 +634,212 @@ function MatchCard({ match }: { match: ParsedMatch }) {
     reqRR = ((runsNeeded / ballsRemaining) * 6).toFixed(2);
   }
 
-  // Parse total overs / active batting team details for progress calculations
   const battingScore = score2 || score1 || "";
   const oversMatch = battingScore.match(/\((\d+(?:\.\d+)?)\)/);
   const currentOvers = oversMatch ? parseFloat(oversMatch[1]) : 0;
   const currentRuns = battingScore.match(/^(\d+)/) ? parseInt(battingScore.match(/^(\d+)/)![1]) : 0;
   const targetVal = currentRuns + runsNeeded;
 
+  // Resolve winner details for muting logic
+  const isCompleted = !match.isLive && !(match.statusDisplay || "").toLowerCase().includes("starts") && !(match.status_text || "").toLowerCase().includes("starts");
+  const isT1Winner = isCompleted && isTeamWinner(match, match.shortTeam1, match.team1);
+  const isT2Winner = isCompleted && isTeamWinner(match, match.shortTeam2, match.team2);
+  
+  // Decide whether to dim a team (dim completed losers only)
+  const dimT1 = isCompleted && isT2Winner && !isT1Winner;
+  const dimT2 = isCompleted && isT1Winner && !isT2Winner;
+
+  // Innings scores from background loaded details or fallback to main scores
+  const innScore1 = details?.innings[0] ? parseInningsScore(details.innings[0].total).score : "";
+  const innScore2 = details?.innings[1] ? parseInningsScore(details.innings[1].total).score : "";
+  const finalScore1 = innScore1 || score1;
+  const finalScore2 = innScore2 || score2;
+
+  // Chasing details
+  const tVal = details?.innings[0] ? getTarget(details.innings[0].total) : targetVal;
+  const oVal2 = details?.innings[1] ? parseInningsScore(details.innings[1].total).overs : "";
+  const isChasing = (match.isLive || isCompleted) && (finalScore2 !== "" || (details?.innings?.length ?? 0) > 1);
+
+  // Status text note: "Match yet to begin" or "RCB won by 92 runs"
+  let statusNote = "Match yet to begin";
+  if (match.isLive) {
+    statusNote = match.statusDisplay;
+  } else if (isCompleted) {
+    statusNote = match.statusDisplay || match.status_text || "Match Completed";
+  }
+
+  // Google Sports Status header left string
+  let statusHeader = "PREVIEW";
+  if (match.isLive) {
+    statusHeader = `LIVE • ${currentOvers > 0 ? currentOvers : oVal2 || "0"} OV`;
+  } else if (isCompleted) {
+    statusHeader = "RESULT";
+  } else if (details?.startDate) {
+    statusHeader = formatGoogleStyleTime(details.startDate);
+  }
+
   return (
     <div
-      className={`glass-card rounded-xl overflow-hidden transition-all duration-300 border ${
+      className={`glass-card rounded-2xl overflow-hidden transition-all duration-300 border p-5 select-none ${
         match.isLive 
-          ? "border-sport-cricket/20 shadow-[0_0_20px_rgba(107,163,190,0.03)]" 
-          : "border-border hover:border-border-hover"
+          ? "border-sport-cricket/35 shadow-[0_4px_24px_rgba(107,163,190,0.06)] bg-overlay/10" 
+          : "border-border/60 hover:border-border hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
       }`}
     >
-      {/* Header section (Status / Time) */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border/40 bg-overlay/30">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-text-muted truncate max-w-[70%]">
-          {match.matchInfo || "Cricket Match"}
+      {/* 1. Header block */}
+      <div className="flex items-center justify-between pb-2">
+        <span className={`text-[10px] font-black uppercase tracking-widest ${
+          match.isLive ? "text-red-500 flex items-center gap-1.5 font-mono" : "text-text-muted/65"
+        }`}>
+          {match.isLive && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
+          {statusHeader}
         </span>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {match.isLive ? (
-            <>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[10px] font-bold font-mono text-red-400">
-                LIVE {currentOvers > 0 && `• ${currentOvers} OV`}
-              </span>
-            </>
-          ) : (
-            <span className="text-[9px] uppercase tracking-[0.12em] text-text-muted/40 font-light">
-              {/won/i.test(match.statusDisplay) ? "Completed" : match.statusDisplay || "Completed"}
+        <span className="text-[9px] font-bold uppercase tracking-widest text-text-muted/30 font-mono">
+          {match.shortTeam1} VS {match.shortTeam2}
+        </span>
+      </div>
+
+      {/* 2. Subtitle block (Qualifier 1 (N), Dharamsala, May 26, 2026, Indian Premier League) */}
+      <p className="text-[10.5px] font-medium text-text-muted/50 leading-tight pb-3 truncate max-w-full">
+        {getCardSubtitle(match, details)}
+      </p>
+
+      {/* 3. Teams and Scores list grid */}
+      <div className="space-y-3 pt-2.5 pb-2">
+        {/* Team 1 Row */}
+        <div className={`flex items-center justify-between gap-4 transition-opacity duration-300 ${dimT1 ? "opacity-45" : "opacity-100"}`}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src={getTeamLogo(match.shortTeam1)}
+              alt={match.shortTeam1}
+              width={26}
+              height={26}
+              className="rounded-full ring-1 ring-border flex-shrink-0 bg-overlay-2 object-contain p-0.5"
+              onError={(e) => {
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(match.shortTeam1)}&background=1f2937&color=6ba3be&rounded=true&bold=true&size=48`;
+              }}
+            />
+            <span className={`text-[12px] uppercase tracking-wide truncate max-w-[180px] sm:max-w-[240px] ${
+              dimT1 ? "font-medium text-text-muted" : "font-extrabold text-text-primary"
+            }`}>
+              {match.team1 || match.shortTeam1}
+            </span>
+          </div>
+          {finalScore1 && (
+            <span className={`font-mono text-xs sm:text-[13px] tracking-tight shrink-0 ${
+              dimT1 ? "font-bold text-text-muted" : "font-black text-text-primary"
+            }`}>
+              {finalScore1.replace(/^[A-Z]+ /, "")}
             </span>
           )}
         </div>
-      </div>
 
-      {/* Main Teams & Scores Grid */}
-      <div className="px-5 py-5 flex items-center justify-between gap-4">
-        {/* Team 1 (Left) */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <img
-            src={getTeamLogo(match.shortTeam1)}
-            alt={match.shortTeam1}
-            width={34}
-            height={34}
-            className="rounded-full ring-1 ring-border flex-shrink-0 bg-overlay-2 object-contain p-0.5"
-            onError={(e) => {
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(match.shortTeam1)}&background=1f2937&color=6ba3be&rounded=true&bold=true&size=48`;
-            }}
-          />
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-text-primary truncate">
-              {match.shortTeam1}
-            </p>
-            {score1 ? (
-              <p className="text-base font-mono font-extrabold text-text-primary mt-0.5">
-                {score1.replace(/^[A-Z]+ /, "")}
-              </p>
-            ) : (
-              <p className="text-[10px] text-text-muted/50 font-light truncate mt-1">
-                {match.isLive ? "Yet to bat" : "—"}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Center: LIVE or VS */}
-        <div className="flex-shrink-0 text-center px-4">
-          {match.isLive ? (
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-sport-cricket bg-sport-cricket/10 border border-sport-cricket/20 px-2.5 py-1.5 rounded-lg">
-              VS
-            </div>
-          ) : (
-            <div className="text-[10px] font-bold uppercase tracking-widest text-text-muted/40 border border-border/40 px-2.5 py-1 rounded-md">
-              VS
-            </div>
-          )}
-        </div>
-
-        {/* Team 2 (Right) */}
-        <div className="flex items-center gap-3 flex-1 min-w-0 justify-end text-right">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-text-primary truncate">
-              {match.shortTeam2}
-            </p>
-            {score2 ? (
-              <p className="text-base font-mono font-extrabold text-text-primary mt-0.5">
-                {score2.replace(/^[A-Z]+ /, "")}
-              </p>
-            ) : (
-              <p className="text-[10px] text-text-muted/50 font-light truncate mt-1">
-                {match.isLive ? "Yet to bat" : "—"}
-              </p>
-            )}
-          </div>
-          <img
-            src={getTeamLogo(match.shortTeam2)}
-            alt={match.shortTeam2}
-            width={34}
-            height={34}
-            className="rounded-full ring-1 ring-border flex-shrink-0 bg-overlay-2 object-contain p-0.5"
-            onError={(e) => {
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(match.shortTeam2)}&background=1f2937&color=6ba3be&rounded=true&bold=true&size=48`;
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Target Chase Progress Indicator */}
-      {match.isLive && targetVal > 0 && (
-        <div className="mx-5 mb-4 p-3 bg-overlay/50 border border-border rounded-xl space-y-2">
-          <div className="flex justify-between items-center text-[9px] font-mono text-text-muted">
-            <span>Chasing: {targetVal} Runs</span>
-            {reqRR && <span>Req RR: {reqRR}</span>}
-          </div>
-          <div className="w-full h-1.5 rounded-full bg-border/40 overflow-hidden flex">
-            <div
-              className="bg-sport-cricket h-full transition-all duration-500"
-              style={{ width: `${Math.min(100, (currentRuns / targetVal) * 100)}%` }}
+        {/* Team 2 Row */}
+        <div className={`flex items-center justify-between gap-4 transition-opacity duration-300 ${dimT2 ? "opacity-45" : "opacity-100"}`}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src={getTeamLogo(match.shortTeam2)}
+              alt={match.shortTeam2}
+              width={26}
+              height={26}
+              className="rounded-full ring-1 ring-border flex-shrink-0 bg-overlay-2 object-contain p-0.5"
+              onError={(e) => {
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(match.shortTeam2)}&background=1f2937&color=6ba3be&rounded=true&bold=true&size=48`;
+              }}
             />
+            <span className={`text-[12px] uppercase tracking-wide truncate max-w-[180px] sm:max-w-[240px] ${
+              dimT2 ? "font-medium text-text-muted" : "font-extrabold text-text-primary"
+            }`}>
+              {match.team2 || match.shortTeam2}
+            </span>
           </div>
-        </div>
-      )}
-
-      {/* Bottom Status Text Banner */}
-      {match.statusDisplay && (
-        <div className={`mx-5 mb-4 text-center px-4 py-2 rounded-lg border ${
-          match.isLive 
-            ? "bg-sport-cricket/5 border-sport-cricket/20 text-sport-cricket font-semibold" 
-            : "bg-overlay border-border text-text-dim font-medium"
-        } text-[10px] uppercase tracking-wider truncate`}>
-          {match.statusDisplay}
-        </div>
-      )}
-
-      {/* Live Action Crease details (Including Bing Search dynamic headshots!) */}
-      {match.isLive && (validBatsmen?.length > 0 || validBowler) && (
-        <div className="mx-5 mb-5 p-3 bg-overlay-2/60 border border-border/80 rounded-xl space-y-2.5 animate-fade-in">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Batsmen */}
-            <div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-text-muted block mb-1.5 font-mono">
-                Batting
+          <div className="flex items-center shrink-0">
+            {isChasing && tVal > 0 && (
+              <span className="text-[10px] font-mono text-text-muted/40 mr-2 tracking-tighter shrink-0 select-none">
+                ({oVal2 || currentOvers} ov, T:{tVal})
               </span>
-              <div className="space-y-2">
-                {validBatsmen?.slice(0, 2).map((b, i) => (
-                  <div key={i} className="flex justify-between items-center text-[10px]">
-                    <span className="text-text-primary font-medium truncate max-w-[70%] flex items-center gap-1.5">
-                      <img
-                        src={getPlayerImage(b.name)}
-                        alt={b.name}
-                        className="w-[22px] h-[22px] rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
-                        }}
-                      />
-                      <span className="truncate">{b.name}</span>
-                      {i === 0 && <span className="text-sport-cricket animate-pulse text-[8px]">*</span>}
-                    </span>
-                    <span className="font-mono text-text-dim">{b.score}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Bowler */}
-            {validBowler && (
-              <div>
-                <span className="text-[8px] font-bold uppercase tracking-widest text-text-muted block mb-1.5 font-mono">
-                  Bowling
-                </span>
-                <div className="flex items-center gap-1.5 text-[10px] mt-1">
-                  <img
-                    src={getPlayerImage(match.current_bowler.name)}
-                    alt={match.current_bowler.name}
-                    className="w-[22px] h-[22px] rounded-full object-cover shrink-0 ring-1 ring-border bg-overlay-3"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
-                    }}
-                  />
-                  <span className="text-text-primary font-medium truncate max-w-[90%] flex items-center gap-1">
-                    <span className="w-1 h-1 rounded-full bg-sport-cricket animate-pulse shrink-0" />
-                    <span className="truncate">{match.current_bowler.name}</span>
-                  </span>
-                </div>
-              </div>
+            )}
+            {finalScore2 && (
+              <span className={`font-mono text-xs sm:text-[13px] tracking-tight shrink-0 ${
+                dimT2 ? "font-bold text-text-muted" : "font-black text-text-primary"
+              }`}>
+                {finalScore2.replace(/^[A-Z]+ /, "")}
+              </span>
             )}
           </div>
         </div>
+      </div>
+
+      {/* 4. Match Note Status text */}
+      <div className="mt-2.5">
+        <p className={`text-[11px] font-bold tracking-tight ${
+          match.isLive ? "text-sport-cricket" : "text-text-dim"
+        }`}>
+          {statusNote}
+        </p>
+      </div>
+
+      {/* 5. Gold-accented Player of the Match Highlights Showcase */}
+      {isCompleted && details?.playerOfTheMatch && (
+        <div className="mt-4 p-3 bg-[#b8a45e]/5 border border-[#b8a45e]/15 rounded-xl flex items-center gap-3 animate-fade-in select-none">
+          <img
+            src={getPlayerImage(details.playerOfTheMatch)}
+            alt={details.playerOfTheMatch}
+            className="w-[34px] h-[34px] rounded-full object-cover shrink-0 ring-2 ring-[#b8a45e]/30 bg-[#b8a45e]/15"
+            onError={(e) => {
+              e.currentTarget.src = "https://g.espncdn.com/i/headshots/nophoto.png";
+            }}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="inline-flex items-center text-[7.5px] font-black uppercase tracking-widest text-[#b8a45e] bg-[#b8a45e]/10 border border-[#b8a45e]/25 px-1.5 py-0.5 rounded leading-none select-none">
+              Player of the Match
+            </div>
+            <p className="text-[11.5px] font-black text-text-primary truncate mt-1 leading-none">
+              {details.playerOfTheMatch}
+            </p>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-[18px] h-[18px] text-[#b8a45e] shrink-0 opacity-80 select-none">
+            <path fillRule="evenodd" d="M5.166 2.621v.858c-1.35.148-2.41 1.285-2.41 2.695v.186c0 .89.366 1.7.954 2.285.541.539 1.285.897 2.112.977a4.27 4.27 0 003.535 3.535v2.247H7.75a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-1.606v-2.247a4.27 4.27 0 003.535-3.535c.827-.08 1.571-.438 2.112-.977.588-.585.954-1.396.954-2.285v-.186c0-1.41-1.06-2.547-2.41-2.695v-.858a.75.75 0 00-.75-.75H5.916a.75.75 0 00-.75.75zm13.668 3.553v.186c0 .493-.203.94-.53 1.265-.3.298-.71.498-1.164.545a4.254 4.254 0 00-.31-1.81v-.186h2.004zM5.166 6.366h2.004v.186a4.254 4.254 0 00-.31 1.81 1.724 1.724 0 01-1.164-.545 1.724 1.724 0 01-.53-1.265v-.186z" clipRule="evenodd" />
+          </svg>
+        </div>
       )}
 
-      {/* Bottom Hint */}
-      <div className="px-5 py-2 border-t border-border/20 text-center bg-overlay-2/10">
-        <p className="text-[8px] uppercase tracking-widest text-text-muted/45 font-mono group-hover:text-sport-cricket transition-colors">
-          Click for scorecard & stats &rarr;
-        </p>
+      {/* 6. Flat action links aligned horizontally */}
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30">
+        {match.isLive ? (
+          <>
+            <span className="text-[10px] font-black uppercase tracking-widest text-sport-cricket hover:underline select-none">
+              Live Center
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted/40 hover:underline select-none">
+              Commentary
+            </span>
+          </>
+        ) : isCompleted ? (
+          <>
+            <span className="text-[10px] font-black uppercase tracking-widest text-sport-cricket hover:underline select-none">
+              Live Blog
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted/40 hover:underline select-none">
+              Scorecard
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-[10px] font-black uppercase tracking-widest text-sport-cricket hover:underline select-none">
+              Preview
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted/40 hover:underline select-none">
+              Squads
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-/* ── Immersive Details Slide Drawer Component (Matches Football drawer architecture) ── */
+/* ── Immersive Details Slide Drawer Component ── */
 function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: () => void }) {
   const [details, setDetails] = useState<MatchDetails | null>(null);
   const [loading, setLoading] = useState(true);
