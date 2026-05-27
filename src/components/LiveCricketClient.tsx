@@ -321,9 +321,18 @@ function parseTitle(rawTitle: string) {
 function parseShortTeams(statusText: string) {
   const teams = statusText.split(" - ")[0];
   const parts = teams.split(" vs ");
+  
+  const cleanSuffix = (s: string) => {
+    if (!s) return "";
+    return s
+      .replace(/\s+\d+(st|nd|rd|th)\s+match.*$/i, "")
+      .replace(/\s+(qualifier|group|final|semi).*$/i, "")
+      .trim();
+  };
+
   return {
-    shortTeam1: parts[0]?.trim() || "??",
-    shortTeam2: parts[1]?.trim() || "??",
+    shortTeam1: cleanSuffix(parts[0]?.trim() || "??"),
+    shortTeam2: cleanSuffix(parts[1]?.trim() || "??"),
   };
 }
 
@@ -1021,8 +1030,26 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
   // Determine active live innings index safely
   const liveInningsIdx = details && details.innings.length > 0 ? details.innings.length - 1 : 0;
 
-  // Resolve if the match is completed
-  const isMatchCompleted = !match.isLive && !(match.statusDisplay || "").toLowerCase().includes("starts") && !(match.status_text || "").toLowerCase().includes("starts");
+  // Resolve if the match is completed (using asynchronous details feedback as primary source if available)
+  const detailStatusLower = (details?.statusText || "").toLowerCase();
+  const isMatchCompleted = (
+    (!match.isLive || 
+     detailStatusLower.includes("won") || 
+     detailStatusLower.includes("beat") || 
+     detailStatusLower.includes("tied") || 
+     detailStatusLower.includes("draw") || 
+     detailStatusLower.includes("abandoned") || 
+     detailStatusLower.includes("no result")) &&
+    !(match.statusDisplay || "").toLowerCase().includes("starts") &&
+    !(match.status_text || "").toLowerCase().includes("starts")
+  );
+
+  // Switch tab away from "live" to "scorecard" when match is completed
+  useEffect(() => {
+    if (isMatchCompleted && activeTab === "live") {
+      setActiveTab("scorecard");
+    }
+  }, [isMatchCompleted, activeTab]);
 
   // Resolve dynamically updated scores for completed/inactive matches
   const totalScore1 = details && details.innings.length > 0
@@ -1123,7 +1150,7 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
         {/* Dynamic Tabs Navigation (Matches Football style) */}
         <div className="flex border-b border-border bg-surface px-2 sm:px-4 overflow-x-auto whitespace-nowrap scrollbar-none shrink-0">
           {([
-            ...(match.isLive ? [{ key: "live" as const, label: "Live Center" }] : []),
+            ...(match.isLive && !isMatchCompleted ? [{ key: "live" as const, label: "Live Center" }] : []),
             { key: "scorecard" as const, label: "Scorecard" },
             { key: "commentary" as const, label: "Commentary" },
             { key: "playing11" as const, label: "Playing XI" },
