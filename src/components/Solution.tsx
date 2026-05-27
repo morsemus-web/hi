@@ -3,8 +3,43 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
-const slides = [
+/* ── Types ── */
+interface LiveMatchData {
+  headline: string;
+  detail: string;
+  alert: string;
+  left: string;
+  score: string;
+  right: string;
+  meta: string;
+  barWidth: string;
+  isLive: boolean;
+}
+
+interface SlideData {
+  sport: string;
+  color: string;
+  colorHex: string;
+  barColor: string;
+  barWidth: string;
+  dot: string;
+  headline: string;
+  detail: string;
+  alert: string;
+  left: string;
+  score: string;
+  right: string;
+  meta: string;
+  bg: string;
+  bgLabel: string;
+  isLive: boolean;
+  link?: string;
+}
+
+/* ── Static fallback data ── */
+const staticSlides: SlideData[] = [
   {
     sport: "Cricket",
     color: "bg-cyan-500",
@@ -21,6 +56,8 @@ const slides = [
     meta: "43.1 ov",
     bg: "vscode",
     bgLabel: "While you code",
+    isLive: false,
+    link: "/cricket",
   },
   {
     sport: "F1",
@@ -38,6 +75,7 @@ const slides = [
     meta: "1:19.442",
     bg: "meeting",
     bgLabel: "During meetings",
+    isLive: false,
   },
   {
     sport: "Basketball",
@@ -55,6 +93,7 @@ const slides = [
     meta: "Q3 4:21",
     bg: "spreadsheet",
     bgLabel: "In spreadsheets",
+    isLive: false,
   },
   {
     sport: "Football",
@@ -72,8 +111,98 @@ const slides = [
     meta: "78'",
     bg: "browser",
     bgLabel: "While browsing",
+    isLive: false,
+    link: "/soccer",
   },
 ];
+
+/* ── Helper: parse cricket match for display ── */
+function parseCricketLive(matches: any[]): LiveMatchData | null {
+  // Find a live match (prefer truly live, then any with scores)
+  for (const m of matches) {
+    const st = (m.status_text || "").toLowerCase();
+    const statusPart = st.includes(" - ") ? st.split(" - ").slice(1).join(" - ").trim() : st;
+    
+    const isCompleted = statusPart.includes("won") || statusPart.includes("beat") || statusPart.includes("draw") || statusPart.includes("tied") || statusPart.includes("abandoned");
+    if (isCompleted) continue;
+    
+    const title = m.title || "";
+    const hasScores = /\b\d+[\/-]\d+\b/.test(title) || /\b\d+\s*\(/.test(title);
+    const isLiveKeyword = statusPart.includes("need") || statusPart.includes("opted") || statusPart.includes("trail") || statusPart.includes("lead") || statusPart.includes("innings break") || statusPart.includes("break");
+    
+    if (!hasScores && !isLiveKeyword) continue;
+    
+    // Extract team names from status_text: "RCB vs GT - ..."
+    const vsMatch = (m.status_text || "").match(/^(.+?)\s+vs\s+(.+?)(?:\s*-|$)/i);
+    const team1Short = vsMatch ? vsMatch[1].trim() : "T1";
+    const team2Short = vsMatch ? vsMatch[2].trim() : "T2";
+    
+    // Extract scores from title: "IND 287/4 (43.1) vs PAK 230"
+    const scoreRegex1 = new RegExp(`${team1Short}\\s+(\\d+[\\/-]?\\d*)\\s*(?:\\(([\\d.]+)\\))?`, "i");
+    const scoreRegex2 = new RegExp(`${team2Short}\\s+(\\d+[\\/-]?\\d*)\\s*(?:\\(([\\d.]+)\\))?`, "i");
+    const sm1 = title.match(scoreRegex1);
+    const sm2 = title.match(scoreRegex2);
+    
+    const score1 = sm1 ? sm1[1].replace("-", "/") : "";
+    const score2 = sm2 ? sm2[1].replace("-", "/") : "";
+    const overs1 = sm1 ? sm1[2] || "" : "";
+    const overs2 = sm2 ? sm2[2] || "" : "";
+    
+    const statusDisplay = statusPart.includes(" - ")
+      ? statusPart
+      : m.status_text?.includes(" - ")
+        ? m.status_text.split(" - ").slice(1).join(" - ").trim()
+        : "In Progress";
+    
+    // Calculate progress bar width from overs (max 20 for T20, 50 for ODI)
+    const overs = parseFloat(overs2 || overs1 || "0");
+    const maxOvers = title.toLowerCase().includes("t20") || overs <= 20 ? 20 : 50;
+    const progress = Math.min(Math.round((overs / maxOvers) * 100), 95);
+    
+    return {
+      headline: `${team1Short} vs ${team2Short}`,
+      detail: `${score1 ? `${team1Short} ${score1}` : ""}${score2 ? ` · ${team2Short} ${score2}` : ""}${overs ? ` · ${overs} ov` : ""}`,
+      alert: statusDisplay.charAt(0).toUpperCase() + statusDisplay.slice(1),
+      left: team1Short,
+      score: score1 || "—",
+      right: score2 ? `${score2}` : team2Short,
+      meta: overs ? `${overs} ov` : "Live",
+      barWidth: `w-[${progress}%]`,
+      isLive: true,
+    };
+  }
+  return null;
+}
+
+/* ── Helper: parse football match for display ── */
+function parseFootballLive(leagues: any[]): LiveMatchData | null {
+  for (const league of leagues) {
+    for (const m of league.matches || []) {
+      if (m.status === "Live") {
+        const progress = parseInt(m.time) || 45;
+        const barPct = Math.min(Math.round((progress / 90) * 100), 95);
+        
+        // Truncate long team names
+        const home = m.home_team?.length > 12 ? m.home_team.slice(0, 12) : m.home_team || "Home";
+        const away = m.away_team?.length > 12 ? m.away_team.slice(0, 12) : m.away_team || "Away";
+        
+        return {
+          headline: `${home} vs ${away}`,
+          detail: `${m.time} · ${m.home_team} ${m.home_score} - ${m.away_score} ${m.away_team}`,
+          alert: `${league.league} — Match in progress`,
+          left: home.toUpperCase().slice(0, 3),
+          score: `${m.home_score}-${m.away_score}`,
+          right: away.toUpperCase().slice(0, 3),
+          meta: m.time || "Live",
+          barWidth: `w-[${barPct}%]`,
+          isLive: true,
+        };
+      }
+    }
+  }
+  return null;
+}
+
 
 /* ── SVG mockup backgrounds ── */
 
@@ -332,6 +461,7 @@ export default function Solution() {
   const [paused, setPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
+  const [slides, setSlides] = useState<SlideData[]>(staticSlides);
 
   const bgLabels: Record<string, string> = {
     vscode: t("bgLabel_vscode"),
@@ -344,13 +474,80 @@ export default function Solution() {
 
   const isDark = mounted ? resolvedTheme === "dark" : true;
 
+  // Fetch live data for Cricket and Football
+  useEffect(() => {
+    async function fetchLiveData() {
+      const newSlides = [...staticSlides];
+
+      // Cricket (index 0)
+      try {
+        const cricRes = await fetch("/api/cricket");
+        if (cricRes.ok) {
+          const cricData = await cricRes.json();
+          if (cricData.status === "success" && Array.isArray(cricData.matches)) {
+            const liveMatch = parseCricketLive(cricData.matches);
+            if (liveMatch) {
+              newSlides[0] = {
+                ...newSlides[0],
+                headline: liveMatch.headline,
+                detail: liveMatch.detail,
+                alert: liveMatch.alert,
+                left: liveMatch.left,
+                score: liveMatch.score,
+                right: liveMatch.right,
+                meta: liveMatch.meta,
+                barWidth: liveMatch.barWidth,
+                isLive: true,
+              };
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch cricket live data:", e);
+      }
+
+      // Football (index 3)
+      try {
+        const soccerRes = await fetch("/api/soccer");
+        if (soccerRes.ok) {
+          const soccerData = await soccerRes.json();
+          if (soccerData.status === "success" && Array.isArray(soccerData.leagues)) {
+            const liveMatch = parseFootballLive(soccerData.leagues);
+            if (liveMatch) {
+              newSlides[3] = {
+                ...newSlides[3],
+                headline: liveMatch.headline,
+                detail: liveMatch.detail,
+                alert: liveMatch.alert,
+                left: liveMatch.left,
+                score: liveMatch.score,
+                right: liveMatch.right,
+                meta: liveMatch.meta,
+                barWidth: liveMatch.barWidth,
+                isLive: true,
+              };
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch soccer live data:", e);
+      }
+
+      setSlides(newSlides);
+    }
+
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (paused) return;
     const timer = setInterval(() => {
       setActive((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, [paused]);
+  }, [paused, slides.length]);
 
   const handleSelect = useCallback((i: number) => {
     setActive(i);
@@ -366,6 +563,24 @@ export default function Solution() {
   const scoreBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)";
   const scoreBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
   const toolbarBg = isDark ? "rgba(20,20,20,0.95)" : "rgba(245,245,245,0.95)";
+
+  // Check if any sport has live data
+  const hasAnyLive = slides.some(s => s.isLive);
+
+  /* Wrapper: if sport has a link (cricket/football), wrap children in a Next Link */
+  const SportButton = ({ slide: s, index, children }: { slide: SlideData; index: number; children: React.ReactNode }) => {
+    const handleClick = () => handleSelect(index);
+
+    if (s.link) {
+      return (
+        <Link href={s.link} onClick={handleClick} className="contents">
+          {children}
+        </Link>
+      );
+    }
+
+    return <>{children}</>;
+  };
 
   return (
     <section className="relative py-24 md:py-32 px-6 md:px-8 border-t border-border overflow-hidden min-h-[600px] md:min-h-[700px]">
@@ -421,41 +636,62 @@ export default function Solution() {
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${s.dot} ${i === active ? "opacity-100" : "opacity-40"}`} />
                   {s.sport}
+                  {s.isLive && <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse" />}
                 </button>
               ))}
             </div>
 
             {/* Desktop: vertical stacked buttons */}
             <div className="hidden md:flex flex-col gap-2">
-              {slides.map((s, i) => (
-                <button
-                  key={s.sport}
-                  onClick={() => handleSelect(i)}
-                  className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all duration-500 cursor-pointer ${
-                    i === active
-                      ? "bg-overlay-5 border border-overlay-10 shadow-lg backdrop-blur-sm"
-                      : "bg-transparent border border-transparent hover:bg-overlay-2 hover:border-overlay-5"
-                  }`}
-                  style={i === active ? { boxShadow: `0 0 30px ${s.colorHex}15, 0 0 60px ${s.colorHex}08` } : undefined}
-                >
-                  <span className={`w-2.5 h-2.5 rounded-full ${s.dot} transition-opacity duration-300 ${i === active ? "opacity-100" : "opacity-30 group-hover:opacity-60"}`} />
-                  <div className="flex-1">
-                    <span className={`text-[11px] uppercase tracking-[0.15em] font-medium transition-colors duration-300 ${
-                      i === active ? "text-text-primary" : "text-text-muted/40 group-hover:text-text-muted/70"
-                    }`}>
-                      {s.sport}
-                    </span>
-                    <p className={`text-[9px] mt-0.5 transition-all duration-300 ${
-                      i === active ? "text-text-dim/60 opacity-100" : "text-text-muted/20 opacity-0 group-hover:opacity-60"
-                    }`}>
-                      {bgLabels[s.bg]}
-                    </p>
-                  </div>
-                  <div className={`w-0.5 h-6 rounded-full transition-all duration-500 ${
-                    i === active ? `${s.color} opacity-60` : "bg-overlay-5 opacity-0"
-                  }`} />
-                </button>
-              ))}
+              {slides.map((s, i) => {
+                const isNoLiveSport = (s.sport === "F1" || s.sport === "Basketball") && !s.isLive;
+
+                return (
+                  <button
+                    key={s.sport}
+                    onClick={() => {
+                      handleSelect(i);
+                      if (s.link) {
+                        window.location.href = s.link;
+                      }
+                    }}
+                    className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all duration-500 cursor-pointer ${
+                      i === active
+                        ? "bg-overlay-5 border border-overlay-10 shadow-lg backdrop-blur-sm"
+                        : "bg-transparent border border-transparent hover:bg-overlay-2 hover:border-overlay-5"
+                    }`}
+                    style={i === active ? { boxShadow: `0 0 30px ${s.colorHex}15, 0 0 60px ${s.colorHex}08` } : undefined}
+                  >
+                    <span className={`w-2.5 h-2.5 rounded-full ${s.dot} transition-opacity duration-300 ${i === active ? "opacity-100" : "opacity-30 group-hover:opacity-60"}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[11px] uppercase tracking-[0.15em] font-medium transition-colors duration-300 ${
+                          i === active ? "text-text-primary" : "text-text-muted/40 group-hover:text-text-muted/70"
+                        }`}>
+                          {s.sport}
+                        </span>
+                        {s.isLive && (
+                          <span className="flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse" />
+                            <span className="text-[8px] uppercase tracking-widest text-red-400/70 font-bold">Live</span>
+                          </span>
+                        )}
+                        {isNoLiveSport && (
+                          <span className="text-[8px] uppercase tracking-widest text-text-muted/30 font-medium">No live</span>
+                        )}
+                      </div>
+                      <p className={`text-[9px] mt-0.5 transition-all duration-300 ${
+                        i === active ? "text-text-dim/60 opacity-100" : "text-text-muted/20 opacity-0 group-hover:opacity-60"
+                      }`}>
+                        {bgLabels[s.bg]}
+                      </p>
+                    </div>
+                    <div className={`w-0.5 h-6 rounded-full transition-all duration-500 ${
+                      i === active ? `${s.color} opacity-60` : "bg-overlay-5 opacity-0"
+                    }`} />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -484,10 +720,17 @@ export default function Solution() {
                   <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted/50">
                     {slide.sport}
                   </span>
-                  <span className="ml-auto flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-[9px] uppercase tracking-[0.15em] text-red-400/60 font-medium">Live</span>
-                  </span>
+                  {slide.isLive && (
+                    <span className="ml-auto flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-[9px] uppercase tracking-[0.15em] text-red-400/60 font-medium">Live</span>
+                    </span>
+                  )}
+                  {!slide.isLive && (slide.sport === "F1" || slide.sport === "Basketball") && (
+                    <span className="ml-auto text-[9px] uppercase tracking-[0.15em] text-text-muted/30 font-medium">
+                      No matches live
+                    </span>
+                  )}
                 </div>
 
                 {/* Match headline */}
@@ -511,7 +754,7 @@ export default function Solution() {
                 {/* Alert banner */}
                 <div className="bg-accent/[0.06] border border-accent/[0.12] rounded-lg px-4 py-3 mb-5">
                   <p className="text-[9px] uppercase tracking-[0.15em] text-accent/70 font-medium mb-1">
-                    Key Event
+                    {slide.isLive ? "Live Status" : "Key Event"}
                   </p>
                   <p className="text-[12px] sm:text-[13px] text-text-dim font-light leading-relaxed">
                     {slide.alert}
@@ -534,7 +777,7 @@ export default function Solution() {
                   style={{ backgroundColor: toolbarBg, border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`w-1.5 h-1.5 rounded-full ${slide.dot}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${slide.isLive ? "bg-red-500 animate-pulse" : slide.dot}`} />
                     <span className="text-[11px] font-bold text-text-primary/90">{slide.left}</span>
                     <span className="text-[14px] font-extrabold text-text-primary">{slide.score}</span>
                     <span className="text-[11px] font-bold text-text-primary/90">{slide.right}</span>
