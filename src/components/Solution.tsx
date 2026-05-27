@@ -170,7 +170,7 @@ function parseCricketLive(matches: any[]): LiveMatchData | null {
       const playerStr = playerInfoMatch[1];
       const batters = playerStr.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(\d+)\((\d+)\)/g);
       if (batters && batters.length > 0) {
-        const formattedBatters = batters.slice(0, 2).map(b => {
+        const formattedBatters = batters.slice(0, 2).map((b: string) => {
           const m = b.match(/(.+?)\s+(\d+)\((\d+)\)/);
           return m ? `${m[1]} ${m[2]}*(${m[3]})` : b;
         });
@@ -602,20 +602,6 @@ export default function Solution() {
   // Check if any sport has live data
   const hasAnyLive = slides.some(s => s.isLive);
 
-  /* Wrapper: if sport has a link (cricket/football), wrap children in a Next Link */
-  const SportButton = ({ slide: s, index, children }: { slide: SlideData; index: number; children: React.ReactNode }) => {
-    const handleClick = () => handleSelect(index);
-
-    if (s.link) {
-      return (
-        <Link href={s.link} onClick={handleClick} className="contents">
-          {children}
-        </Link>
-      );
-    }
-
-    return <>{children}</>;
-  };
 
   return (
     <section className="relative py-24 md:py-32 px-6 md:px-8 border-t border-border overflow-hidden min-h-[600px] md:min-h-[700px]">
@@ -684,12 +670,7 @@ export default function Solution() {
                 return (
                   <button
                     key={s.sport}
-                    onClick={() => {
-                      handleSelect(i);
-                      if (s.link) {
-                        window.location.href = s.link;
-                      }
-                    }}
+                    onClick={() => handleSelect(i)}
                     className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all duration-500 cursor-pointer ${
                       i === active
                         ? "bg-overlay-5 border border-overlay-10 shadow-lg backdrop-blur-sm"
@@ -740,70 +721,83 @@ export default function Solution() {
                 </span>
               </div>
 
-              {/* Main score card */}
-              <div
-                className="backdrop-blur-xl rounded-2xl p-6 sm:p-8 transition-all duration-500"
-                style={{
-                  backgroundColor: cardBg,
-                  border: `1px solid ${cardBorder}`,
-                  boxShadow: `0 0 40px ${slide.colorHex}10, 0 4px 30px ${isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.08)"}`,
-                }}
-              >
-                {/* Sport + Live badge */}
-                <div className="flex items-center gap-2 mb-4">
-                  <span className={`w-2 h-2 rounded-full ${slide.dot}`} />
-                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted/50">
-                    {slide.sport}
-                  </span>
-                  {slide.isLive && (
-                    <span className="ml-auto flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-[9px] uppercase tracking-[0.15em] text-red-400/60 font-medium">Live</span>
-                    </span>
-                  )}
-                  {!slide.isLive && (slide.sport === "F1" || slide.sport === "Basketball") && (
-                    <span className="ml-auto text-[9px] uppercase tracking-[0.15em] text-text-muted/30 font-medium">
-                      No matches live
-                    </span>
-                  )}
-                </div>
+              {/* Main score card — links to sport page for Cricket/Football */}
+              {(() => {
+                const CardContent = (
+                  <div
+                    className="backdrop-blur-xl rounded-2xl p-6 sm:p-8 transition-all duration-500 group-hover/card:scale-[1.01] group-hover/card:shadow-lg"
+                    style={{
+                      backgroundColor: cardBg,
+                      border: `1px solid ${cardBorder}`,
+                      boxShadow: `0 0 40px ${slide.colorHex}10, 0 4px 30px ${isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.08)"}`,
+                    }}
+                  >
+                    {/* Sport + Live badge */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className={`w-2 h-2 rounded-full ${slide.dot}`} />
+                      <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted/50">
+                        {slide.sport}
+                      </span>
+                      {slide.isLive && (
+                        <span className="ml-auto flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                          <span className="text-[9px] uppercase tracking-[0.15em] text-red-400/60 font-medium">Live</span>
+                        </span>
+                      )}
+                      {!slide.isLive && (slide.sport === "F1" || slide.sport === "Basketball") && (
+                        <span className="ml-auto text-[9px] uppercase tracking-[0.15em] text-text-muted/30 font-medium">
+                          No matches live
+                        </span>
+                      )}
+                    </div>
 
-                {/* Match headline */}
-                <h3 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-[-0.01em] mb-1">
-                  {slide.headline}
-                </h3>
-                <p className="text-[11px] sm:text-[12px] text-text-muted/50 font-light mb-6">
-                  {slide.detail}
-                </p>
+                    {/* Match headline */}
+                    <h3 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-[-0.01em] mb-1">
+                      {slide.headline}
+                    </h3>
+                    <p className="text-[11px] sm:text-[12px] text-text-muted/50 font-light mb-6">
+                      {slide.detail}
+                    </p>
 
-                {/* Score display */}
-                <div
-                  className="flex items-center justify-between rounded-xl px-5 py-4 mb-5"
-                  style={{ backgroundColor: scoreBg, border: `1px solid ${scoreBorder}` }}
-                >
-                  <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.left}</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">{slide.score}</span>
-                  <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.right}</span>
-                </div>
+                    {/* Score display */}
+                    <div
+                      className="flex items-center justify-between rounded-xl px-5 py-4 mb-5"
+                      style={{ backgroundColor: scoreBg, border: `1px solid ${scoreBorder}` }}
+                    >
+                      <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.left}</span>
+                      <span className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">{slide.score}</span>
+                      <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.right}</span>
+                    </div>
 
-                {/* Alert banner */}
-                <div className="bg-accent/[0.06] border border-accent/[0.12] rounded-lg px-4 py-3 mb-5">
-                  <p className="text-[9px] uppercase tracking-[0.15em] text-accent/70 font-medium mb-1">
-                    {slide.isLive ? "Live Status" : "Key Event"}
-                  </p>
-                  <p className="text-[12px] sm:text-[13px] text-text-dim font-light leading-relaxed">
-                    {slide.alert}
-                  </p>
-                </div>
+                    {/* Alert banner */}
+                    <div className="bg-accent/[0.06] border border-accent/[0.12] rounded-lg px-4 py-3 mb-5">
+                      <p className="text-[9px] uppercase tracking-[0.15em] text-accent/70 font-medium mb-1">
+                        {slide.isLive ? "Live Status" : "Key Event"}
+                      </p>
+                      <p className="text-[12px] sm:text-[13px] text-text-dim font-light leading-relaxed">
+                        {slide.alert}
+                      </p>
+                    </div>
 
-                {/* Progress bar */}
-                <div className="flex items-center gap-3">
-                  <span className="text-[9px] text-text-muted/40 font-mono">{slide.meta}</span>
-                  <div className="flex-1 h-[3px] bg-overlay-5 rounded-full overflow-hidden">
-                    <div className={`h-full ${slide.barColor} rounded-full transition-all duration-700 ${slide.barWidth}`} />
+                    {/* Progress bar */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-[9px] text-text-muted/40 font-mono">{slide.meta}</span>
+                      <div className="flex-1 h-[3px] bg-overlay-5 rounded-full overflow-hidden">
+                        <div className={`h-full ${slide.barColor} rounded-full transition-all duration-700 ${slide.barWidth}`} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+
+                if (slide.link) {
+                  return (
+                    <Link href={slide.link} className="block cursor-pointer group/card">
+                      {CardContent}
+                    </Link>
+                  );
+                }
+                return CardContent;
+              })()}
 
               {/* Toolbar mockup below card */}
               <div className="mt-4 max-w-[360px] mx-auto">
