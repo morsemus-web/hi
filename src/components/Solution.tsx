@@ -118,7 +118,6 @@ const staticSlides: SlideData[] = [
 
 /* ── Helper: parse cricket match for display ── */
 function parseCricketLive(matches: any[]): LiveMatchData | null {
-  // Find a live match (prefer truly live, then any with scores)
   for (const m of matches) {
     const st = (m.status_text || "").toLowerCase();
     const statusPart = st.includes(" - ") ? st.split(" - ").slice(1).join(" - ").trim() : st;
@@ -132,41 +131,77 @@ function parseCricketLive(matches: any[]): LiveMatchData | null {
     
     if (!hasScores && !isLiveKeyword) continue;
     
-    // Extract team names from status_text: "RCB vs GT - ..."
-    const vsMatch = (m.status_text || "").match(/^(.+?)\s+vs\s+(.+?)(?:\s*-|$)/i);
-    const team1Short = vsMatch ? vsMatch[1].trim() : "T1";
-    const team2Short = vsMatch ? vsMatch[2].trim() : "T2";
+    // Title format: "RWA 53/2 (5.2) vs MALI 49 (Hamza Khan 17(12) Oscar Manishimwe 1(2))"
+    // Split by " vs " to get each side
+    const titleParts = title.split(/\s+vs\s+/i);
+    if (titleParts.length < 2) continue;
     
-    // Extract scores from title: "IND 287/4 (43.1) vs PAK 230"
-    const scoreRegex1 = new RegExp(`${team1Short}\\s+(\\d+[\\/-]?\\d*)\\s*(?:\\(([\\d.]+)\\))?`, "i");
-    const scoreRegex2 = new RegExp(`${team2Short}\\s+(\\d+[\\/-]?\\d*)\\s*(?:\\(([\\d.]+)\\))?`, "i");
-    const sm1 = title.match(scoreRegex1);
-    const sm2 = title.match(scoreRegex2);
+    // Parse team1 from first part: "RWA 53/2 (5.2)"
+    const part1Match = titleParts[0].match(/^([A-Z][A-Za-z]+)\s+(\d+[\/-]?\d*)\s*(?:\(([0-9.]+)\))?/);
+    const t1Code = part1Match ? part1Match[1] : "";
+    const t1Score = part1Match ? part1Match[2].replace("-", "/") : "";
+    const t1Overs = part1Match ? part1Match[3] || "" : "";
     
-    const score1 = sm1 ? sm1[1].replace("-", "/") : "";
-    const score2 = sm2 ? sm2[1].replace("-", "/") : "";
-    const overs1 = sm1 ? sm1[2] || "" : "";
-    const overs2 = sm2 ? sm2[2] || "" : "";
+    // Parse team2 from second part: "MALI 49 (Hamza Khan 17(12) ...)" 
+    const part2Match = titleParts[1].match(/^([A-Z][A-Za-z]+)\s+(\d+[\/-]?\d*)\s*(?:\(([0-9.]+)\))?/);
+    const t2Code = part2Match ? part2Match[1] : "";
+    const t2Score = part2Match ? part2Match[2].replace("-", "/") : "";
+    const t2Overs = part2Match ? part2Match[3] || "" : "";
     
-    const statusDisplay = statusPart.includes(" - ")
-      ? statusPart
-      : m.status_text?.includes(" - ")
-        ? m.status_text.split(" - ").slice(1).join(" - ").trim()
-        : "In Progress";
+    if (!t1Code && !t2Code) continue;
     
-    // Calculate progress bar width from overs (max 20 for T20, 50 for ODI)
-    const overs = parseFloat(overs2 || overs1 || "0");
-    const maxOvers = title.toLowerCase().includes("t20") || overs <= 20 ? 20 : 50;
-    const progress = Math.min(Math.round((overs / maxOvers) * 100), 95);
+    // Extract clean team names from status_text: "Mali vs Rwanda 10th Match" → Mali, Rwanda
+    const statusClean = (m.status_text || "").replace(/\s*-\s*.+$/, ""); // Remove everything after " - "
+    const vsStatus = statusClean.match(/^(.+?)\s+vs\s+(.+?)$/i);
+    let team1Full = t1Code;
+    let team2Full = t2Code;
+    if (vsStatus) {
+      // Clean suffixes like "10th Match", "1st Match, Group A", "Qualifier 1", etc.
+      team1Full = vsStatus[1].replace(/\s+\d+(st|nd|rd|th)\s+match.*$/i, "").replace(/\s+(qualifier|group|final|semi).*$/i, "").trim();
+      team2Full = vsStatus[2].replace(/\s+\d+(st|nd|rd|th)\s+match.*$/i, "").replace(/\s+(qualifier|group|final|semi).*$/i, "").trim();
+    }
+    
+    // Extract batting info from title — player names with scores after a team's runs
+    // e.g. "(Hamza Khan 17(12) Oscar Manishimwe 1(2))"
+    const playerInfoMatch = title.match(/\(([A-Z][a-z][\w\s]+\d+\(\d+\).*?)\)/);
+    let battingAlert = "";
+    if (playerInfoMatch) {
+      // Parse individual batters: "Hamza Khan 17(12) Oscar Manishimwe 1(2)"
+      const playerStr = playerInfoMatch[1];
+      const batters = playerStr.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(\d+)\((\d+)\)/g);
+      if (batters && batters.length > 0) {
+        const formattedBatters = batters.slice(0, 2).map(b => {
+          const m = b.match(/(.+?)\s+(\d+)\((\d+)\)/);
+          return m ? `${m[1]} ${m[2]}*(${m[3]})` : b;
+        });
+        battingAlert = `🏏 Batting: ${formattedBatters.join(", ")}`;
+      }
+    }
+    
+    // Status from API or extracted batting info
+    let alertText = battingAlert || "In Progress";
+    if (statusPart.includes(" - ")) {
+      const statusMsg = m.status_text.split(" - ").slice(1).join(" - ").trim();
+      alertText = statusMsg.charAt(0).toUpperCase() + statusMsg.slice(1);
+      if (battingAlert) alertText += ` · ${battingAlert}`;
+    } else if (statusPart.includes("need")) {
+      alertText = statusPart.charAt(0).toUpperCase() + statusPart.slice(1);
+      if (battingAlert) alertText += ` · ${battingAlert}`;
+    }
+    
+    // Calculate progress bar from overs
+    const latestOvers = parseFloat(t2Overs || t1Overs || "0");
+    const maxOvers = title.toLowerCase().includes("t20") || latestOvers <= 20 ? 20 : 50;
+    const progress = latestOvers > 0 ? Math.min(Math.round((latestOvers / maxOvers) * 100), 95) : 50;
     
     return {
-      headline: `${team1Short} vs ${team2Short}`,
-      detail: `${score1 ? `${team1Short} ${score1}` : ""}${score2 ? ` · ${team2Short} ${score2}` : ""}${overs ? ` · ${overs} ov` : ""}`,
-      alert: statusDisplay.charAt(0).toUpperCase() + statusDisplay.slice(1),
-      left: team1Short,
-      score: score1 || "—",
-      right: score2 ? `${score2}` : team2Short,
-      meta: overs ? `${overs} ov` : "Live",
+      headline: `${team1Full} vs ${team2Full}`,
+      detail: `${t1Code} ${t1Score}${t1Overs ? ` (${t1Overs})` : ""} · ${t2Code} ${t2Score}${t2Overs ? ` (${t2Overs})` : ""}`,
+      alert: alertText,
+      left: t1Code,
+      score: `${t1Score}`,
+      right: `${t2Score || t2Code}`,
+      meta: latestOvers > 0 ? `${latestOvers} ov` : "Live",
       barWidth: `w-[${progress}%]`,
       isLive: true,
     };
