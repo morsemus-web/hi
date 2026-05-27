@@ -229,6 +229,18 @@ function parseCricketLive(matches: any[]): LiveMatchData | null {
       }
     }
 
+    let matchInfo = "";
+    const pipeParts = title.split(" | ");
+    if (pipeParts.length >= 2) {
+      const section = pipeParts[1].split(" vs ");
+      if (section.length >= 2) {
+        const commaParts = section[1].split(",");
+        if (commaParts.length >= 2) {
+          matchInfo = commaParts.slice(1).join(",").trim();
+        }
+      }
+    }
+
     const battingTeam = isT1Batting ? t1Code : t2Code;
     const battingScore = isT1Batting ? t1Score : t2Score;
     const battingOvers = isT1Batting ? t1Overs : t2Overs;
@@ -238,7 +250,7 @@ function parseCricketLive(matches: any[]): LiveMatchData | null {
     return {
       id: m.id || "",
       headline: `${team1Full} vs ${team2Full}`,
-      detail: `${t1Code} ${t1Score}${t1Overs ? ` (${t1Overs})` : ""} · ${t2Code} ${t2Score}${t2Overs ? ` (${t2Overs})` : ""}`,
+      detail: matchInfo ? matchInfo.replace(/Live Cricket Stream.*$/i, "").trim().toUpperCase() : `${team1Full} vs ${team2Full}`,
       alert: alertText.replace(/🏏\s*/g, ""), // Strip cricket emoji from text
       left: t1Code,
       score: `${t1Score}`,
@@ -854,19 +866,28 @@ export default function Solution() {
                         className="flex items-center justify-between rounded-xl px-5 py-4 mb-5"
                         style={{ backgroundColor: scoreBg, border: `1px solid ${scoreBorder}` }}
                       >
-                        <div className="flex flex-col text-left">
-                          <span className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                            {slide.battingTeam} {slide.battingScore}
+                        {/* Batting team (highlighted bold black/white) */}
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm sm:text-base font-black text-text-primary uppercase tracking-wide">
+                            {slide.battingTeam}
                           </span>
-                          {slide.battingOvers && (
-                            <span className="text-[11px] text-text-muted mt-1 font-mono">
-                              {slide.battingOvers} overs
-                            </span>
-                          )}
+                          <span className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">
+                            {slide.battingScore}
+                            {slide.battingOvers && (
+                              <span className="text-sm sm:text-base font-normal text-text-primary/70 ml-2 font-mono">
+                                ({slide.battingOvers})
+                              </span>
+                            )}
+                          </span>
                         </div>
-                        <div className="flex flex-col text-right">
-                          <span className="text-sm sm:text-base font-medium text-text-muted/60 tracking-wide">
-                            {slide.bowlingTeam} {slide.bowlingScore || "yet to bat"}
+
+                        {/* Bowling team (unhighlighted greyish) */}
+                        <div className="flex items-center gap-4 text-right">
+                          <span className="text-sm sm:text-base font-medium text-text-muted/60 font-mono">
+                            {slide.bowlingScore || "-"}
+                          </span>
+                          <span className="text-sm sm:text-base font-medium text-text-muted/60 tracking-wide capitalize">
+                            {slide.bowlingTeam?.toLowerCase()}
                           </span>
                         </div>
                       </div>
@@ -884,11 +905,25 @@ export default function Solution() {
                     {/* Alert banner */}
                     <div className="bg-accent/[0.06] border border-accent/[0.12] rounded-lg px-4 py-3 mb-5">
                       <p className="text-[9px] uppercase tracking-[0.15em] text-accent/70 font-medium mb-1">
-                        {slide.isLive ? "Live Status" : "Key Event"}
+                        Key Event
                       </p>
-                      <p className="text-[12px] sm:text-[13px] text-text-dim font-light leading-relaxed">
-                        {slide.alert}
-                      </p>
+                      {(() => {
+                        const rawAlert = slide.alert || "";
+                        const matchBall = rawAlert.match(/^([0-9.]+)\s*-\s*(.+)$/);
+                        if (matchBall) {
+                          return (
+                            <p className="text-[12px] sm:text-[13px] text-text-dim font-light leading-relaxed">
+                              <span className="text-accent font-bold font-mono mr-2">{matchBall[1]}</span>
+                              {matchBall[2]}
+                            </p>
+                          );
+                        }
+                        return (
+                          <p className="text-[12px] sm:text-[13px] text-text-dim font-light leading-relaxed">
+                            {slide.alert}
+                          </p>
+                        );
+                      })()}
                     </div>
 
                     {/* Progress bar */}
