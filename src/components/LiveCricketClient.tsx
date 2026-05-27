@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "@/i18n/navigation";
+import { evaluateCricketMatchState } from "@/lib/cricketEngine";
 
 /* ── Types ── */
 interface MatchBatsman {
@@ -1030,19 +1031,9 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
   // Determine active live innings index safely
   const liveInningsIdx = details && details.innings.length > 0 ? details.innings.length - 1 : 0;
 
-  // Resolve if the match is completed (using asynchronous details feedback as primary source if available)
-  const detailStatusLower = (details?.statusText || "").toLowerCase();
-  const isMatchCompleted = (
-    (!match.isLive || 
-     detailStatusLower.includes("won") || 
-     detailStatusLower.includes("beat") || 
-     detailStatusLower.includes("tied") || 
-     detailStatusLower.includes("draw") || 
-     detailStatusLower.includes("abandoned") || 
-     detailStatusLower.includes("no result")) &&
-    !(match.statusDisplay || "").toLowerCase().includes("starts") &&
-    !(match.status_text || "").toLowerCase().includes("starts")
-  );
+  // Resolve if the match is completed using the universal match state engine
+  const matchState = evaluateCricketMatchState(match, details);
+  const isMatchCompleted = matchState.matchEnded;
 
   // Switch tab away from "live" to "scorecard" when match is completed
   useEffect(() => {
@@ -1244,10 +1235,9 @@ function MatchDetailsDrawer({ match, onClose }: { match: ParsedMatch; onClose: (
 
           {details && (
             <div className="space-y-6 animate-fade-in">
-              {/* Dynamic Status strip banner (No Emojis) */}
-              {details.statusText && (
+              {(details.statusText || matchState.resultText) && (
                 <div className="p-3.5 rounded-lg text-center bg-sport-cricket/5 border border-sport-cricket/20 text-xs font-semibold uppercase tracking-wider text-sport-cricket shadow-sm">
-                  {details.statusText}
+                  {matchState.resultText || details.statusText}
                 </div>
               )}
 

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { evaluateCricketMatchState } from "@/lib/cricketEngine";
 
 /* ── Types ── */
 interface LiveMatchData {
@@ -175,6 +176,9 @@ function parseCricketLive(matches: any[]): LiveMatchData | null {
     const t2Score = part2Match ? part2Match[2].replace("-", "/") : "";
     const t2Overs = part2Match ? part2Match[3] || "" : "";
     
+    const engineState = evaluateCricketMatchState(m, null);
+    if (engineState.matchEnded) continue;
+
     if (!t1Code && !t2Code) continue;
     
     // Extract clean team names from status_text: "Mali vs Rwanda 10th Match" → Mali, Rwanda
