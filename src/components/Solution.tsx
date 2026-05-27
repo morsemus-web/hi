@@ -7,6 +7,7 @@ import Link from "next/link";
 
 /* ── Types ── */
 interface LiveMatchData {
+  id?: string;
   headline: string;
   detail: string;
   alert: string;
@@ -16,6 +17,19 @@ interface LiveMatchData {
   meta: string;
   barWidth: string;
   isLive: boolean;
+
+  t1Code?: string;
+  t1Score?: string;
+  t1Overs?: string;
+  t2Code?: string;
+  t2Score?: string;
+  t2Overs?: string;
+  isT1Batting?: boolean;
+  battingTeam?: string;
+  battingScore?: string;
+  battingOvers?: string;
+  bowlingTeam?: string;
+  bowlingScore?: string;
 }
 
 interface SlideData {
@@ -36,6 +50,19 @@ interface SlideData {
   bgLabel: string;
   isLive: boolean;
   link?: string;
+
+  t1Code?: string;
+  t1Score?: string;
+  t1Overs?: string;
+  t2Code?: string;
+  t2Score?: string;
+  t2Overs?: string;
+  isT1Batting?: boolean;
+  battingTeam?: string;
+  battingScore?: string;
+  battingOvers?: string;
+  bowlingTeam?: string;
+  bowlingScore?: string;
 }
 
 /* ── Static fallback data ── */
@@ -193,17 +220,45 @@ function parseCricketLive(matches: any[]): LiveMatchData | null {
     const latestOvers = parseFloat(t2Overs || t1Overs || "0");
     const maxOvers = title.toLowerCase().includes("t20") || latestOvers <= 20 ? 20 : 50;
     const progress = latestOvers > 0 ? Math.min(Math.round((latestOvers / maxOvers) * 100), 95) : 50;
-    
+    let isT1Batting = true;
+    if (t2Overs && !t1Overs) {
+      isT1Batting = false;
+    } else if (t1Overs && t2Overs) {
+      if (t1Overs.startsWith("20") && !t2Overs.startsWith("20")) {
+        isT1Batting = false;
+      }
+    }
+
+    const battingTeam = isT1Batting ? t1Code : t2Code;
+    const battingScore = isT1Batting ? t1Score : t2Score;
+    const battingOvers = isT1Batting ? t1Overs : t2Overs;
+    const bowlingTeam = isT1Batting ? t2Code : t1Code;
+    const bowlingScore = isT1Batting ? t2Score : t1Score;
+
     return {
+      id: m.id || "",
       headline: `${team1Full} vs ${team2Full}`,
       detail: `${t1Code} ${t1Score}${t1Overs ? ` (${t1Overs})` : ""} · ${t2Code} ${t2Score}${t2Overs ? ` (${t2Overs})` : ""}`,
-      alert: alertText,
+      alert: alertText.replace(/🏏\s*/g, ""), // Strip cricket emoji from text
       left: t1Code,
       score: `${t1Score}`,
       right: `${t2Score || t2Code}`,
       meta: latestOvers > 0 ? `${latestOvers} ov` : "Live",
       barWidth: `w-[${progress}%]`,
       isLive: true,
+      
+      t1Code,
+      t1Score,
+      t1Overs,
+      t2Code,
+      t2Score,
+      t2Overs,
+      isT1Batting,
+      battingTeam,
+      battingScore,
+      battingOvers,
+      bowlingTeam,
+      bowlingScore,
     };
   }
   return null;
@@ -522,17 +577,51 @@ export default function Solution() {
           if (cricData.status === "success" && Array.isArray(cricData.matches)) {
             const liveMatch = parseCricketLive(cricData.matches);
             if (liveMatch) {
+              let liveDetails = null;
+              if (liveMatch.id) {
+                try {
+                  const detailsRes = await fetch(`/api/cricket/details?id=${liveMatch.id}`);
+                  if (detailsRes.ok) {
+                    liveDetails = await detailsRes.json();
+                  }
+                } catch (err) {
+                  console.error("Failed to fetch live match details:", err);
+                }
+              }
+
+              let keyEvent = liveMatch.alert;
+              if (liveDetails && liveDetails.status === "success" && Array.isArray(liveDetails.timeline) && liveDetails.timeline.length > 0) {
+                const latestBall = liveDetails.timeline[0];
+                if (latestBall.ball && latestBall.text) {
+                  const rawText = `${latestBall.ball} - ${latestBall.text}`;
+                  keyEvent = rawText.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "").trim();
+                }
+              }
+
               newSlides[0] = {
                 ...newSlides[0],
                 headline: liveMatch.headline,
                 detail: liveMatch.detail,
-                alert: liveMatch.alert,
+                alert: keyEvent,
                 left: liveMatch.left,
                 score: liveMatch.score,
                 right: liveMatch.right,
                 meta: liveMatch.meta,
                 barWidth: liveMatch.barWidth,
                 isLive: true,
+
+                t1Code: liveMatch.t1Code,
+                t1Score: liveMatch.t1Score,
+                t1Overs: liveMatch.t1Overs,
+                t2Code: liveMatch.t2Code,
+                t2Score: liveMatch.t2Score,
+                t2Overs: liveMatch.t2Overs,
+                isT1Batting: liveMatch.isT1Batting,
+                battingTeam: liveMatch.battingTeam,
+                battingScore: liveMatch.battingScore,
+                battingOvers: liveMatch.battingOvers,
+                bowlingTeam: liveMatch.bowlingTeam,
+                bowlingScore: liveMatch.bowlingScore,
               };
             }
           }
@@ -760,14 +849,37 @@ export default function Solution() {
                     </p>
 
                     {/* Score display */}
-                    <div
-                      className="flex items-center justify-between rounded-xl px-5 py-4 mb-5"
-                      style={{ backgroundColor: scoreBg, border: `1px solid ${scoreBorder}` }}
-                    >
-                      <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.left}</span>
-                      <span className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">{slide.score}</span>
-                      <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.right}</span>
-                    </div>
+                    {slide.sport === "Cricket" && slide.battingTeam ? (
+                      <div
+                        className="flex items-center justify-between rounded-xl px-5 py-4 mb-5"
+                        style={{ backgroundColor: scoreBg, border: `1px solid ${scoreBorder}` }}
+                      >
+                        <div className="flex flex-col text-left">
+                          <span className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+                            {slide.battingTeam} {slide.battingScore}
+                          </span>
+                          {slide.battingOvers && (
+                            <span className="text-[11px] text-text-muted mt-1 font-mono">
+                              {slide.battingOvers} overs
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="text-sm sm:text-base font-medium text-text-muted/60 tracking-wide">
+                            {slide.bowlingTeam} {slide.bowlingScore || "yet to bat"}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center justify-between rounded-xl px-5 py-4 mb-5"
+                        style={{ backgroundColor: scoreBg, border: `1px solid ${scoreBorder}` }}
+                      >
+                        <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.left}</span>
+                        <span className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">{slide.score}</span>
+                        <span className="text-sm sm:text-base font-bold text-text-primary/80 tracking-wide">{slide.right}</span>
+                      </div>
+                    )}
 
                     {/* Alert banner */}
                     <div className="bg-accent/[0.06] border border-accent/[0.12] rounded-lg px-4 py-3 mb-5">
@@ -807,12 +919,27 @@ export default function Solution() {
                 >
                   <div className="flex items-center gap-3">
                     <span className={`w-1.5 h-1.5 rounded-full ${slide.isLive ? "bg-red-500 animate-pulse" : slide.dot}`} />
-                    <span className="text-[11px] font-bold text-text-primary/90">{slide.left}</span>
-                    <span className="text-[14px] font-extrabold text-text-primary">{slide.score}</span>
-                    <span className="text-[11px] font-bold text-text-primary/90">{slide.right}</span>
+                    {slide.sport === "Cricket" && slide.battingTeam ? (
+                      <>
+                        <span className="text-[11px] font-black text-text-primary">
+                          {slide.battingTeam} {slide.battingScore}
+                        </span>
+                        <span className="text-[11px] font-normal text-text-muted/50">
+                          {slide.bowlingTeam} {slide.bowlingScore || "yet to bat"}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[11px] font-bold text-text-primary/90">{slide.left}</span>
+                        <span className="text-[14px] font-extrabold text-text-primary">{slide.score}</span>
+                        <span className="text-[11px] font-bold text-text-primary/90">{slide.right}</span>
+                      </>
+                    )}
                   </div>
                   <div className="w-px h-4 bg-overlay-10" />
-                  <span className="text-[10px] text-text-muted/50 font-mono">{slide.meta}</span>
+                  <span className="text-[10px] text-text-muted/50 font-mono">
+                    {slide.sport === "Cricket" && slide.battingOvers ? `over ${slide.battingOvers}` : slide.meta}
+                  </span>
                   <div className="flex gap-1">
                     {slides.map((_, i) => (
                       <div
