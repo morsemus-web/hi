@@ -479,8 +479,27 @@ export default function LiveCricketClient() {
     return () => clearInterval(interval);
   }, [fetchMatches]);
 
-  const filtered = matches.filter((m) => filterMatch(m, filter));
-  const liveCount = matches.filter((m) => m.isLive).length;
+  // Dynamically evaluate match state (live/completed) taking background details into account
+  const parsedMatches = matches.map((m) => {
+    const details = matchDetailsMap[m.id] || null;
+    const engineState = evaluateCricketMatchState(m, details);
+    const isCompleted = engineState.matchEnded;
+    const isLive = !engineState.matchEnded && (
+      engineState.currentState === "LIVE" || 
+      engineState.currentState === "INNINGS_BREAK" || 
+      engineState.currentState === "RAIN_DELAY" || 
+      engineState.currentState === "STUMPS" ||
+      (m.isLive && engineState.currentState !== "NOT_STARTED")
+    );
+    return {
+      ...m,
+      isLive,
+      statusDisplay: engineState.resultText || m.statusDisplay
+    };
+  });
+
+  const filtered = parsedMatches.filter((m) => filterMatch(m, filter));
+  const liveCount = parsedMatches.filter((m) => m.isLive).length;
 
   // Group Matches by Series
   const groupedMatches = filtered.reduce<Record<string, ParsedMatch[]>>((acc, m) => {
@@ -758,14 +777,19 @@ function MatchCard({ match, details }: { match: ParsedMatch; details: MatchDetai
   const currentRuns = battingScore.match(/^(\d+)/) ? parseInt(battingScore.match(/^(\d+)/)![1]) : 0;
   const targetVal = currentRuns + runsNeeded;
 
-  // Resolve winner details for muting logic
+  // Resolve dynamic match state using the universal engine
+  const engineState = evaluateCricketMatchState(match, details);
+  const isCompleted = engineState.matchEnded;
+  const isLive = !isCompleted && (
+    engineState.currentState === "LIVE" || 
+    engineState.currentState === "INNINGS_BREAK" || 
+    engineState.currentState === "RAIN_DELAY" || 
+    engineState.currentState === "STUMPS" ||
+    (match.isLive && engineState.currentState !== "NOT_STARTED")
+  );
+
   const statusLower = (match.statusDisplay || "").toLowerCase();
   const fullStatusLower = (match.status_text || "").toLowerCase();
-  const isCompleted = !match.isLive && (
-    statusLower.includes("won") || statusLower.includes("beat") || statusLower.includes("draw") || 
-    statusLower.includes("tied") || statusLower.includes("no result") || statusLower.includes("abandoned") ||
-    fullStatusLower.includes("won") || fullStatusLower.includes("beat")
-  );
   const isT1Winner = isCompleted && isTeamWinner(match, match.shortTeam1, match.team1);
   const isT2Winner = isCompleted && isTeamWinner(match, match.shortTeam2, match.team2);
   
@@ -782,19 +806,19 @@ function MatchCard({ match, details }: { match: ParsedMatch; details: MatchDetai
   // Chasing details
   const tVal = details?.innings[0] ? getTarget(details.innings[0].total) : targetVal;
   const oVal2 = details?.innings[1] ? parseInningsScore(details.innings[1].total).overs : "";
-  const isChasing = (match.isLive || isCompleted) && (finalScore2 !== "" || (details?.innings?.length ?? 0) > 1);
+  const isChasing = (isLive || isCompleted) && (finalScore2 !== "" || (details?.innings?.length ?? 0) > 1);
 
   // Status text note: "Match yet to begin" or "RCB won by 92 runs"
   let statusNote = "Match yet to begin";
-  if (match.isLive) {
-    statusNote = match.statusDisplay;
+  if (isLive) {
+    statusNote = engineState.resultText || match.statusDisplay;
   } else if (isCompleted) {
-    statusNote = match.statusDisplay || match.status_text || "Match Completed";
+    statusNote = engineState.resultText || match.statusDisplay || match.status_text || "Match Completed";
   }
 
   // Google Sports Status header left string
   let statusHeader = "PREVIEW";
-  if (match.isLive) {
+  if (isLive) {
     statusHeader = `LIVE • ${currentOvers > 0 ? currentOvers : oVal2 || "0"} OV`;
   } else if (isCompleted) {
     statusHeader = "RESULT";
@@ -805,7 +829,7 @@ function MatchCard({ match, details }: { match: ParsedMatch; details: MatchDetai
   return (
     <div
       className={`glass-card rounded-2xl overflow-hidden transition-all duration-300 border p-5 select-none ${
-        match.isLive 
+        isLive 
           ? "border-sport-cricket/35 shadow-[0_4px_24px_rgba(107,163,190,0.06)] bg-overlay/10" 
           : "border-border/60 hover:border-border hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
       }`}
