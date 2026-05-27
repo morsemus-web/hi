@@ -448,7 +448,17 @@ export default function LiveCricketClient() {
     return raw.map((m) => {
       const { team1, team2, matchInfo } = parseTitle(m.title);
       const { shortTeam1, shortTeam2 } = parseShortTeams(m.status_text);
-      const { isLive, isCompleted: stateCompleted, isUpcoming, statusDisplay } = getMatchState(m.status_text);
+      let { isLive, isCompleted: stateCompleted, isUpcoming, statusDisplay } = getMatchState(m.status_text);
+
+      // If no state detected from status_text, check title for scores to determine live vs preview
+      if (!isLive && !stateCompleted && !isUpcoming) {
+        const titleHasScores = /\b\d+[\/-]\d+\b/.test(m.title) || /\b\d+\s*\(/.test(m.title);
+        if (titleHasScores) {
+          isLive = true;
+          statusDisplay = "In Progress";
+        }
+      }
+
       return { ...m, team1, team2, shortTeam1, shortTeam2, matchInfo, isLive, statusDisplay };
     });
   };
