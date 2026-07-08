@@ -13,6 +13,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "cheerio": "^1.2.0",
+    "cobe": "^2.0.1",
     "dodopayments": "^2.31.2",
     "dodopayments-checkout": "^1.8.0",
     "next": "^15.1.0",
