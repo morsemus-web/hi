@@ -14,20 +14,16 @@ function Globe() {
     let phi = 0;
     if (!canvasRef.current) return;
     
-    // We use a responsive approach; setting width via CSS, but rendering double for retina
-    const size = canvasRef.current.offsetWidth || 300;
-    
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
-      width: size * 2,
-      height: size * 2,
+      width: 800, // 400 * 2 for retina
+      height: 800,
       phi: 0,
       theta: 0.1,
       dark: 1, // dark mode
       diffuse: 1.2,
       mapSamples: 16000,
       mapBrightness: 6,
-      // Base color determines the color of the landmass (countries). Making it lighter so it's highly visible.
       baseColor: [0.4, 0.4, 0.4], 
       markerColor: [0, 0.72, 0.48], // green glowing dots
       glowColor: [0.1, 0.1, 0.1], // subtle glow around the globe
@@ -52,11 +48,11 @@ function Globe() {
   }, []);
 
   return (
-    <div className="w-full max-w-sm mx-auto aspect-square flex items-center justify-center relative">
+    <div className="w-full flex items-center justify-center relative">
       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent z-10 pointer-events-none" />
       <canvas 
         ref={canvasRef} 
-        style={{ width: "100%", height: "100%", contain: "layout paint size", opacity: 0.9 }} 
+        style={{ width: 400, height: 400, maxWidth: "100%", aspectRatio: "1/1" }} 
       />
     </div>
   );
@@ -100,18 +96,18 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Real-time animation loop
   useEffect(() => {
     const interval = setInterval(() => {
-      // Fluctuate the base browsing users slightly
-      setBaseBrowsingUsers(prev => getFluctuatingUsers(2450, 80, prev));
+      // Fluctuate the base browsing users slightly and smoothly
+      setBaseBrowsingUsers(prev => getFluctuatingUsers(2450, 15, prev));
 
       setCricketMatches(matches => matches.map(m => {
-        if (Math.random() > 0.6) return m;
-        return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 300) - 100) };
+        if (Math.random() > 0.4) return m; // Updates less frequently
+        return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 80) - 25) };
       }));
       setSoccerMatches(matches => matches.map(m => {
-        if (Math.random() > 0.6) return m;
-        return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 400) - 150) };
+        if (Math.random() > 0.4) return m;
+        return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 120) - 40) };
       }));
-    }, 2500);
+    }, 8000); // 8 seconds instead of 2.5s for realistic slow polling
 
     return () => clearInterval(interval);
   }, []);
