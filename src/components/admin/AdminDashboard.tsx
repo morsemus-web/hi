@@ -87,14 +87,20 @@ const MOCK_MEMBERS = [
    MAIN COMPONENT
    ======================================================== */
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
-  const [activeUsers, setActiveUsers] = useState(122374);
+  const [baseBrowsingUsers, setBaseBrowsingUsers] = useState(2450);
   const [cricketMatches, setCricketMatches] = useState<any[]>([]);
   const [soccerMatches, setSoccerMatches] = useState<any[]>([]);
+
+  // Calculate total active users based on live match viewers + base browsing users
+  const activeUsers = baseBrowsingUsers + 
+    cricketMatches.reduce((sum, m) => sum + m.viewers, 0) + 
+    soccerMatches.reduce((sum, m) => sum + m.viewers, 0);
 
   // Real-time animation loop
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveUsers(prev => getFluctuatingUsers(122374, 150, prev));
+      // Fluctuate the base browsing users slightly
+      setBaseBrowsingUsers(prev => getFluctuatingUsers(2450, 80, prev));
 
       setCricketMatches(matches => matches.map(m => {
         if (Math.random() > 0.6) return m;
