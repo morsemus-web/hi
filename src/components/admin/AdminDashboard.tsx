@@ -23,6 +23,33 @@ function getFluctuatingUsers(base: number, variance: number, current: number) {
   return Math.floor(current + drift + walk);
 }
 
+function maskName(name: string) {
+  return name.split(' ').map(part => {
+    if (part.length <= 1) return part;
+    return part.charAt(0) + '•'.repeat(part.length - 1);
+  }).join(' ');
+}
+
+function maskEmail(email: string) {
+  const parts = email.split('@');
+  if (parts.length !== 2) return email;
+  const local = parts[0];
+  const domain = parts[1];
+  if (local.length <= 2) return `••@${domain}`;
+  return `${local.charAt(0)}${'•'.repeat(local.length - 2)}${local.slice(-1)}@${domain}`;
+}
+
+function getRegionBadge(region: string) {
+  const t1 = ['US', 'US East', 'US West', 'UK', 'Italy', 'Ireland', 'Germany', 'France', 'Spain', 'Canada'];
+  const t2 = ['India', 'Japan', 'Australia', 'UAE', 'Singapore'];
+  const t3 = ['South Africa', 'Nigeria', 'Brazil', 'Argentina'];
+  
+  if (t1.includes(region)) return { label: "Tier 1", className: "bg-blue-500/20 text-blue-300 border-blue-500/30", textClass: "text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]" };
+  if (t2.includes(region)) return { label: "Tier 2", className: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30", textClass: "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" };
+  if (t3.includes(region)) return { label: "Tier 3", className: "bg-purple-500/20 text-purple-300 border-purple-500/30", textClass: "text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.8)]" };
+  return null;
+}
+
 const MOCK_MEMBERS = [
   { id: "SD-901", name: "Aryan Sharma", email: "aryan.s@gmail.com", region: "India", session: "4h 12m", status: "Online" },
   { id: "SD-902", name: "James Wilson", email: "j.wilson92@hotmail.com", region: "UK", session: "1d 5h", status: "Online" },
@@ -363,12 +390,23 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                             {member.name.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-medium text-neutral-200">{member.name}</div>
-                            <div className="text-xs text-neutral-500">{member.email}</div>
+                            <div className="font-medium text-neutral-200">{maskName(member.name)}</div>
+                            <div className="text-xs text-neutral-500">{maskEmail(member.email)}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-3 text-neutral-400">{member.region}</td>
+                      <td className="px-6 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={getRegionBadge(member.region)?.textClass || "text-neutral-400 font-medium"}>
+                            {member.region}
+                          </span>
+                          {getRegionBadge(member.region) && (
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase tracking-widest border ${getRegionBadge(member.region)?.className}`}>
+                              {getRegionBadge(member.region)?.label}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-3">
                         <span className={`text-[10px] font-mono uppercase tracking-widest ${
                           member.status === 'Online' ? 'text-[#00b87a]' : 'text-neutral-500'
