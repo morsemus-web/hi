@@ -41,6 +41,36 @@ function getTeamLogoUrl(name: string, bbcBadgeUrl?: string) {
   return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(cleanName + " FC logo png")}&w=80&h=80&c=7&rs=1&p=0`;
 }
 
+function convertUKToIST(timeStr: string, dateStr: string): string {
+  if (!/^\d{1,2}:\d{2}$/.test(timeStr)) return timeStr;
+  
+  const parts = timeStr.split(':');
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  
+  const d = new Date(`${dateStr}T12:00:00Z`);
+  const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/London', timeZoneName: 'shortOffset' });
+  const formatParts = formatter.formatToParts(d);
+  const tzPart = formatParts.find(p => p.type === 'timeZoneName')?.value || "";
+  
+  const isBST = tzPart.includes('+1');
+  const offsetHours = isBST ? 4 : 5;
+  const offsetMinutes = 30;
+  
+  let istMinutes = minutes + offsetMinutes;
+  let istHours = hours + offsetHours;
+  
+  if (istMinutes >= 60) {
+    istMinutes -= 60;
+    istHours += 1;
+  }
+  if (istHours >= 24) {
+    istHours -= 24;
+  }
+  
+  return `${istHours.toString().padStart(2, '0')}:${istMinutes.toString().padStart(2, '0')} IST`;
+}
+
 /* ── Constants ── */
 const POLL_INTERVAL = 10000; // 10 seconds
 
@@ -96,7 +126,14 @@ export default function LiveSoccerClient() {
       if (!res.ok) throw new Error(`Server returned status ${res.status}`);
       const data: ApiResponse = await res.json();
       if (data.status === "success" && Array.isArray(data.leagues)) {
-        setLeagues(data.leagues);
+        const processedLeagues = data.leagues.map((league) => ({
+          ...league,
+          matches: league.matches.map((match) => ({
+            ...match,
+            time: convertUKToIST(match.time, dateStr)
+          }))
+        }));
+        setLeagues(processedLeagues);
         setError(null);
       } else {
         throw new Error("Invalid API response format");
