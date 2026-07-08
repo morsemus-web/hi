@@ -56,7 +56,6 @@ export default function CheckoutButton({
         window.location.href = checkout_url;
       }
     } catch (error) {
-      console.error("Dodo Payments Error:", error);
       alert("Something went wrong with the checkout. Please try again.");
     } finally {
       setIsLoading(false);

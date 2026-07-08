@@ -442,7 +442,7 @@ export default function LiveCricketClient() {
                 }
               }
             } catch (e) {
-              console.error("Error background details pre-fetch:", m.id, e);
+              // Ignore background fetch errors
             }
           }
         });

@@ -601,7 +601,7 @@ export default function Solution() {
                     liveDetails = await detailsRes.json();
                   }
                 } catch (err) {
-                  console.error("Failed to fetch live match details:", err);
+                  // Ignore fetch errors
                 }
               }
 
@@ -643,7 +643,7 @@ export default function Solution() {
           }
         }
       } catch (e) {
-        console.error("Failed to fetch cricket live data:", e);
+        // Ignore fetch errors
       }
 
       // Football (index 3)
@@ -670,7 +670,7 @@ export default function Solution() {
           }
         }
       } catch (e) {
-        console.error("Failed to fetch soccer live data:", e);
+        // Ignore fetch errors
       }
 
       setSlides(newSlides);

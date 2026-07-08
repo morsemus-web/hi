@@ -17,7 +17,7 @@ export default function ThanksPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, payment_id: paymentId }),
-      }).catch(console.error);
+      }).catch(() => {});
     }
   }, []);
 
