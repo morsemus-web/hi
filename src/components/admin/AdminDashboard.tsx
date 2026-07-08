@@ -27,9 +27,10 @@ function Globe() {
       diffuse: 1.2,
       mapSamples: 16000,
       mapBrightness: 6,
-      baseColor: [0.15, 0.15, 0.15],
-      markerColor: [0, 0.72, 0.48], // matching scoredeck accent roughly (#00b87a)
-      glowColor: [0.05, 0.05, 0.05],
+      // Base color determines the color of the landmass (countries). Making it lighter so it's highly visible.
+      baseColor: [0.4, 0.4, 0.4], 
+      markerColor: [0, 0.72, 0.48], // green glowing dots
+      glowColor: [0.1, 0.1, 0.1], // subtle glow around the globe
       markers: [
         { location: [20.5937, 78.9629], size: 0.12 }, // India
         { location: [51.5072, -0.1276], size: 0.08 }, // UK
