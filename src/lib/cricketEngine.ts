@@ -137,8 +137,27 @@ export function evaluateCricketMatchState(
     ));
 
   // Determine currentState initial estimation
-  let currentState: MatchStateResult["currentState"] = "LIVE";
-  if (statusLower.includes("preview") || statusLower.includes("starts at") || statusLower.includes("starts in") || statusLower.includes("yet to begin")) {
+  const hasLiveIndicators = 
+    statusLower.includes("need") || 
+    statusLower.includes("opted to") || 
+    statusLower.includes("trail") || 
+    statusLower.includes("lead") || 
+    statusLower.includes("chose to") || 
+    statusLower.includes("innings break") || 
+    statusLower.includes("break") || 
+    statusLower.includes("ov") || 
+    statusLower.includes("overs") || 
+    statusLower.includes("stumps") ||
+    /\d+[\-\/]\d+/.test(statusLower) || 
+    /\b\d+\s*\(/.test(titleLower) || 
+    /\b\d+[\/-]\d+\b/.test(titleLower) ||
+    (match.score && match.score !== "score not found" && match.score.trim() !== "");
+
+  let currentState: MatchStateResult["currentState"] = hasLiveIndicators ? "LIVE" : "NOT_STARTED";
+
+  if (isDirectCompleted) {
+    currentState = "COMPLETED";
+  } else if (statusLower.includes("preview") || statusLower.includes("starts at") || statusLower.includes("starts in") || statusLower.includes("yet to begin")) {
     currentState = "NOT_STARTED";
   } else if (statusLower.includes("abandoned")) {
     currentState = "COMPLETED";
@@ -148,8 +167,6 @@ export function evaluateCricketMatchState(
     currentState = "INNINGS_BREAK";
   } else if (statusLower.includes("stumps")) {
     currentState = "STUMPS";
-  } else if (isDirectCompleted) {
-    currentState = "COMPLETED";
   }
 
   // Define fallback details
