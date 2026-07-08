@@ -111,6 +111,40 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     fetchRealMatches();
   }, []);
 
+  // Members Table State
+  const [displayedMembers, setDisplayedMembers] = useState([...MOCK_MEMBERS]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const loadMoreMembers = () => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      const firstNames = ["Liam", "Olivia", "Noah", "Emma", "Oliver", "Ava", "Elijah", "Charlotte", "William", "Sophia", "James", "Amelia", "Benjamin", "Isabella", "Lucas", "Mia", "Henry", "Evelyn", "Alexander", "Harper", "Sebastian", "Camila", "Michael", "Gianna", "Ethan", "Abigail", "Daniel", "Luna", "Matthew", "Ella"];
+      const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson"];
+      const regions = ["US East", "US West", "UK", "India", "Australia", "Brazil", "Germany", "Japan", "South Africa", "Canada"];
+      const domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "protonmail.com"];
+      
+      const newMembers = Array.from({ length: 40 }).map((_, i) => {
+        const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+        const isOnline = Math.random() > 0.3;
+        const sessionHours = Math.floor(Math.random() * 48);
+        const sessionMins = Math.floor(Math.random() * 60);
+        
+        return {
+          id: `SD-${911 + displayedMembers.length + i}`,
+          name: `${first} ${last}`,
+          email: `${first.toLowerCase()}.${last.toLowerCase()}@${domains[Math.floor(Math.random() * domains.length)]}`,
+          region: regions[Math.floor(Math.random() * regions.length)],
+          session: isOnline ? `${sessionHours > 0 ? `${sessionHours}h ` : ''}${sessionMins}m` : `Last active: ${Math.floor(Math.random() * 5) + 1}d ago`,
+          status: isOnline ? "Online" : "Offline"
+        };
+      });
+      
+      setDisplayedMembers(prev => [...prev, ...newMembers]);
+      setIsLoadingMore(false);
+    }, 600);
+  };
+
   return (
     // FORCED DARK MODE CONTAINER: bg-neutral-950, text-white
     <div className="min-h-screen font-sans bg-neutral-950 text-neutral-200">
@@ -246,7 +280,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               </span>
             </div>
             
-            <div className="divide-y divide-neutral-800/50 overflow-y-auto max-h-[400px] flex-1">
+            <div className="divide-y divide-neutral-800/50 overflow-y-auto max-h-[500px] flex-1">
               {cricketMatches.length === 0 && soccerMatches.length === 0 && (
                 <div className="p-8 text-center text-neutral-500 text-sm font-mono">
                   NO ACTIVE TELEMETRY
@@ -305,15 +339,15 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
           {/* Members Table */}
           <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800 overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-900 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-900 flex justify-between items-center shrink-0">
               <h2 className="text-xs font-bold text-neutral-300 uppercase tracking-widest font-mono">Registered Members Directory</h2>
               <span className="text-[10px] font-mono text-neutral-500">Total: 122,374</span>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-neutral-900/50 text-[10px] uppercase tracking-widest text-neutral-500 font-mono border-b border-neutral-800">
+                <thead className="sticky top-0 bg-neutral-900/95 backdrop-blur z-10">
+                  <tr className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono border-b border-neutral-800">
                     <th className="px-6 py-3 font-medium">User</th>
                     <th className="px-6 py-3 font-medium">Region</th>
                     <th className="px-6 py-3 font-medium">Session Duration</th>
@@ -321,7 +355,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/50 text-sm">
-                  {MOCK_MEMBERS.map((member) => (
+                  {displayedMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-neutral-800/30 transition-colors">
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-3">
@@ -354,9 +388,13 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               </table>
             </div>
             
-            <div className="p-4 border-t border-neutral-800 bg-neutral-900/30 text-center">
-              <button className="text-[10px] uppercase tracking-widest font-mono text-neutral-400 hover:text-white transition-colors">
-                Load More Members...
+            <div className="p-4 border-t border-neutral-800 bg-neutral-900/30 text-center shrink-0">
+              <button 
+                onClick={loadMoreMembers}
+                disabled={isLoadingMore}
+                className="text-[10px] uppercase tracking-widest font-mono text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
+              >
+                {isLoadingMore ? "Loading..." : "Load More Members..."}
               </button>
             </div>
           </div>
