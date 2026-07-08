@@ -1,55 +1,61 @@
 "use client";
 
-import createGlobe from "cobe";
-import { useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import Globe from "react-globe.gl";
 
 export default function GlobeView() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  const globeRef = useRef<any>(null);
+  const [mounted, setMounted] = useState(false);
+  
   useEffect(() => {
-    let phi = 0;
-    if (!canvasRef.current) return;
+    setMounted(true);
     
-    const globe = createGlobe(canvasRef.current, {
-      devicePixelRatio: 2,
-      width: 800, // Explicit size
-      height: 800,
-      phi: 0,
-      theta: 0.1,
-      dark: 1, // dark mode on
-      diffuse: 1.2,
-      mapSamples: 16000,
-      mapBrightness: 6,
-      // PURE WHITE landmasses so they are 100% visible
-      baseColor: [1, 1, 1], 
-      markerColor: [0, 0.72, 0.48], // Scoredeck Green
-      glowColor: [0.1, 0.1, 0.1],
-      markers: [
-        { location: [20.5937, 78.9629], size: 0.12 }, // India
-        { location: [51.5072, -0.1276], size: 0.08 }, // UK
-        { location: [-33.8688, 151.2093], size: 0.08 }, // Australia
-        { location: [25.2048, 55.2708], size: 0.07 }, // UAE
-        { location: [37.7749, -122.4194], size: 0.05 }, // California
-        { location: [40.7128, -74.0060], size: 0.06 }, // NY
-        { location: [-23.5505, -46.6333], size: 0.06 }, // Brazil
-        { location: [6.5244, 3.3792], size: 0.05 }, // Nigeria
-      ],
-      // @ts-ignore
-      onRender: (state: any) => {
-        state.phi = phi;
-        phi += 0.003;
-      },
-    } as any);
-
-    return () => globe.destroy();
+    // Slight delay to ensure WebGL context is ready before accessing controls
+    setTimeout(() => {
+      if (globeRef.current && globeRef.current.controls) {
+        globeRef.current.controls().autoRotate = true;
+        globeRef.current.controls().autoRotateSpeed = 1.2;
+        globeRef.current.pointOfView({ altitude: 2.2 }, 1000);
+      }
+    }, 100);
   }, []);
 
+  const gData = [
+    { lat: 20.5937, lng: 78.9629, size: 0.1, color: "#00b87a", name: "India" },
+    { lat: 51.5072, lng: -0.1276, size: 0.08, color: "#00b87a", name: "UK" },
+    { lat: -33.8688, lng: 151.2093, size: 0.08, color: "#00b87a", name: "Australia" },
+    { lat: 25.2048, lng: 55.2708, size: 0.06, color: "#00b87a", name: "UAE" },
+    { lat: 37.7749, lng: -122.4194, size: 0.05, color: "#00b87a", name: "US West" },
+    { lat: 40.7128, lng: -74.0060, size: 0.06, color: "#00b87a", name: "US East" },
+    { lat: -23.5505, lng: -46.6333, size: 0.06, color: "#00b87a", name: "Brazil" },
+    { lat: 6.5244, lng: 3.3792, size: 0.05, color: "#00b87a", name: "Nigeria" },
+    { lat: 35.6762, lng: 139.6503, size: 0.07, color: "#00b87a", name: "Japan" }
+  ];
+
+  if (!mounted) {
+    return (
+      <div className="w-[400px] h-[400px] flex items-center justify-center text-neutral-600 font-mono text-sm animate-pulse">
+        INITIALIZING GEOSPATIAL ENGINE...
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full flex items-center justify-center relative">
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent z-10 pointer-events-none" />
-      <canvas 
-        ref={canvasRef} 
-        style={{ width: 400, height: 400, maxWidth: "100%", aspectRatio: "1/1" }} 
+    <div className="w-full flex items-center justify-center cursor-move" style={{ height: 400 }}>
+      <Globe
+        ref={globeRef}
+        width={400}
+        height={400}
+        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+        backgroundColor="rgba(0,0,0,0)"
+        labelsData={gData}
+        labelLat={(d: any) => d.lat}
+        labelLng={(d: any) => d.lng}
+        labelText={(d: any) => d.name}
+        labelSize={1.5}
+        labelDotRadius={0.8}
+        labelColor={() => "#00b87a"}
+        labelResolution={2}
       />
     </div>
   );
