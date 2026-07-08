@@ -1,62 +1,18 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import createGlobe from "cobe";
+import dynamic from "next/dynamic";
 
-/* ========================================================
-   GLOBE COMPONENT
-   ======================================================== */
-function Globe() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    let phi = 0;
-    if (!canvasRef.current) return;
-    
-    const globe = createGlobe(canvasRef.current, {
-      devicePixelRatio: 2,
-      width: 800, // 400 * 2 for retina
-      height: 800,
-      phi: 0,
-      theta: 0.1,
-      dark: 1, // dark mode
-      diffuse: 1.2,
-      mapSamples: 16000,
-      mapBrightness: 6,
-      baseColor: [0.4, 0.4, 0.4], 
-      markerColor: [0, 0.72, 0.48], // green glowing dots
-      glowColor: [0.1, 0.1, 0.1], // subtle glow around the globe
-      markers: [
-        { location: [20.5937, 78.9629], size: 0.12 }, // India
-        { location: [51.5072, -0.1276], size: 0.08 }, // UK
-        { location: [-33.8688, 151.2093], size: 0.08 }, // Australia
-        { location: [25.2048, 55.2708], size: 0.07 }, // UAE
-        { location: [37.7749, -122.4194], size: 0.05 }, // California
-        { location: [40.7128, -74.0060], size: 0.06 }, // NY
-        { location: [-23.5505, -46.6333], size: 0.06 }, // Brazil
-        { location: [6.5244, 3.3792], size: 0.05 }, // Nigeria
-      ],
-      // @ts-ignore
-      onRender: (state: any) => {
-        state.phi = phi;
-        phi += 0.003;
-      },
-    } as any);
-
-    return () => globe.destroy();
-  }, []);
-
-  return (
-    <div className="w-full flex items-center justify-center relative">
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent z-10 pointer-events-none" />
-      <canvas 
-        ref={canvasRef} 
-        style={{ width: 400, height: 400, maxWidth: "100%", aspectRatio: "1/1" }} 
-      />
+// Dynamically import the Globe with SSR disabled to prevent hydration or mounting errors
+const GlobeView = dynamic(() => import("./GlobeView"), { 
+  ssr: false, 
+  loading: () => (
+    <div className="w-[400px] h-[400px] max-w-full flex items-center justify-center text-neutral-600 font-mono text-sm animate-pulse">
+      INITIALIZING GEOSPATIAL DATA...
     </div>
-  );
-}
+  ) 
+});
 
 /* ========================================================
    MOCK DATA GENERATORS
@@ -68,16 +24,16 @@ function getFluctuatingUsers(base: number, variance: number, current: number) {
 }
 
 const MOCK_MEMBERS = [
-  { id: "SD-901", name: "Aryan Sharma", email: "aryan.s@gmail.com", region: "India", plan: "Pro", joinDate: "2026-05-12", status: "Online" },
-  { id: "SD-902", name: "James Wilson", email: "j.wilson92@hotmail.com", region: "UK", plan: "Free", joinDate: "2026-06-01", status: "Online" },
-  { id: "SD-903", name: "David Chen", email: "dchen.sports@yahoo.com", region: "Australia", plan: "Pro", joinDate: "2026-04-18", status: "Offline" },
-  { id: "SD-904", name: "Rahul Desai", email: "rahuld88@gmail.com", region: "India", plan: "Pro", joinDate: "2026-06-22", status: "Online" },
-  { id: "SD-905", name: "Sarah Jenkins", email: "s.jenkins.tx@gmail.com", region: "US", plan: "Free", joinDate: "2026-07-01", status: "Online" },
-  { id: "SD-906", name: "Ahmed Al-Fayed", email: "ahmed.alf@outlook.com", region: "UAE", plan: "Elite", joinDate: "2026-03-14", status: "Offline" },
-  { id: "SD-907", name: "Marcus Rossi", email: "mrossi1999@gmail.com", region: "Italy", plan: "Free", joinDate: "2026-06-30", status: "Online" },
-  { id: "SD-908", name: "Priya Patel", email: "priya.p.90@yahoo.com", region: "India", plan: "Pro", joinDate: "2026-05-25", status: "Online" },
-  { id: "SD-909", name: "Liam O'Connor", email: "liam.oconnor.ire@gmail.com", region: "Ireland", plan: "Free", joinDate: "2026-07-05", status: "Online" },
-  { id: "SD-910", name: "Oliver Smith", email: "osmith.sports@gmail.com", region: "UK", plan: "Elite", joinDate: "2026-02-10", status: "Offline" },
+  { id: "SD-901", name: "Aryan Sharma", email: "aryan.s@gmail.com", region: "India", session: "45m 12s", status: "Online" },
+  { id: "SD-902", name: "James Wilson", email: "j.wilson92@hotmail.com", region: "UK", session: "1h 12m", status: "Online" },
+  { id: "SD-903", name: "David Chen", email: "dchen.sports@yahoo.com", region: "Australia", session: "Last active: 2h ago", status: "Offline" },
+  { id: "SD-904", name: "Rahul Desai", email: "rahuld88@gmail.com", region: "India", session: "12m 04s", status: "Online" },
+  { id: "SD-905", name: "Sarah Jenkins", email: "s.jenkins.tx@gmail.com", region: "US", session: "05m 55s", status: "Online" },
+  { id: "SD-906", name: "Ahmed Al-Fayed", email: "ahmed.alf@outlook.com", region: "UAE", session: "Last active: 5h ago", status: "Offline" },
+  { id: "SD-907", name: "Marcus Rossi", email: "mrossi1999@gmail.com", region: "Italy", session: "33m 21s", status: "Online" },
+  { id: "SD-908", name: "Priya Patel", email: "priya.p.90@yahoo.com", region: "India", session: "1h 40m", status: "Online" },
+  { id: "SD-909", name: "Liam O'Connor", email: "liam.oconnor.ire@gmail.com", region: "Ireland", session: "21m 15s", status: "Online" },
+  { id: "SD-910", name: "Oliver Smith", email: "osmith.sports@gmail.com", region: "UK", session: "Last active: 1d ago", status: "Offline" },
 ];
 
 /* ========================================================
@@ -274,7 +230,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 font-mono w-full text-left">Global Hotspots</h2>
             <p className="text-[10px] text-neutral-500 mb-4 w-full text-left">Real-time geospatial plotting of active sessions</p>
             <div className="flex-1 w-full flex items-center justify-center">
-              <Globe />
+              <GlobeView />
             </div>
           </div>
         </div>
@@ -360,7 +316,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   <tr className="bg-neutral-900/50 text-[10px] uppercase tracking-widest text-neutral-500 font-mono border-b border-neutral-800">
                     <th className="px-6 py-3 font-medium">User</th>
                     <th className="px-6 py-3 font-medium">Region</th>
-                    <th className="px-6 py-3 font-medium">Plan</th>
+                    <th className="px-6 py-3 font-medium">Session Duration</th>
                     <th className="px-6 py-3 font-medium">Status</th>
                   </tr>
                 </thead>
@@ -380,17 +336,15 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       </td>
                       <td className="px-6 py-3 text-neutral-400">{member.region}</td>
                       <td className="px-6 py-3">
-                        <span className={`text-[10px] px-2 py-1 rounded font-mono uppercase tracking-widest border ${
-                          member.plan === 'Pro' ? 'bg-[#00b87a]/10 text-[#00b87a] border-[#00b87a]/20' : 
-                          member.plan === 'Elite' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 
-                          'bg-neutral-800 text-neutral-400 border-neutral-700'
+                        <span className={`text-[10px] font-mono uppercase tracking-widest ${
+                          member.status === 'Online' ? 'text-[#00b87a]' : 'text-neutral-500'
                         }`}>
-                          {member.plan}
+                          {member.session}
                         </span>
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-2">
-                          <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Online' ? 'bg-[#00b87a]' : 'bg-neutral-600'}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Online' ? 'bg-[#00b87a] animate-pulse' : 'bg-neutral-600'}`} />
                           <span className={`text-xs ${member.status === 'Online' ? 'text-neutral-300' : 'text-neutral-500'}`}>{member.status}</span>
                         </div>
                       </td>
