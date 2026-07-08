@@ -348,7 +348,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800 overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-900 flex justify-between items-center">
               <h2 className="text-xs font-bold text-neutral-300 uppercase tracking-widest font-mono">Registered Members Directory</h2>
-              <span className="text-[10px] font-mono text-neutral-500">Total: 489,102</span>
+              <span className="text-[10px] font-mono text-neutral-500">Total: 122,374</span>
             </div>
             
             <div className="overflow-x-auto">
