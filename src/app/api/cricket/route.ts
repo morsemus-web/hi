@@ -14,10 +14,7 @@ export async function GET() {
     });
 
     if (!res.ok) {
-      return NextResponse.json(
-        { status: "error", error: `Upstream API returned ${res.status}` },
-        { status: 502 }
-      );
+      throw new Error(`Upstream API returned ${res.status}`);
     }
 
     const data = await res.json();
