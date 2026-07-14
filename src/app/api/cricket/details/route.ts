@@ -186,7 +186,7 @@ export async function GET(request: Request) {
              const table = next.find("table").first();
              if (table.length > 0) {
                 const headersList: string[] = [];
-                table.find("th").each((_, th) => headersList.push($(th).text().trim()));
+                table.find("th").each((_, th) => { headersList.push($(th).text().trim()); });
                 
                 if (headersList.includes("Batter")) {
                    table.find("tbody tr").each((_, tr) => {
