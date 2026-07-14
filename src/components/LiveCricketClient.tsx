@@ -407,12 +407,48 @@ export default function LiveCricketClient() {
   const [matchDetailsMap, setMatchDetailsMap] = useState<Record<string, MatchDetails>>({});
   const fetchedIdsRef = useRef<Set<string>>(new Set());
 
+  // Date selection states (UK / London relative to match soccer client)
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [dateTabs, setDateTabs] = useState<{ label: string; dateStr: string }[]>([]);
+
   // Keep ref in sync with state so fetchMatches can read it without depending on it
   useEffect(() => { selectedMatchRef.current = selectedMatch; }, [selectedMatch]);
 
-  const fetchMatches = useCallback(async () => {
+  // Generate date tabs: Yesterday, Today, Tomorrow (in London relative time)
+  useEffect(() => {
+    const dates: { label: string; dateStr: string }[] = [];
+    const getLondonDate = (offset: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      try {
+        const formatter = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Europe/London",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        });
+        return formatter.format(d);
+      } catch {
+        return d.toISOString().split("T")[0];
+      }
+    };
+
+    const yesterdayStr = getLondonDate(-1);
+    const todayStr = getLondonDate(0);
+    const tomorrowStr = getLondonDate(1);
+
+    dates.push({ label: "Yesterday", dateStr: yesterdayStr });
+    dates.push({ label: "Today", dateStr: todayStr });
+    dates.push({ label: "Tomorrow", dateStr: tomorrowStr });
+
+    setDateTabs(dates);
+    setSelectedDate(todayStr); // Default to today
+  }, []);
+
+  const fetchMatches = useCallback(async (dateStr: string) => {
+    if (!dateStr) return;
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(`${API_URL}?date=${dateStr}`);
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const data = await res.json();
       if (data.status === "success" && Array.isArray(data.matches)) {
@@ -474,10 +510,22 @@ export default function LiveCricketClient() {
   };
 
   useEffect(() => {
-    fetchMatches();
-    const interval = setInterval(fetchMatches, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchMatches]);
+    if (!selectedDate) return;
+    setLoading(true); // Show loader when switching dates
+    fetchMatches(selectedDate);
+
+    // Refresh scores every POLL_INTERVAL only if selected date is Today
+    const todayTab = dateTabs.find(tab => tab.label === "Today");
+    const isToday = todayTab && todayTab.dateStr === selectedDate;
+
+    let interval: NodeJS.Timeout | null = null;
+    if (isToday) {
+      interval = setInterval(() => fetchMatches(selectedDate), POLL_INTERVAL);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [selectedDate, dateTabs, fetchMatches]);
 
   // Dynamically evaluate match state (live/completed) taking background details into account
   const parsedMatches = matches.map((m) => {
@@ -553,6 +601,26 @@ export default function LiveCricketClient() {
           <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-sport-cricket/20 text-sport-cricket border border-sport-cricket/30 shrink-0 font-mono">
             BETA LIVE
           </span>
+        </div>
+
+        {/* Date Tabs */}
+        <div className="flex border-b border-border mb-8 select-none">
+          {dateTabs.map(tab => (
+            <button
+              key={tab.dateStr}
+              onClick={() => setSelectedDate(tab.dateStr)}
+              className={`px-6 py-3 border-b-2 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                selectedDate === tab.dateStr
+                  ? "border-sport-cricket text-sport-cricket"
+                  : "border-transparent text-text-muted/65 hover:text-text-dim"
+              }`}
+            >
+              {tab.label}
+              <span className="block text-[9px] font-normal font-mono opacity-50 mt-0.5">
+                {tab.dateStr}
+              </span>
+            </button>
+          ))}
         </div>
 
         {/* Filter pills + last updated */}
@@ -680,7 +748,7 @@ export default function LiveCricketClient() {
           <div className="glass-card rounded-xl p-8 text-center animate-fade-in">
             <p className="text-sport-f1 text-sm font-light mb-4">{error}</p>
             <button
-              onClick={() => { setLoading(true); fetchMatches(); }}
+              onClick={() => { setLoading(true); fetchMatches(selectedDate); }}
               className="px-6 py-2 text-[11px] font-medium uppercase tracking-[0.1em] bg-sport-cricket/15 text-sport-cricket border border-sport-cricket/20 rounded-lg hover:bg-sport-cricket/25 transition-all cursor-pointer"
             >
               Retry
@@ -693,7 +761,7 @@ export default function LiveCricketClient() {
           <div className="glass-card rounded-xl p-12 text-center animate-fade-in">
             <p className="text-text-dim text-sm font-light mb-2">No matches found</p>
             <p className="text-text-muted text-xs font-light">
-              {filter !== "all" ? "Try a different filter or check back later." : "Check back later for live matches."}
+              {filter !== "all" ? "Try a different filter or check back later." : "There are no matches scheduled for this date."}
             </p>
           </div>
         )}

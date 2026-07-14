@@ -152,20 +152,52 @@ async function fetchAndParseFeed(urlPath: string, seenIds: Set<string>, parsedMa
   });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    
+    // Resolve dates using Europe/London timezone to match football timezone logic
+    let defaultDate = "";
+    try {
+      const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/London",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+      defaultDate = formatter.format(new Date());
+    } catch {
+      defaultDate = new Date().toISOString().split("T")[0];
+    }
+    
+    const date = searchParams.get("date") || defaultDate;
+
+    // Helper to calculate YYYY-MM-DD relative to default date
+    const getRelativeDateStr = (dateStr: string, offset: number) => {
+      const d = new Date(dateStr + "T12:00:00Z");
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().split("T")[0];
+    };
+
+    const yesterdayDate = getRelativeDateStr(defaultDate, -1);
+    const tomorrowDate = getRelativeDateStr(defaultDate, 1);
+
     const parsedMatches: any[] = [];
     const seenIds = new Set<string>();
 
-    // Concurrently fetch and parse Live matches, Yesterday's matches, and Upcoming Matches (3 days schedule)
-    await Promise.all([
-      fetchAndParseFeed("cricket-match/live-scores", seenIds, parsedMatches),
-      fetchAndParseFeed("cricket-match/live-scores/recent-matches", seenIds, parsedMatches),
-      fetchAndParseFeed("cricket-schedule/upcoming-series/all", seenIds, parsedMatches)
-    ]);
+    if (date === yesterdayDate) {
+      // Yesterday: Fetch recent matches
+      await fetchAndParseFeed("cricket-match/live-scores/recent-matches", seenIds, parsedMatches);
+    } else if (date === tomorrowDate) {
+      // Tomorrow/Future: Fetch upcoming schedule matches
+      await fetchAndParseFeed("cricket-schedule/upcoming-series/all", seenIds, parsedMatches);
+    } else {
+      // Today: Fetch live scores
+      await fetchAndParseFeed("cricket-match/live-scores", seenIds, parsedMatches);
+    }
 
     return NextResponse.json(
-      { status: "success", matches: parsedMatches },
+      { status: "success", date, matches: parsedMatches },
       {
         status: 200,
         headers: {
@@ -174,7 +206,7 @@ export async function GET() {
       }
     );
   } catch (err) {
-    console.error("Vercel internal Cricbuzz consolidated scraper error:", err);
+    console.error("Vercel internal Cricbuzz schedule scraper error:", err);
     return NextResponse.json(
       {
         status: "error",
