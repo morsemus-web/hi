@@ -65,6 +65,8 @@ export async function GET() {
                 statusText += " (ov)"; // ensure it passes the dashboard filter
               } else if (statusText === "Live") {
                  statusText += " (ov)"; 
+              }
+
               parsedMatches.push({
                 id: event.id,
                 title,
