@@ -35,6 +35,88 @@ interface Innings {
   yetToBat: string[];
 }
 
+// Map of common team full names to their 3-letter abbreviation codes
+const COMMON_SHORTS: Record<string, string> = {
+  "west indies": "WI",
+  "new zealand": "NZ",
+  "england": "ENG",
+  "india": "IND",
+  "australia": "AUS",
+  "south africa": "RSA",
+  "pakistan": "PAK",
+  "sri lanka": "SL",
+  "bangladesh": "BAN",
+  "afghanistan": "AFG",
+  "ireland": "IRE",
+  "zimbabwe": "ZIM",
+  "scotland": "SCO",
+  "nepal": "NEP",
+  "netherlands": "NED",
+  "namibia": "NAM",
+  "oman": "OMA",
+  "united arab emirates": "UAE",
+  "usa": "USA",
+  "canada": "CAN",
+  "northern knights": "NK",
+  "leinster lightning": "LL",
+  "north west warriors": "NWW",
+  "munster reds": "MR"
+};
+
+function getShortName(teamName: string): string {
+  const clean = teamName.toLowerCase().trim();
+  if (COMMON_SHORTS[clean]) return COMMON_SHORTS[clean];
+  
+  const words = clean.split(/\s+/);
+  if (words.length >= 2) {
+    return words.map(w => w[0].toUpperCase()).join('').slice(0, 3);
+  }
+  return teamName.slice(0, 3).toUpperCase();
+}
+
+async function getLiveTextHtmlForMatch(scorecardId: string): Promise<string | null> {
+  try {
+    const homeRes = await fetch("https://www.bbc.com/sport/cricket", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      }
+    });
+    if (!homeRes.ok) return null;
+    const html = await homeRes.text();
+    const $ = cheerio.load(html);
+    
+    const liveLinks: string[] = [];
+    $("a").each((_, el) => {
+       const href = $(el).attr("href") || "";
+       if (href.includes("/sport/cricket/live/") && !liveLinks.includes(href)) {
+          liveLinks.push(href);
+       }
+    });
+    
+    if (liveLinks.length === 0) return null;
+    
+    // Concurrently check if any live page references our scorecard ID
+    const promises = liveLinks.map(async (link) => {
+       const liveUrl = link.startsWith("http") ? link : `https://www.bbc.com${link}`;
+       const res = await fetch(liveUrl, {
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
+       });
+       if (!res.ok) return null;
+       const pageHtml = await res.text();
+       if (pageHtml.includes(scorecardId)) {
+          return pageHtml;
+       }
+       return null;
+    });
+    
+    const results = await Promise.all(promises);
+    return results.find(r => r !== null) || null;
+  } catch (e) {
+     console.error("Error matching live text for match:", e);
+     return null;
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -43,249 +125,234 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Match ID is required" }, { status: 400 });
   }
 
-  const commUrl = `https://www.cricbuzz.com/live-cricket-scores/${id}`;
-  const scUrl = `https://www.cricbuzz.com/live-cricket-scorecard/${id}`;
-
+  const scUrl = `https://www.bbc.com/sport/cricket/scorecard/${id}`;
   const headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   };
 
   try {
-    // 1. Fetch pages concurrently
-    const [commRes, scRes] = await Promise.all([
-      fetch(commUrl, { headers, cache: "no-store" }).then((r) => {
-        if (!r.ok) throw new Error(`Commentary page returned status ${r.status}`);
-        return r.text();
-      }),
-      fetch(scUrl, { headers, cache: "no-store" }).then((r) => {
-        if (!r.ok) throw new Error(`Scorecard page returned status ${r.status}`);
-        return r.text();
-      }),
-    ]);
+    const scRes = await fetch(scUrl, { headers, cache: "no-store" });
+    if (!scRes.ok) {
+       throw new Error(`Upstream BBC Scorecard returned status ${scRes.status}`);
+    }
+    const html = await scRes.text();
+    const $ = cheerio.load(html);
 
-    const $comm = cheerio.load(commRes);
-    const $sc = cheerio.load(scRes);
+    // 1. Extract JSON-LD or Initial Data for Location & timing
+    let jsonData: any = null;
+    $("script").each((_, script) => {
+      const content = $(script).html() || "";
+      if (content.includes("window.__INITIAL_DATA__")) {
+        const match = content.match(/window\.__INITIAL_DATA__\s*=\s*["'](.*?)["']\s*;/);
+        if (match) {
+          try {
+            const unescapedStr = JSON.parse(`"${match[1]}"`);
+            jsonData = JSON.parse(unescapedStr);
+          } catch (e) {}
+        }
+      }
+    });
 
-    // 2. Parse basic match metadata
-    const title = $comm("title").text() || $comm("h1").text() || "Cricket Match";
-    const statusText = $comm(".text-cbTxtLive, .my-2.text-cbLive").first().text().trim() || 
-                       $comm(".text-cbTxtSec").first().text().trim() || "";
-
-    // Parse structured JSON-LD data for timing and venue
     let startDate = "";
     let locationName = "";
-    $comm('script[type="application/ld+json"]').each((_, el) => {
-      try {
-        const scriptHtml = $comm(el).html();
-        if (scriptHtml) {
-          const parsed = JSON.parse(scriptHtml.trim());
-          const event = Array.isArray(parsed) 
-            ? parsed.find(p => p['@type'] === 'SportsEvent') 
-            : (parsed['@type'] === 'SportsEvent' ? parsed : null);
-          if (event) {
-            startDate = event.startDate || "";
-            locationName = event.location?.name || "";
-          }
-        }
-      } catch (e) {
-        // Ignore JSON parse errors
-      }
-    });
+    let statusText = "";
+    let title = "Cricket Match";
 
-    // 3. Parse Live commentary ball-by-ball timeline
-    const timeline: any[] = [];
-    $comm("div.flex.gap-4, div.flex.mx-4").each((_, el) => {
-      const $row = $comm(el);
-      const $ballDiv = $row.find("div.flex.flex-col.gap-2.items-center");
-      const ballNum = $ballDiv.text().trim();
-      const text = $row.find("div").last().text().trim();
+    if (jsonData && jsonData.data) {
+       const headerKey = Object.keys(jsonData.data).find(k => k.startsWith("sport-header?"));
+       if (headerKey && jsonData.data[headerKey]?.data) {
+          const headerData = jsonData.data[headerKey].data;
+          startDate = headerData.startDateTime || "";
+          locationName = headerData.groundName || "";
+          title = headerData.title || title;
+          statusText = headerData.matchSummary?.resultString || "";
+       }
+    }
 
-      if (ballNum && text) {
-        let type = "dot";
-        const txtUpper = text.toUpperCase();
-        if (txtUpper.includes("SIX")) type = "six";
-        else if (txtUpper.includes("FOUR")) type = "four";
-        else if (txtUpper.includes("OUT") || txtUpper.includes("WICKET") || txtUpper.includes("CAUGHT") || txtUpper.includes("BOWLED")) type = "wicket";
-        else if (txtUpper.includes("WIDE") || txtUpper.includes("WD")) type = "wide";
-        else if (txtUpper.includes("NO BALL") || txtUpper.includes("NB")) type = "noball";
-        else if (text.startsWith("1 ") || text.startsWith("1 run")) type = "single";
-        else if (text.startsWith("2 ") || text.startsWith("2 runs")) type = "double";
-        else if (text.startsWith("3 ") || text.startsWith("3 runs")) type = "triple";
-
-        let score = ".";
-        if (type === "six") score = "6";
-        else if (type === "four") score = "4";
-        else if (type === "wicket") score = "W";
-        else if (type === "wide") score = "1w";
-        else if (type === "noball") score = "1nb";
-        else if (type === "single") score = "1";
-        else if (type === "double") score = "2";
-        else if (type === "triple") score = "3";
-
-        timeline.push({ ball: ballNum, text, type, score });
-      }
-    });
-
-    // 4. Parse Innings scorecard
+    // 2. Parse Scorecard Innings List
     const inningsList: Innings[] = [];
-    $sc("div[id^='scard-team-']").each((innIdx, el) => {
-      const $innWrapper = $sc(el);
-      
-      // Determine Innings Team Name & Score from preceding sibling HTML
-      let teamName = `Innings ${innIdx + 1}`;
-      const $prev = $innWrapper.prev();
-      if ($prev.length > 0) {
-        const fullTeamEl = $prev.find("div.font-bold").eq(1); // The desktop full team name
-        const shortTeamEl = $prev.find("div.font-bold").eq(0); // The mobile short name
-        if (fullTeamEl.length > 0) {
-          teamName = fullTeamEl.text().trim();
-        } else if (shortTeamEl.length > 0) {
-          teamName = shortTeamEl.text().trim();
-        }
-      }
-
-      const batters: Batter[] = [];
-      const bowlers: Bowler[] = [];
-      let extras = "";
-      let total = "";
-      const yetToBat: string[] = [];
-
-      // Parse Batters
-      $innWrapper.find("div.grid.scorecard-bat-grid, div.flex.justify-between, div.bg-cbInactTab, div.flex.flex-col").each((_, rowEl) => {
-        const $row = $sc(rowEl);
-        const rowClass = $row.attr("class") || "";
-
-        if (rowClass.includes("scorecard-bat-grid")) {
-          const children = $row.children();
-          if (children.length >= 6) {
-            const $c0 = children.eq(0);
-            const name = $c0.find("a").first().text().trim();
-            const dismissal = $c0.find("div").first().text().trim() || "not out";
-            if (name !== "" && name !== "Batter") {
-              batters.push({
-                name,
-                dismissal,
-                runs: children.eq(1).text().trim(),
-                balls: children.eq(2).text().trim(),
-                fours: children.eq(3).text().trim(),
-                sixes: children.eq(4).text().trim(),
-                sr: children.eq(5).text().trim(),
-              });
-            }
+    $(".efthezu1").each((_, heading) => {
+       const teamName = $(heading).text().trim().replace(/\s*Innings/i, "");
+       
+       let batters: Batter[] = [];
+       let bowlers: Bowler[] = [];
+       let extras = "";
+       let total = "";
+       let yetToBat: string[] = [];
+       
+       let next = $(heading).next();
+       while (next.length > 0 && !next.hasClass("efthezu1")) {
+          if (next.hasClass("e1icz104")) {
+             const table = next.find("table").first();
+             if (table.length > 0) {
+                const headersList: string[] = [];
+                table.find("th").each((_, th) => headersList.push($(th).text().trim()));
+                
+                if (headersList.includes("Batter")) {
+                   table.find("tbody tr").each((_, tr) => {
+                      const cells = $(tr).find("td");
+                      if (cells.length >= 6) {
+                         const nameCell = cells.eq(0);
+                         const name = nameCell.find(".ebuonag0").first().text().trim();
+                         
+                         if (name === "Extras") {
+                            extras = cells.eq(1).text().trim();
+                         } else if (name === "Total") {
+                            total = cells.eq(1).text().trim();
+                            const oversText = nameCell.find(".e3fv3iq2").first().text().trim();
+                            if (oversText) {
+                               total = `${total} (${oversText})`;
+                            }
+                         } else if (name && name !== "Batter") {
+                            const hiddenTexts = nameCell.find(".visually-hidden").map((_, el) => $(el).text().trim()).get();
+                            const dismissal = hiddenTexts.find(t => t && t !== name && t !== (name + ",")) || "not out";
+                            
+                            batters.push({
+                               name,
+                               dismissal,
+                               runs: cells.eq(1).text().trim(),
+                               balls: cells.eq(2).text().trim(),
+                               fours: cells.eq(4).text().trim(),
+                               sixes: cells.eq(5).text().trim(),
+                               sr: cells.eq(7).text().trim(),
+                            });
+                         }
+                      }
+                   });
+                } else if (headersList.includes("Bowler")) {
+                   table.find("tbody tr").each((_, tr) => {
+                      const cells = $(tr).find("td");
+                      if (cells.length >= 8) {
+                         const rawName = cells.eq(0).text().trim();
+                         const name = rawName.replace(/,\s*bowling/i, "");
+                         if (name && name !== "Bowler") {
+                            bowlers.push({
+                               name,
+                               overs: cells.eq(1).text().trim(),
+                               maidens: cells.eq(2).text().trim(),
+                               runs: cells.eq(3).text().trim(),
+                               wickets: cells.eq(4).text().trim(),
+                               nb: cells.eq(6).text().trim(),
+                               wd: cells.eq(7).text().trim(),
+                               econ: cells.eq(10).text().trim(),
+                            });
+                         }
+                      }
+                   });
+                }
+             }
           }
-        } else if (rowClass.includes("justify-between") && $row.text().includes("Extras")) {
-          extras = $row.text().trim().replace(/Extras\s*/i, "");
-        } else if (rowClass.includes("bg-cbInactTab") || ($row.text().includes("Total") && $row.text().includes("-"))) {
-          total = $row.text().trim().replace(/Total\s*/i, "");
-        } else if (rowClass.includes("flex-col") && $row.text().includes("Yet to Bat")) {
-          const rawYet = $row.text().trim().replace(/Yet to Bat\s*/i, "");
-          rawYet.split(",").forEach((p) => {
-            if (p.trim()) yetToBat.push(p.trim());
+          next = next.next();
+       }
+       
+       if (batters.length > 0 || bowlers.length > 0) {
+          inningsList.push({
+             team: teamName,
+             score: total || "",
+             batters,
+             bowlers,
+             extras,
+             total,
+             yetToBat
           });
-        }
-      });
-
-      // Parse Bowlers
-      $innWrapper.find("div.grid.scorecard-bowl-grid").each((_, rowEl) => {
-        const $row = $sc(rowEl);
-        const children = $row.children();
-        if (children.length >= 8) {
-          const name = children.eq(0).text().trim();
-          if (name !== "" && name !== "Bowler") {
-            bowlers.push({
-              name,
-              overs: children.eq(1).text().trim(),
-              maidens: children.eq(2).text().trim(),
-              runs: children.eq(3).text().trim(),
-              wickets: children.eq(4).text().trim(),
-              nb: children.eq(5).text().trim(),
-              wd: children.eq(6).text().trim(),
-              econ: children.eq(7).text().trim(),
-            });
-          }
-        }
-      });
-
-      if (batters.length > 0 || bowlers.length > 0) {
-        inningsList.push({
-          team: teamName,
-          score: total || "",
-          batters,
-          bowlers,
-          extras,
-          total,
-          yetToBat,
-        });
-      }
+       }
     });
 
-    // 5. Parse Playing XIs (including both batters and bowlers) from innings lists
+    // 3. Assemble Playing XIs dynamically
     const teams: Record<string, string[]> = {};
     inningsList.forEach((inn) => {
-      if (!teams[inn.team]) {
-        teams[inn.team] = [];
-      }
-      const activePlayers = inn.batters.map((b) => b.name);
-      const combined = [...activePlayers, ...inn.yetToBat];
-      combined.forEach((p) => {
-        if (p && !teams[inn.team].includes(p)) {
-          teams[inn.team].push(p);
-        }
-      });
+       if (!teams[inn.team]) {
+          teams[inn.team] = [];
+       }
+       inn.batters.forEach((b) => {
+          if (b.name && !teams[inn.team].includes(b.name)) {
+             teams[inn.team].push(b.name);
+          }
+       });
+    });
+    inningsList.forEach((inn, idx) => {
+       const opponentInn = inningsList.find((other, oIdx) => oIdx !== idx);
+       if (opponentInn) {
+          inn.bowlers.forEach((bw) => {
+             if (bw.name && !teams[opponentInn.team].includes(bw.name)) {
+                teams[opponentInn.team].push(bw.name);
+             }
+          });
+       }
     });
 
-    // Also add bowlers to their respective teams (bowlers who bowled in the opponent's innings)
-    inningsList.forEach((inn) => {
-      const opponentInn = inningsList.find((other) => other.team !== inn.team);
-      if (opponentInn) {
-        const opponentTeam = opponentInn.team;
-        if (!teams[opponentTeam]) {
-          teams[opponentTeam] = [];
-        }
-        inn.bowlers.forEach((bw) => {
-          if (bw.name && !teams[opponentTeam].includes(bw.name)) {
-            teams[opponentTeam].push(bw.name);
+    // 4. Fetch and Parse Commentary Timeline (Concurrently mapping to active live streams)
+    const timeline: any[] = [];
+    const liveTextHtml = await getLiveTextHtmlForMatch(id);
+    if (liveTextHtml) {
+       const $live = cheerio.load(liveTextHtml);
+       let liveJsonData: any = null;
+       $live("script").each((_, script) => {
+          const content = $live(script).html() || "";
+          if (content.includes("window.__INITIAL_DATA__")) {
+             const match = content.match(/window\.__INITIAL_DATA__\s*=\s*["'](.*?)["']\s*;/);
+             if (match) {
+                try {
+                   const unescapedStr = JSON.parse(`"${match[1]}"`);
+                   liveJsonData = JSON.parse(unescapedStr);
+                } catch (e) {}
+             }
           }
-        });
-      }
-    });
+       });
 
-    // 5.5 Parse Player of the Match (Man of the Match) with robust fallbacks
-    let playerOfTheMatch = "";
-    const momElement = $sc(".cb-mom-name").first();
-    if (momElement.length > 0) {
-      playerOfTheMatch = momElement.text().trim();
-    } else {
-      $sc(".cb-mom-bg a, a[href*='/profiles/'], div, span").each((_, el) => {
-        const text = $sc(el).text().trim();
-        if (/Player\s*of\s*the\s*Match|Man\s*of\s*the\s*Match/i.test(text)) {
-          const nextText = $sc(el).next().text().trim();
-          const siblingText = $sc(el).siblings("a").first().text().trim();
-          const candidate = nextText || siblingText || "";
-          if (candidate && candidate.length > 2 && candidate.length < 35 && !/player|match/i.test(candidate)) {
-            playerOfTheMatch = candidate;
-            return false;
+       if (liveJsonData && liveJsonData.data) {
+          const streamKey = Object.keys(liveJsonData.data).find(k => k.startsWith("stream?"));
+          if (streamKey && liveJsonData.data[streamKey]?.data?.results) {
+             const results = liveJsonData.data[streamKey].data.results;
+             results.forEach((r: any) => {
+                const textParts: string[] = [];
+                if (r.content && r.content.model && r.content.model.blocks) {
+                   r.content.model.blocks.forEach((b: any) => {
+                      if (b.type === "paragraph" && b.model && b.model.text) {
+                         textParts.push(b.model.text);
+                      }
+                   });
+                }
+                
+                let headline = "";
+                if (r.headline && r.headline.model && r.headline.model.blocks) {
+                   r.headline.model.blocks.forEach((b: any) => {
+                      if (b.type === "paragraph" && b.model && b.model.text) {
+                         headline = b.model.text;
+                      }
+                   });
+                }
+                
+                const text = headline ? `**${headline}**: ${textParts.join("\n")}` : textParts.join("\n");
+                const ball = r.dates?.time || r.timestamp || "";
+                
+                if (text.trim()) {
+                   let type = "dot";
+                   const textUpper = text.toUpperCase();
+                   if (textUpper.includes("SIX") || textUpper.includes(" 6 ")) type = "six";
+                   else if (textUpper.includes("FOUR") || textUpper.includes(" 4 ")) type = "four";
+                   else if (textUpper.includes("OUT") || textUpper.includes("WICKET") || textUpper.includes("CAUGHT") || textUpper.includes("BOWLED")) type = "wicket";
+                   else if (textUpper.includes("WIDE") || textUpper.includes("WD")) type = "wide";
+                   else if (textUpper.includes("NO BALL") || textUpper.includes("NB")) type = "noball";
+                   
+                   let score = ".";
+                   if (type === "six") score = "6";
+                   else if (type === "four") score = "4";
+                   else if (type === "wicket") score = "W";
+                   else if (type === "wide") score = "1w";
+                   else if (type === "noball") score = "1nb";
+                   
+                   timeline.push({ ball, text, type, score });
+                }
+             });
           }
-        }
-      });
+       }
     }
 
-    if (!playerOfTheMatch) {
-      const commPageText = $comm("body").text();
-      const momMatch = commPageText.match(/(?:Player|Man)\s*of\s*the\s*Match\s*:\s*([A-Za-z\s]+?)(?:\s{2,}|,|\n|\.|$)/i) || 
-                       commPageText.match(/(?:Player|Man)\s*of\s*the\s*Match\s+is\s+([A-Za-z\s]+?)(?:\s{2,}|,|\n|\.|$)/i);
-      if (momMatch && momMatch[1].trim().length < 35) {
-        playerOfTheMatch = momMatch[1].trim();
-      }
-    }
-
-    // 6. Generate complete points table fallbacks dynamically based on series/league
-    const isIPL = title.toLowerCase().includes("ipl") || 
-                  title.toLowerCase().includes("indian premier league") || 
-                  statusText.toLowerCase().includes("ipl") ||
-                  statusText.toLowerCase().includes("indian premier league");
-    const isCounty = title.toLowerCase().includes("county") || title.toLowerCase().includes("championship");
-    const isT20Blast = title.toLowerCase().includes("blast") || title.toLowerCase().includes("t20 blast");
+    // 5. Fallbacks for Points Table based on League keywords in Title
+    const lowerTitle = title.toLowerCase();
+    const isCounty = lowerTitle.includes("county") || lowerTitle.includes("championship");
+    const isT20Blast = lowerTitle.includes("blast") || lowerTitle.includes("t20 blast");
 
     let pointsTable = [
       { pos: 1, team: "Royal Challengers Bengaluru", short: "RCB", p: 14, w: 10, l: 4, pts: 20, nrr: "+0.840" },
@@ -325,34 +392,25 @@ export async function GET(request: Request) {
       ];
     }
 
-    // 7. Calculate win probability
+    // 6. Win Probability estimations
     let probability = { team1: 50, team2: 50, label1: "Team 1", label2: "Team 2" };
     if (inningsList.length > 0) {
-      const team1 = inningsList[0]?.team || "Team 1";
-      const team2 = inningsList[1]?.team || "Team 2";
-      probability.label1 = team1;
-      probability.label2 = team2;
-
-      // Extract current status calculations
-      if (statusText) {
-        const needMatch = statusText.match(/need\s+(\d+)\s+runs\s+in\s+(\d+)\s+balls/i);
-        if (needMatch) {
-          const runs = parseInt(needMatch[1]);
-          const balls = parseInt(needMatch[2]);
-          const wicketsLeft = 10 - (inningsList[1]?.batters.length - 2 || 0); // Estimate current wickets down
-          
-          // Simple win predictor algorithm
-          const reqRR = (runs / balls) * 6;
-          let prob2 = 50;
-          if (balls <= 0) {
-            prob2 = runs <= 0 ? 100 : 0;
-          } else {
-            prob2 = Math.max(1, Math.min(99, 100 - (reqRR * 8 - wicketsLeft * 12)));
+       probability.label1 = inningsList[0]?.team || "Team 1";
+       probability.label2 = inningsList[1]?.team || "Team 2";
+       
+       if (statusText) {
+          const needMatch = statusText.match(/need\s+(\d+)\s+runs\s+in\s+(\d+)\s+balls/i);
+          if (needMatch) {
+             const runs = parseInt(needMatch[1]);
+             const balls = parseInt(needMatch[2]);
+             const wicketsDown = inningsList[1]?.batters.length || 0;
+             const wicketsLeft = Math.max(1, 10 - wicketsDown);
+             const reqRR = (runs / balls) * 6;
+             const p2 = Math.max(1, Math.min(99, 100 - (reqRR * 8 - wicketsLeft * 12)));
+             probability.team2 = Math.round(p2);
+             probability.team1 = 100 - probability.team2;
           }
-          probability.team2 = Math.round(prob2);
-          probability.team1 = 100 - probability.team2;
-        }
-      }
+       }
     }
 
     return NextResponse.json({
@@ -361,8 +419,8 @@ export async function GET(request: Request) {
       statusText,
       startDate,
       locationName,
-      playerOfTheMatch,
-      timeline: timeline.slice(0, 15), // Return last 15 balls for timelines
+      playerOfTheMatch: "",
+      timeline: timeline.slice(0, 30), // Return last 30 ball timeline items
       innings: inningsList,
       teams,
       pointsTable,
@@ -374,10 +432,13 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error("Scraper detail error:", error);
-    return NextResponse.json({
-      status: "error",
-      error: error instanceof Error ? error.message : "Failed to parse details",
-    }, { status: 502 });
+     console.error("Vercel scorecard details parsing error:", error);
+     return NextResponse.json({
+        status: "error",
+        error: error instanceof Error ? error.message : "Failed to parse match details",
+        innings: [],
+        teams: {},
+        timeline: []
+     }, { status: 502 });
   }
 }
