@@ -14,12 +14,15 @@ export async function GET() {
     });
 
     if (!res.ok) {
-      throw new Error(`Upstream API returned ${res.status}`);
+      return NextResponse.json(
+        { status: "error", error: `Upstream API returned status ${res.status}` },
+        { status: 502 }
+      );
     }
 
     const data = await res.json();
     
-    // Ensure status is "success" so the client processes it
+    // Ensure status is success so the client parses the matches list
     data.status = "success";
     
     return NextResponse.json(data, {
@@ -32,16 +35,11 @@ export async function GET() {
     console.error("API proxy error:", err);
     return NextResponse.json(
       {
-        status: "success", // return success to show fallback
+        status: "error",
         error: err instanceof Error ? err.message : "Failed to fetch scores",
-        matches: [
-           { id: "v-err-1", title: "India vs Australia", status_text: "IND vs AUS - LIVE (ov)", score: "IND 245/4 (62.3) | AUS 310", current_batsmen: [], current_bowler: { name: "" } }
-        ]
+        matches: []
       },
-      { 
-        status: 200,
-        headers: { "Cache-Control": "public, s-maxage=4, stale-while-revalidate=10" }
-      }
+      { status: 502 }
     );
   }
 }
