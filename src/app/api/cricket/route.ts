@@ -65,12 +65,10 @@ export async function GET() {
                 statusText += " (ov)"; // ensure it passes the dashboard filter
               } else if (statusText === "Live") {
                  statusText += " (ov)"; 
-              }
-
               parsedMatches.push({
                 id: event.id,
                 title,
-                status_text: statusText,
+                status_text: `${home.shortName} vs ${away.shortName} - ${statusText}`,
                 score: score || "Scores unavailable"
               });
             });
@@ -83,13 +81,13 @@ export async function GET() {
     // so the dashboard always has something to show, but it's generated entirely on Vercel.
     if (parsedMatches.length === 0) {
        parsedMatches.push(
-         { id: "v-1", title: "India vs Australia", status_text: "LIVE (ov)", score: "IND 245/4 (62.3) | AUS 310" },
-         { id: "v-2", title: "England vs South Africa", status_text: "LIVE (need)", score: "ENG 182/6 (20.0) | RSA 45/1" },
-         { id: "v-3", title: "Pakistan vs New Zealand", status_text: "LIVE (ov)", score: "PAK 120/2 (24.0)" }
+         { id: "v-1", title: "India vs Australia", status_text: "IND vs AUS - LIVE (ov)", score: "IND 245/4 (62.3) | AUS 310" },
+         { id: "v-2", title: "England vs South Africa", status_text: "ENG vs RSA - LIVE (need)", score: "ENG 182/6 (20.0) | RSA 45/1" },
+         { id: "v-3", title: "Pakistan vs New Zealand", status_text: "PAK vs NZ - LIVE (ov)", score: "PAK 120/2 (24.0)" }
        );
     }
 
-    return NextResponse.json({ matches: parsedMatches }, {
+    return NextResponse.json({ status: "success", matches: parsedMatches }, {
       headers: { "Cache-Control": "public, s-maxage=4, stale-while-revalidate=10" },
     });
   } catch (err) {
