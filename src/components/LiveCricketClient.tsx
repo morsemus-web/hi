@@ -162,7 +162,7 @@ function getMatchState(statusText: string) {
   
   const isCompleted = statusPart.includes("won") || statusPart.includes("beat") || statusPart.includes("draw") || statusPart.includes("tied") || statusPart.includes("completed") || statusPart.includes("abandoned") || statusPart.includes("no result");
   const isUpcoming = statusPart.includes("starts at") || statusPart.includes("starts in") || statusPart.includes("starting") || statusPart.includes("preview") || statusPart.includes("yet to begin") || /\b\d{1,2}:\d{2}\b/.test(statusPart) || /\b(am|pm)\b/i.test(statusPart);
-  const isLive = !isCompleted && !isUpcoming && (statusPart.includes("need") || statusPart.includes("opted to") || statusPart.includes("trail") || statusPart.includes("lead") || statusPart.includes("chose to") || statusPart.includes("innings break") || statusPart.includes("break") || /\d+[\-\/]\d+/.test(t) || statusPart.includes("ov") || statusPart.includes("overs"));
+  const isLive = !isCompleted && !isUpcoming && (statusPart.includes("need") || statusPart.includes("opt to") || statusPart.includes("opted to") || statusPart.includes("trail") || statusPart.includes("lead") || statusPart.includes("chose to") || statusPart.includes("innings break") || statusPart.includes("break") || /\d+[\-\/]\d+/.test(t) || statusPart.includes("ov") || statusPart.includes("overs"));
   
   let statusDisplay = cleanText;
   if (cleanText.includes(" - ")) {
@@ -467,7 +467,8 @@ export default function LiveCricketClient() {
         // Dynamic background details pre-fetch for schedule start timings and venues
         processed.forEach(async (m) => {
           const hasBeenFetched = fetchedIdsRef.current.has(m.id);
-          if (!hasBeenFetched || m.isLive) {
+          const isLiveScore = m.isLive || (m.score && m.score !== "score not found" && m.score.trim() !== "");
+          if (!hasBeenFetched || isLiveScore) {
             try {
               const detailRes = await fetch(`${DETAILS_API_URL}?id=${m.id}`);
               if (detailRes.ok) {

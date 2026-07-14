@@ -157,7 +157,7 @@ export function evaluateCricketMatchState(
 
   if (isDirectCompleted) {
     currentState = "COMPLETED";
-  } else if (statusLower.includes("preview") || statusLower.includes("starts at") || statusLower.includes("starts in") || statusLower.includes("yet to begin")) {
+  } else if (!hasLiveIndicators && (statusLower.includes("preview") || statusLower.includes("starts at") || statusLower.includes("starts in") || statusLower.includes("yet to begin"))) {
     currentState = "NOT_STARTED";
   } else if (statusLower.includes("abandoned")) {
     currentState = "COMPLETED";
