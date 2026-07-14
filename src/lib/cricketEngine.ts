@@ -139,6 +139,7 @@ export function evaluateCricketMatchState(
   // Determine currentState initial estimation
   const hasLiveIndicators = 
     statusLower.includes("need") || 
+    statusLower.includes("opt to") || 
     statusLower.includes("opted to") || 
     statusLower.includes("trail") || 
     statusLower.includes("lead") || 
