@@ -3,8 +3,14 @@
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 
-const WINDOWS_URL = "/downloads/ScoreDeck-Setup-0.1.0.exe";
-const ANDROID_URL = "/downloads/ScoreDeck.apk";
+// Version + files — bump on each release
+const VERSION = "0.1.0";
+const WINDOWS_URL = `/downloads/ScoreDeck-Setup-${VERSION}.exe`;
+const WINDOWS_SIZE = "95 MB";
+// Android APK is built via EAS. Once uploaded to public/downloads/
+// (or migrated to GitHub Releases), flip ANDROID_READY to true.
+const ANDROID_READY = false;
+const ANDROID_URL = `/downloads/ScoreDeck-${VERSION}.apk`;
 
 function Section({
   eyebrow,
@@ -96,10 +102,10 @@ export default function DownloadPage() {
             <Section
               eyebrow="Windows 10 / 11"
               title="ScoreDeck for Windows"
-              desc="Frameless always-on-top overlay. 95 MB installer. Unsigned build — Windows SmartScreen will ask to confirm on first run."
+              desc={`Frameless always-on-top overlay. ${WINDOWS_SIZE} installer. Unsigned build — Windows SmartScreen will ask to confirm on first run.`}
               cta="Download .exe"
               ctaHref={WINDOWS_URL}
-              note="v0.1.0"
+              note={`v${VERSION} · x64`}
             />
             <Section
               eyebrow="macOS"
@@ -124,9 +130,10 @@ export default function DownloadPage() {
               eyebrow="Android · Free"
               title="ScoreDeck for Android"
               desc="Free to install, requires a free ScoreDeck account. Ad-supported. Direct .apk — no Play Store. First month is ad-free as a trial."
-              cta="Download .apk"
-              ctaHref={ANDROID_URL}
-              note="v0.1.0 · sideload"
+              cta={ANDROID_READY ? "Download .apk" : "Coming soon"}
+              ctaHref={ANDROID_READY ? ANDROID_URL : undefined}
+              disabled={!ANDROID_READY}
+              note={ANDROID_READY ? `v${VERSION} · sideload` : "In final testing"}
             />
             <div className="glass-card rounded-2xl p-8 md:p-10 flex flex-col gap-4">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-accent">
