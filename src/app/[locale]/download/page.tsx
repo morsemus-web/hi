@@ -3,14 +3,25 @@
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 
-// Version + files — bump on each release
+// Version + files — bump on each release.
+// To enable a platform: drop the file at public/downloads/<name>, flip the
+// _READY flag to true, commit + push. .gitignore allows all these types.
 const VERSION = "0.1.0";
-const WINDOWS_URL = `/downloads/ScoreDeck-Setup-${VERSION}.exe`;
-const WINDOWS_SIZE = "95 MB";
-// Android APK is built via EAS. Once uploaded to public/downloads/
-// (or migrated to GitHub Releases), flip ANDROID_READY to true.
+
+const WINDOWS_READY = true;
+const WINDOWS_URL   = `/downloads/ScoreDeck-Setup-${VERSION}.exe`;
+const WINDOWS_SIZE  = "95 MB";
+
+const MAC_READY     = false;
+const MAC_URL       = `/downloads/ScoreDeck-${VERSION}-universal.dmg`;
+
+const LINUX_APPIMAGE_READY = false;
+const LINUX_APPIMAGE_URL   = `/downloads/ScoreDeck-${VERSION}-x64.AppImage`;
+const LINUX_DEB_READY      = false;
+const LINUX_DEB_URL        = `/downloads/ScoreDeck-${VERSION}-x64.deb`;
+
 const ANDROID_READY = false;
-const ANDROID_URL = `/downloads/ScoreDeck-${VERSION}.apk`;
+const ANDROID_URL   = `/downloads/ScoreDeck-${VERSION}.apk`;
 
 function Section({
   eyebrow,
@@ -20,6 +31,7 @@ function Section({
   ctaHref,
   disabled,
   note,
+  secondaryCta,
 }: {
   eyebrow: string;
   title: string;
@@ -28,6 +40,7 @@ function Section({
   ctaHref?: string;
   disabled?: boolean;
   note?: string;
+  secondaryCta?: { label: string; href: string };
 }) {
   return (
     <div className="glass-card rounded-2xl p-8 md:p-10 flex flex-col gap-4">
@@ -41,13 +54,24 @@ function Section({
           {cta}
         </span>
       ) : (
-        <a
-          href={ctaHref}
-          download={ctaHref ? ctaHref.split("/").pop() : undefined}
-          className="inline-block w-fit px-6 py-3 text-[11px] font-medium uppercase tracking-[0.12em] rounded-md bg-accent text-bg hover:bg-accent/90 transition-colors"
-        >
-          {cta}
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={ctaHref}
+            download={ctaHref ? ctaHref.split("/").pop() : undefined}
+            className="inline-block w-fit px-6 py-3 text-[11px] font-medium uppercase tracking-[0.12em] rounded-md bg-accent text-bg hover:bg-accent/90 transition-colors"
+          >
+            {cta}
+          </a>
+          {secondaryCta && (
+            <a
+              href={secondaryCta.href}
+              download={secondaryCta.href.split("/").pop()}
+              className="inline-block w-fit px-4 py-3 text-[11px] font-medium uppercase tracking-[0.12em] rounded-md border border-border text-text-dim hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              {secondaryCta.label}
+            </a>
+          )}
+        </div>
       )}
       {note && (
         <p className="text-[10px] text-text-muted uppercase tracking-[0.1em]">{note}</p>
@@ -104,23 +128,49 @@ export default function DownloadPage() {
               eyebrow="Windows 10 / 11"
               title="ScoreDeck for Windows"
               desc={`Frameless always-on-top overlay. ${WINDOWS_SIZE} installer. Unsigned build — Windows SmartScreen will ask to confirm on first run.`}
-              cta="Download .exe"
-              ctaHref={WINDOWS_URL}
+              cta={WINDOWS_READY ? "Download .exe" : "Coming soon"}
+              ctaHref={WINDOWS_READY ? WINDOWS_URL : undefined}
+              disabled={!WINDOWS_READY}
               note={`v${VERSION} · x64`}
             />
             <Section
               eyebrow="macOS"
               title="ScoreDeck for Mac"
-              desc="Universal binary for Intel and Apple Silicon. Currently in build — join the mailing list to know when it drops."
-              cta="Coming soon"
-              disabled
+              desc="Universal binary for Intel and Apple Silicon. Unsigned build — control-click the app on first launch and choose Open to bypass Gatekeeper."
+              cta={MAC_READY ? "Download .dmg" : "Coming soon"}
+              ctaHref={MAC_READY ? MAC_URL : undefined}
+              disabled={!MAC_READY}
+              note={MAC_READY ? `v${VERSION} · Intel + Apple Silicon` : "In final testing"}
             />
             <Section
               eyebrow="Linux"
               title="ScoreDeck for Linux"
-              desc="AppImage and .deb, x64. Building alongside the macOS release. Coming soon."
-              cta="Coming soon"
-              disabled
+              desc="AppImage runs anywhere; .deb for Ubuntu/Debian. x64 only. No signing required."
+              cta={
+                LINUX_APPIMAGE_READY
+                  ? "Download AppImage"
+                  : LINUX_DEB_READY
+                  ? "Download .deb"
+                  : "Coming soon"
+              }
+              ctaHref={
+                LINUX_APPIMAGE_READY
+                  ? LINUX_APPIMAGE_URL
+                  : LINUX_DEB_READY
+                  ? LINUX_DEB_URL
+                  : undefined
+              }
+              secondaryCta={
+                LINUX_APPIMAGE_READY && LINUX_DEB_READY
+                  ? { label: "Download .deb", href: LINUX_DEB_URL }
+                  : undefined
+              }
+              disabled={!LINUX_APPIMAGE_READY && !LINUX_DEB_READY}
+              note={
+                LINUX_APPIMAGE_READY || LINUX_DEB_READY
+                  ? `v${VERSION} · x64`
+                  : "In final testing"
+              }
             />
           </div>
         )}

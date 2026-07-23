@@ -9,12 +9,8 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 
-# Large binaries — .exe kept in the repo (under 100MB) so Vercel serves it
-# from /downloads. Migrate to GitHub Releases once the first update ships.
-# The .apk, .dmg, .AppImage, .deb are still git-ignored — swap those in via
-# CI (GitHub Actions workflow at .github/workflows/release.yml) or manually
-# upload to public/downloads/ before pushing.
-public/downloads/*.dmg
-public/downloads/*.AppImage
-public/downloads/*.deb
+# Large binaries — all installer types are allowed in public/downloads/
+# so Vercel serves them directly. GitHub's per-file cap is 100 MB.
+# When a build gets larger than that, migrate to GitHub Releases via
+# .github/workflows/release.yml.
 public/downloads/*.zip
