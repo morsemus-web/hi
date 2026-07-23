@@ -38,6 +38,13 @@ export async function GET() {
 
         let extra = event.status.type.detail || "";
         
+        const homeLogo = home.team.logo || "";
+        const awayLogo = away.team.logo || "";
+        const venue = comp.venue?.fullName || "";
+        const broadcasts = event.broadcasts 
+          ? event.broadcasts.flatMap((b: any) => b.names || []) 
+          : [];
+
         // Try to construct a simple string for the widget
         matches.push({
           id: event.id,
@@ -46,6 +53,10 @@ export async function GET() {
           team2: home.team.abbreviation,
           team1Full: away.team.displayName,
           team2Full: home.team.displayName,
+          team1Logo: awayLogo,
+          team2Logo: homeLogo,
+          venue,
+          broadcasts,
           score,
           extra,
           status: event.status.type.state,

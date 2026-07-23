@@ -205,6 +205,34 @@ export default function Hero() {
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>
+
+          {/* Live F1 CTA */}
+          <Link
+            href="/f1"
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all duration-300 group shadow-lg shadow-red-500/5"
+          >
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-[pulse-dot_2s_infinite]" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-red-500">
+              TRY LIVE F1 NOW
+            </span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500/60 group-hover:translate-x-0.5 transition-transform">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+
+          {/* Live NBA CTA */}
+          <Link
+            href="/basketball"
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 hover:border-orange-500/30 transition-all duration-300 group shadow-lg shadow-orange-500/5"
+          >
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-[pulse-dot_2s_infinite]" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-orange-500">
+              TRY LIVE NBA NOW
+            </span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500/60 group-hover:translate-x-0.5 transition-transform">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
       </div>
 

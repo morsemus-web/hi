@@ -10,6 +10,10 @@ interface NBAMatch {
   team2: string;
   team1Full: string;
   team2Full: string;
+  team1Logo: string;
+  team2Logo: string;
+  venue: string;
+  broadcasts: string[];
   score: string;
   extra: string;
   status: string;
@@ -18,11 +22,6 @@ interface NBAMatch {
 
 const API_URL = "/api/basketball";
 const POLL_INTERVAL = 10000;
-
-function getTeamLogo(abbr: string): string {
-  // Use a generic placeholder or dynamic search
-  return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(abbr + " nba logo png")}&w=80&h=80&c=7&rs=1&p=0`;
-}
 
 export default function LiveBasketballClient() {
   const [matches, setMatches] = useState<NBAMatch[]>([]);
@@ -135,12 +134,21 @@ export default function LiveBasketballClient() {
                   <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded ${match.isLive ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-overlay-2 text-text-muted border border-border'}`}>
                     {match.isLive ? 'LIVE' : match.extra || 'Upcoming'}
                   </span>
+                  {match.broadcasts && match.broadcasts.length > 0 && (
+                    <span className="text-[9px] font-mono uppercase text-accent/80">
+                      📺 {match.broadcasts.join(', ')}
+                    </span>
+                  )}
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={getTeamLogo(match.team1)} alt={match.team1} className="w-8 h-8 object-contain drop-shadow-md" />
+                      {match.team1Logo ? (
+                        <img src={match.team1Logo} alt={match.team1} className="w-8 h-8 object-contain drop-shadow-md" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-overlay-2" />
+                      )}
                       <span className="font-semibold text-lg">{match.team1Full}</span>
                     </div>
                     {match.score !== "Upcoming" && (
@@ -150,7 +158,11 @@ export default function LiveBasketballClient() {
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={getTeamLogo(match.team2)} alt={match.team2} className="w-8 h-8 object-contain drop-shadow-md" />
+                      {match.team2Logo ? (
+                        <img src={match.team2Logo} alt={match.team2} className="w-8 h-8 object-contain drop-shadow-md" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-overlay-2" />
+                      )}
                       <span className="font-semibold text-lg">{match.team2Full}</span>
                     </div>
                     {match.score !== "Upcoming" && (
@@ -158,6 +170,14 @@ export default function LiveBasketballClient() {
                     )}
                   </div>
                 </div>
+
+                {match.venue && (
+                  <div className="mt-5 pt-4 border-t border-border/40">
+                     <p className="text-[10px] text-text-muted font-light uppercase tracking-widest">
+                       📍 {match.venue}
+                     </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
