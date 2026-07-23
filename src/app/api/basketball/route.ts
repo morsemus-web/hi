@@ -54,21 +54,7 @@ export async function GET() {
       });
     }
 
-    // Fallback if no matches found
-    if (matches.length === 0) {
-      matches.push({
-        id: "mock-nba",
-        title: "Lakers at Celtics",
-        team1: "LAL",
-        team2: "BOS",
-        team1Full: "Los Angeles Lakers",
-        team2Full: "Boston Celtics",
-        score: "112-108",
-        extra: "Final",
-        status: "post",
-        isLive: false
-      });
-    }
+    // No matches found, return empty array (handled by frontend)
 
     return NextResponse.json({ status: "success", matches }, {
       headers: { "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30" }
