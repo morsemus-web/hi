@@ -8,3 +8,11 @@ out/
 dist/
 *.tsbuildinfo
 next-env.d.ts
+
+# Large binaries (host via GitHub Releases or CDN, not git)
+public/downloads/*.exe
+public/downloads/*.dmg
+public/downloads/*.AppImage
+public/downloads/*.deb
+public/downloads/*.apk
+public/downloads/*.zip
