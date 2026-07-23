@@ -86,12 +86,22 @@ export default function Hero() {
   const displayedRemaining = useCountUp(remaining);
 
   useEffect(() => {
-    setBackerCount(122374);
+    // 4 sports live is a product fact, not fetched
     setRemaining(4);
+    // Active users = real waitlist count from the server (which already
+    // includes the pre-launch baseline). Fallback to the whitepaper number
+    // if the API is down so the hero never renders "0 active users".
     fetch("/api/waitlist")
       .then((r) => r.json())
-      .then((d) => setWaitlistCount(d.count))
-      .catch(() => setWaitlistCount(200));
+      .then((d) => {
+        const count = typeof d?.count === "number" ? d.count : 8580;
+        setBackerCount(count);
+        setWaitlistCount(count);
+      })
+      .catch(() => {
+        setBackerCount(8580);
+        setWaitlistCount(8580);
+      });
   }, []);
 
   function playDesktop() {
@@ -166,12 +176,12 @@ export default function Hero() {
             {t("startingAt")}
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers}</span>
+            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers.toLocaleString()}</span>
             <span>{t("backed")}</span>
           </span>
 
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining}</span>
+            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining.toLocaleString()}</span>
             <span>{t("spotsLeft")}</span>
           </span>
         </div>
