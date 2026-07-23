@@ -63,7 +63,7 @@ export default function LiveBasketballClient() {
 
         <div className="mt-8 mb-10">
           <div className="flex items-center gap-3 mb-3">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">NBA Live Scores</h1>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Basketball Live Scores</h1>
             {liveCount > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
