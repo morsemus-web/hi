@@ -63,11 +63,18 @@ export default function Navbar() {
             </li>
           ))}
           <li>
-            <Link
-              href="/news"
-              className="text-[11px] font-light uppercase tracking-[0.12em] text-text-muted hover:text-text-dim transition-colors duration-200"
-            >
+            <Link href="/news" className="text-[11px] font-light uppercase tracking-[0.12em] text-text-muted hover:text-text-dim transition-colors duration-200">
               {t("news")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/f1" className="text-[11px] font-bold uppercase tracking-[0.12em] text-accent hover:text-accent/80 transition-colors duration-200 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> F1
+            </Link>
+          </li>
+          <li>
+            <Link href="/basketball" className="text-[11px] font-bold uppercase tracking-[0.12em] text-accent hover:text-accent/80 transition-colors duration-200 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> NBA
             </Link>
           </li>
         </ul>
