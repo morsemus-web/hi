@@ -150,12 +150,13 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">
-          <Link
-            href="/download"
+          <a
+            href="/downloads/ScoreDeck-Setup-0.1.0.exe"
+            download="ScoreDeck-Setup-0.1.0.exe"
             className="px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors duration-200 cursor-pointer rounded-md inline-block"
           >
             {t("downloadForWindows")}
-          </Link>
+          </a>
           <button
             onClick={() =>
               document.querySelector("#pricing")?.scrollIntoView({ behavior: "smooth" })
