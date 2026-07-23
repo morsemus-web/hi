@@ -48,6 +48,19 @@ const nextConfig: NextConfig = {
       ],
     },
     {
+      // CORS for every /api/* route so the desktop widget (Electron),
+      // mobile web preview, and native APK can all call the backend
+      // cross-origin. Safe because our auth uses Bearer tokens (not
+      // credentialed cookies) — no origin whitelist needed.
+      source: "/api/:path*",
+      headers: [
+        { key: "Access-Control-Allow-Origin", value: "*" },
+        { key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
+        { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+        { key: "Access-Control-Max-Age", value: "86400" },
+      ],
+    },
+    {
       source: "/news-sitemap.xml",
       headers: [
         { key: "Access-Control-Allow-Origin", value: "*" },
