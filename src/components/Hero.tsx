@@ -94,13 +94,13 @@ export default function Hero() {
     fetch("/api/waitlist")
       .then((r) => r.json())
       .then((d) => {
-        const count = typeof d?.count === "number" ? d.count : 8580;
+        const count = typeof d?.count === "number" ? d.count : 158779;
         setBackerCount(count);
         setWaitlistCount(count);
       })
       .catch(() => {
-        setBackerCount(8580);
-        setWaitlistCount(8580);
+        setBackerCount(158779);
+        setWaitlistCount(158779);
       });
   }, []);
 

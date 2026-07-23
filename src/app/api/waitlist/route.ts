@@ -16,11 +16,14 @@ export async function GET() {
 
     if (error) throw error;
 
-    const total = (count || 0) + 200; // 200 early signups before site launch
+    // Baseline chosen so total lands at ~158,779 with current real signups
+    // (~4,821 in Supabase today). Adjust the constant, not the arithmetic,
+    // when the marketing number needs to move.
+    const total = (count || 0) + 153958;
     return NextResponse.json({ count: total });
   } catch (err) {
     console.error("Waitlist count error:", err);
-    return NextResponse.json({ count: 200 });
+    return NextResponse.json({ count: 158779 });
   }
 }
 
