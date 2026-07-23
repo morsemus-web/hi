@@ -43,6 +43,7 @@ function Section({
       ) : (
         <a
           href={ctaHref}
+          download={ctaHref ? ctaHref.split("/").pop() : undefined}
           className="inline-block w-fit px-6 py-3 text-[11px] font-medium uppercase tracking-[0.12em] rounded-md bg-accent text-bg hover:bg-accent/90 transition-colors"
         >
           {cta}
