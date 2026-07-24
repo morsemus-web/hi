@@ -24,9 +24,8 @@ const LINUX_APPIMAGE_URL   = `${GH_RELEASE}/ScoreDeck-${VERSION}-x86_64.AppImage
 const LINUX_DEB_READY      = true;
 const LINUX_DEB_URL        = `${GH_RELEASE}/ScoreDeck-${VERSION}-amd64.deb`;
 
-// Android APK: served from this repo once EAS build completes and we drop
-// the file in public/downloads/. Flip ANDROID_READY when the file lands.
-const ANDROID_READY = false;
+// Android APK: built via EAS, hosted from this repo at public/downloads/.
+const ANDROID_READY = true;
 const ANDROID_URL   = `/downloads/ScoreDeck-${VERSION}.apk`;
 
 function Section({
