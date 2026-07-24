@@ -3,23 +3,29 @@
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 
-// Version + files — bump on each release.
-// To enable a platform: drop the file at public/downloads/<name>, flip the
-// _READY flag to true, commit + push. .gitignore allows all these types.
+// Version + release URLs.
+// Desktop installers live as assets on the corresponding GitHub Release —
+// permanent, versioned, no 200 MB installer in the repo. Bump VERSION and
+// re-tag on the desktop repo to cut a new release; URLs update automatically.
 const VERSION = "0.1.0";
+const GH_RELEASE = `https://github.com/morsemus-web/scoredeck-desktop/releases/download/v${VERSION}`;
 
+// Windows: kept in this repo too as a fallback since /downloads/ works today.
 const WINDOWS_READY = true;
 const WINDOWS_URL   = `/downloads/ScoreDeck-Setup-${VERSION}.exe`;
 const WINDOWS_SIZE  = "95 MB";
 
-const MAC_READY     = false;
-const MAC_URL       = `/downloads/ScoreDeck-${VERSION}-universal.dmg`;
+// Mac + Linux come from the CI matrix (built on native runners).
+const MAC_READY     = true;
+const MAC_URL       = `${GH_RELEASE}/ScoreDeck-${VERSION}-universal.dmg`;
 
-const LINUX_APPIMAGE_READY = false;
-const LINUX_APPIMAGE_URL   = `/downloads/ScoreDeck-${VERSION}-x64.AppImage`;
-const LINUX_DEB_READY      = false;
-const LINUX_DEB_URL        = `/downloads/ScoreDeck-${VERSION}-x64.deb`;
+const LINUX_APPIMAGE_READY = true;
+const LINUX_APPIMAGE_URL   = `${GH_RELEASE}/ScoreDeck-${VERSION}-x86_64.AppImage`;
+const LINUX_DEB_READY      = true;
+const LINUX_DEB_URL        = `${GH_RELEASE}/ScoreDeck-${VERSION}-amd64.deb`;
 
+// Android APK: served from this repo once EAS build completes and we drop
+// the file in public/downloads/. Flip ANDROID_READY when the file lands.
 const ANDROID_READY = false;
 const ANDROID_URL   = `/downloads/ScoreDeck-${VERSION}.apk`;
 
