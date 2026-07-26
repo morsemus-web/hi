@@ -114,16 +114,19 @@ async function fetchEspn(date?: string | null): Promise<Match[]> {
     .filter((m: Match | null): m is Match => m !== null);
 }
 
-// Off-season and empty days are normal for the NBA. Rather than show nothing,
-// walk forward to find the next slate so the board is never blank.
-async function fetchNextSlate(from: Date, maxDays = 21): Promise<Match[]> {
+// Empty days are normal for the NBA — a quiet Tuesday in season, or the whole
+// of July. Probe forward a fortnight for the in-season gaps, then fall back to
+// ESPN's own default board, which reports the next relevant slate however far
+// away it is (in the off-season that's opening night, ~70 days out — too far to
+// find by walking day by day).
+async function fetchNextSlate(from: Date, maxDays = 14): Promise<Match[]> {
   for (let i = 1; i <= maxDays; i++) {
     const probe = new Date(from);
     probe.setUTCDate(probe.getUTCDate() + i);
     const matches = await fetchEspn(probe.toISOString().slice(0, 10));
     if (matches.length > 0) return matches;
   }
-  return [];
+  return fetchEspn(null);
 }
 
 async function fetchBalldontlie(date: string): Promise<Match[]> {
@@ -189,10 +192,8 @@ export async function GET(request: Request) {
 
     if (matches.length === 0) {
       const upcoming = await fetchNextSlate(new Date(requested));
-      if (upcoming.length > 0) {
-        matches = upcoming;
-        note = "no_games_on_date_showing_next_slate";
-      }
+      matches = upcoming;
+      note = upcoming.length > 0 ? "no_games_on_date_showing_next_slate" : "no_games_scheduled";
     }
 
     return NextResponse.json(

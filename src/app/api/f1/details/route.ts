@@ -22,19 +22,29 @@ async function getJson(url: string): Promise<any | null> {
   }
 }
 
+// Mirrors /api/f1 — ESPN and Jolpica spell given names differently, so index
+// surnames too or every headshot comes back empty.
 function driverIdMap(event: any): Record<string, string> {
   const map: Record<string, string> = {};
   (event?.competitions ?? []).forEach((c: any) => {
     (c.competitors ?? []).forEach((comp: any) => {
-      const name = comp.athlete?.displayName;
-      if (name && comp.id) map[name.toLowerCase()] = String(comp.id);
+      const name: string | undefined = comp.athlete?.displayName;
+      if (!name || !comp.id) return;
+      const id = String(comp.id);
+      map[name.toLowerCase()] = id;
+      const surname = name.split(/\s+/).pop();
+      if (surname) {
+        const key = `~${surname.toLowerCase()}`;
+        map[key] = map[key] && map[key] !== id ? "" : id;
+      }
     });
   });
   return map;
 }
 
 function headshot(name: string, ids: Record<string, string>): string {
-  const id = ids[name.toLowerCase()];
+  const surname = name.split(/\s+/).pop()?.toLowerCase();
+  const id = ids[name.toLowerCase()] || (surname ? ids[`~${surname}`] : "");
   return id ? `https://a.espncdn.com/i/headshots/rpm/players/full/${id}.png` : "";
 }
 
