@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { teamMeta, flagFor, countryFlag } from "./teams";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -90,15 +91,29 @@ function headshot(name: string, ids: Record<string, string>): string {
 
 export async function GET() {
   try {
-    const [espn, schedule, driverStandings, constructorStandings, lastResults, winners] =
-      await Promise.all([
-        getJson(ESPN_F1),
-        getJson(`${JOLPICA}/current.json?limit=30`),
-        getJson(`${JOLPICA}/current/driverStandings.json`),
-        getJson(`${JOLPICA}/current/constructorStandings.json`),
-        getJson(`${JOLPICA}/current/last/results.json`),
-        getJson(`${JOLPICA}/current/results/1.json?limit=30`),
-      ]);
+    const [
+      espn,
+      schedule,
+      driverStandings,
+      constructorStandings,
+      lastResults,
+      winners,
+      seconds,
+      thirds,
+      poles,
+    ] = await Promise.all([
+      getJson(ESPN_F1),
+      getJson(`${JOLPICA}/current.json?limit=30`),
+      getJson(`${JOLPICA}/current/driverStandings.json`),
+      getJson(`${JOLPICA}/current/constructorStandings.json`),
+      getJson(`${JOLPICA}/current/last/results.json`),
+      getJson(`${JOLPICA}/current/results/1.json?limit=100`),
+      // P2 and P3 finishes give podium counts; grid-slot-1 qualifying gives
+      // poles. Ergast exposes no aggregate for either, so count them here.
+      getJson(`${JOLPICA}/current/results/2.json?limit=100`),
+      getJson(`${JOLPICA}/current/results/3.json?limit=100`),
+      getJson(`${JOLPICA}/current/qualifying/1.json?limit=100`),
+    ]);
 
     const espnEvent = espn?.events?.[0] ?? null;
     const ids = driverIdMap(espnEvent);
@@ -113,28 +128,65 @@ export async function GET() {
       constructorStandings?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ??
       [];
 
-    const detailedStandings = standingsList.slice(0, 20).map((s: any) => {
+    // driverId -> how many times they finished there / started on pole
+    const tally = (payload: any): Record<string, number> => {
+      const out: Record<string, number> = {};
+      (payload?.MRData?.RaceTable?.Races ?? []).forEach((r: any) => {
+        const entry = r.Results?.[0] ?? r.QualifyingResults?.[0];
+        const dId = entry?.Driver?.driverId;
+        if (dId) out[dId] = (out[dId] ?? 0) + 1;
+      });
+      return out;
+    };
+    const p1 = tally(winners);
+    const p2 = tally(seconds);
+    const p3 = tally(thirds);
+    const polesBy = tally(poles);
+
+    const detailedStandings = standingsList.slice(0, 24).map((s: any) => {
       const name = `${s.Driver.givenName} ${s.Driver.familyName}`;
+      const dId = s.Driver.driverId;
+      const constructor = s.Constructors?.[0]?.name ?? "";
+      const meta = teamMeta(constructor);
       return {
         position: s.position,
+        driverId: dId,
         name,
         code: s.Driver.code || s.Driver.familyName.substring(0, 3).toUpperCase(),
         number: s.Driver.permanentNumber ?? "",
         points: s.points,
         wins: s.wins,
+        poles: String(polesBy[dId] ?? 0),
+        podiums: String((p1[dId] ?? 0) + (p2[dId] ?? 0) + (p3[dId] ?? 0)),
         nationality: s.Driver.nationality,
-        constructor: s.Constructors?.[0]?.name ?? "",
+        flag: flagFor(s.Driver.nationality ?? ""),
+        constructor: meta.name || constructor,
+        teamColor: meta.color,
         image: headshot(name, ids),
       };
     });
 
-    const teamStandings = constructorList.map((c: any) => ({
-      position: c.position,
-      name: c.Constructor?.name ?? "",
-      nationality: c.Constructor?.nationality ?? "",
-      points: c.points,
-      wins: c.wins,
-    }));
+    // Team totals aggregate their two drivers — Ergast gives constructor wins
+    // but no constructor poles or podiums.
+    const byConstructor = (key: "poles" | "podiums", teamName: string): number =>
+      detailedStandings
+        .filter((d: any) => d.constructor === teamName)
+        .reduce((sum: number, d: any) => sum + parseInt(d[key], 10), 0);
+
+    const teamStandings = constructorList.map((c: any) => {
+      const meta = teamMeta(c.Constructor?.name ?? "");
+      const name = meta.name || (c.Constructor?.name ?? "");
+      return {
+        position: c.position,
+        name,
+        nationality: c.Constructor?.nationality ?? "",
+        teamColor: meta.color,
+        points: c.points,
+        wins: c.wins,
+        poles: String(byConstructor("poles", name)),
+        podiums: String(byConstructor("podiums", name)),
+      };
+    });
 
     // Legacy: the desktop widget reads matches[0].analysis as plain text lines.
     const standingsText = detailedStandings
@@ -188,6 +240,7 @@ export async function GET() {
         circuit: r.Circuit?.circuitName ?? "",
         locality: r.Circuit?.Location?.locality ?? "",
         country: r.Circuit?.Location?.country ?? "",
+        flag: countryFlag(r.Circuit?.Location?.country ?? ""),
         team1: winner?.winner ? winner.winner.split(" ").pop() : "",
         team2: winner ? "WINNER" : "",
         team1Full: winner?.winner ?? "",
