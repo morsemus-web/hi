@@ -3,93 +3,294 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Two upstreams, each for what it's actually good at:
+//   ESPN     -> the live race weekend (per-session status, so "Race — Lap 32/70"
+//               shows up while it's happening). Jolpica has no live data at all.
+//   Jolpica  -> the structured season: full calendar, standings, results.
+// The old route used only Jolpica's "last race", so the board showed exactly one
+// finished event and never went live.
+const ESPN_F1 = "https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard";
+const JOLPICA = "https://api.jolpi.ca/ergast/f1";
+
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+interface Session {
+  name: string;
+  date: string;
+  state: "pre" | "in" | "post";
+  detail: string;
+}
+
+async function getJson(url: string): Promise<any | null> {
+  try {
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: { "User-Agent": UA, Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+const SESSION_NAMES: Record<string, string> = {
+  FP1: "Practice 1",
+  FP2: "Practice 2",
+  FP3: "Practice 3",
+  Qual: "Qualifying",
+  Sprint: "Sprint",
+  SprintQual: "Sprint Qualifying",
+  Race: "Race",
+};
+
+function espnSessions(event: any): Session[] {
+  return (event?.competitions ?? []).map((c: any) => {
+    const abbr = c.type?.abbreviation ?? "";
+    return {
+      name: SESSION_NAMES[abbr] ?? abbr ?? "Session",
+      date: c.date ?? "",
+      state: (c.status?.type?.state ?? "pre") as "pre" | "in" | "post",
+      detail: c.status?.type?.detail ?? c.status?.type?.shortDetail ?? "",
+    };
+  });
+}
+
+// ESPN headshots are keyed by athlete id, which only the scoreboard gives us.
+// Build a name -> id map so standings rows can show real faces instead of the
+// image-search URLs the old route guessed at.
+function driverIdMap(event: any): Record<string, string> {
+  const map: Record<string, string> = {};
+  (event?.competitions ?? []).forEach((c: any) => {
+    (c.competitors ?? []).forEach((comp: any) => {
+      const name = comp.athlete?.displayName;
+      if (name && comp.id) map[name.toLowerCase()] = String(comp.id);
+    });
+  });
+  return map;
+}
+
+function headshot(name: string, ids: Record<string, string>): string {
+  const id = ids[name.toLowerCase()];
+  return id ? `https://a.espncdn.com/i/headshots/rpm/players/full/${id}.png` : "";
+}
+
 export async function GET() {
   try {
-    const urls = [
-      "https://api.jolpi.ca/ergast/f1/current/last/results.json",
-      "https://api.jolpi.ca/ergast/f1/current/driverStandings.json",
-      "https://api.jolpi.ca/ergast/f1/current/next.json",
-      "https://api.jolpi.ca/ergast/f1/current/results/1.json"
-    ];
+    const [espn, schedule, driverStandings, constructorStandings, lastResults, winners] =
+      await Promise.all([
+        getJson(ESPN_F1),
+        getJson(`${JOLPICA}/current.json?limit=30`),
+        getJson(`${JOLPICA}/current/driverStandings.json`),
+        getJson(`${JOLPICA}/current/constructorStandings.json`),
+        getJson(`${JOLPICA}/current/last/results.json`),
+        getJson(`${JOLPICA}/current/results/1.json?limit=30`),
+      ]);
 
-    const [resResults, resStandings, resNext, resWinners] = await Promise.all(
-      urls.map(url => fetch(url, { cache: "no-store" }))
-    );
+    const espnEvent = espn?.events?.[0] ?? null;
+    const ids = driverIdMap(espnEvent);
+    const sessions = espnSessions(espnEvent);
 
-    if (!resResults.ok || !resStandings.ok || !resNext.ok || !resWinners.ok) {
-       throw new Error("F1 API failed");
-    }
+    const races: any[] = schedule?.MRData?.RaceTable?.Races ?? [];
+    const season = schedule?.MRData?.RaceTable?.season ?? new Date().getFullYear().toString();
 
-    const resultsData = await resResults.json();
-    const standingsData = await resStandings.json();
-    const nextData = await resNext.json();
-    const winnersData = await resWinners.json();
+    const standingsList =
+      driverStandings?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+    const constructorList =
+      constructorStandings?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ??
+      [];
 
-    const lastRace = resultsData.MRData.RaceTable.Races[0];
-    const topResult = lastRace.Results[0];
-
-    const standingsList = standingsData.MRData.StandingsTable.StandingsLists[0].DriverStandings.slice(0, 5);
-    
-    // For backwards compatibility with the desktop widget
-    const standingsText = standingsList.map((s: any) => 
-      `${s.position}. ${s.Driver.code || s.Driver.familyName} - ${s.points} pts`
-    );
-
-    // Detailed standings for the website
-    const detailedStandings = standingsList.map((s: any) => {
-      const driverName = `${s.Driver.givenName} ${s.Driver.familyName}`;
-      const constructorName = s.Constructors[0]?.name || "Unknown";
+    const detailedStandings = standingsList.slice(0, 20).map((s: any) => {
+      const name = `${s.Driver.givenName} ${s.Driver.familyName}`;
       return {
         position: s.position,
-        name: driverName,
-        code: s.Driver.code || s.Driver.familyName.substring(0,3).toUpperCase(),
+        name,
+        code: s.Driver.code || s.Driver.familyName.substring(0, 3).toUpperCase(),
+        number: s.Driver.permanentNumber ?? "",
         points: s.points,
-        constructor: constructorName,
-        image: `https://tse2.mm.bing.net/th?q=${encodeURIComponent(driverName + " f1 driver face")}&w=100&h=100&c=7&rs=1&p=0`,
-        logo: `https://tse2.mm.bing.net/th?q=${encodeURIComponent(constructorName + " f1 team logo transparent")}&w=100&h=100&c=7&rs=1&p=0`
+        wins: s.wins,
+        nationality: s.Driver.nationality,
+        constructor: s.Constructors?.[0]?.name ?? "",
+        image: headshot(name, ids),
       };
     });
 
-    const nextRace = nextData.MRData.RaceTable.Races[0];
-    const nextRaceInfo = nextRace ? `${nextRace.raceName} (${nextRace.date})` : "TBD";
+    const teamStandings = constructorList.map((c: any) => ({
+      position: c.position,
+      name: c.Constructor?.name ?? "",
+      nationality: c.Constructor?.nationality ?? "",
+      points: c.points,
+      wins: c.wins,
+    }));
 
-    const winners = winnersData.MRData.RaceTable.Races.map((r: any) => {
-      const driverName = `${r.Results[0].Driver.givenName} ${r.Results[0].Driver.familyName}`;
-      const constructorName = r.Results[0].Constructor.name;
+    // Legacy: the desktop widget reads matches[0].analysis as plain text lines.
+    const standingsText = detailedStandings
+      .slice(0, 5)
+      .map((s: any) => `${s.position}. ${s.code} - ${s.points} pts`);
+
+    const pastWinners = (winners?.MRData?.RaceTable?.Races ?? []).map((r: any) => {
+      const name = `${r.Results[0].Driver.givenName} ${r.Results[0].Driver.familyName}`;
       return {
+        round: r.round,
         race: r.raceName,
-        winner: driverName,
-        constructor: constructorName,
-        image: `https://tse2.mm.bing.net/th?q=${encodeURIComponent(driverName + " f1 driver face")}&w=100&h=100&c=7&rs=1&p=0`
+        date: r.date,
+        winner: name,
+        constructor: r.Results[0].Constructor.name,
+        image: headshot(name, ids),
       };
     });
 
-    const matches = [{
-      id: "f1-latest",
-      title: `${lastRace.season} ${lastRace.raceName}`,
-      team1: topResult.Driver.code || topResult.Driver.familyName.substring(0,3).toUpperCase(),
-      team2: "WINNER",
-      team1Full: `${topResult.Driver.givenName} ${topResult.Driver.familyName}`,
-      team2Full: "",
-      score: "P1",
-      extra: lastRace.raceName,
-      status: "post",
-      isLive: false,
-      analysis: standingsText,
-      standings: detailedStandings,
-      nextRace: nextRaceInfo,
-      pastWinners: winners
-    }];
+    const lastRace = lastResults?.MRData?.RaceTable?.Races?.[0] ?? null;
 
-    return NextResponse.json({ status: "success", matches }, {
-      headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200" }
+    // Which calendar round is the live/next one? Prefer ESPN's opinion, since it
+    // knows a session is running right now; otherwise fall back to the date.
+    const now = Date.now();
+    const liveSession = sessions.find((s) => s.state === "in");
+    const espnRaceName: string = espnEvent?.name ?? "";
+
+    const matches = races.map((r: any, idx: number) => {
+      const raceStart = new Date(`${r.date}T${r.time ?? "00:00:00Z"}`);
+      const isEspnEvent =
+        !!espnRaceName &&
+        espnRaceName.toLowerCase().includes(r.raceName.toLowerCase().replace(/^aws\s+/i, ""));
+      const finished = raceStart.getTime() + 3 * 60 * 60 * 1000 < now;
+
+      const state: "pre" | "in" | "post" = isEspnEvent
+        ? liveSession
+          ? "in"
+          : sessions.every((s) => s.state === "post")
+            ? "post"
+            : "pre"
+        : finished
+          ? "post"
+          : "pre";
+
+      const winner = pastWinners.find((w: any) => w.round === r.round);
+
+      return {
+        id: `${season}-${r.round}`,
+        round: r.round,
+        season,
+        title: r.raceName,
+        circuit: r.Circuit?.circuitName ?? "",
+        locality: r.Circuit?.Location?.locality ?? "",
+        country: r.Circuit?.Location?.country ?? "",
+        team1: winner?.winner ? winner.winner.split(" ").pop() : "",
+        team2: winner ? "WINNER" : "",
+        team1Full: winner?.winner ?? "",
+        team2Full: winner?.constructor ?? "",
+        score: winner ? "P1" : "",
+        extra: isEspnEvent
+          ? liveSession?.detail || sessions.find((s) => s.state === "pre")?.detail || r.date
+          : `${r.Circuit?.Location?.locality ?? ""}, ${r.Circuit?.Location?.country ?? ""}`,
+        status: state,
+        isLive: state === "in" && isEspnEvent,
+        startTime: raceStart.toISOString(),
+        sessions: isEspnEvent
+          ? sessions
+          : [
+              r.FirstPractice && {
+                name: "Practice 1",
+                date: `${r.FirstPractice.date}T${r.FirstPractice.time ?? "00:00:00Z"}`,
+                state: "pre" as const,
+                detail: "",
+              },
+              r.SecondPractice && {
+                name: "Practice 2",
+                date: `${r.SecondPractice.date}T${r.SecondPractice.time ?? "00:00:00Z"}`,
+                state: "pre" as const,
+                detail: "",
+              },
+              r.ThirdPractice && {
+                name: "Practice 3",
+                date: `${r.ThirdPractice.date}T${r.ThirdPractice.time ?? "00:00:00Z"}`,
+                state: "pre" as const,
+                detail: "",
+              },
+              r.Sprint && {
+                name: "Sprint",
+                date: `${r.Sprint.date}T${r.Sprint.time ?? "00:00:00Z"}`,
+                state: "pre" as const,
+                detail: "",
+              },
+              r.Qualifying && {
+                name: "Qualifying",
+                date: `${r.Qualifying.date}T${r.Qualifying.time ?? "00:00:00Z"}`,
+                state: "pre" as const,
+                detail: "",
+              },
+              {
+                name: "Race",
+                date: raceStart.toISOString(),
+                state: "pre" as const,
+                detail: "",
+              },
+            ].filter(Boolean),
+        // Legacy payload the desktop widget still reads off the first entry.
+        ...(idx === 0
+          ? {
+              analysis: standingsText,
+              standings: detailedStandings,
+              nextRace: (() => {
+                const next = races.find(
+                  (rr: any) =>
+                    new Date(`${rr.date}T${rr.time ?? "00:00:00Z"}`).getTime() > now,
+                );
+                return next ? `${next.raceName} (${next.date})` : "Season complete";
+              })(),
+              pastWinners,
+            }
+          : {}),
+      };
     });
 
+    // Put the live or next round first; the feed reads top-down.
+    const pivot = matches.findIndex((m) => m.isLive || m.status === "pre");
+    const ordered =
+      pivot > 0 ? [...matches.slice(pivot), ...matches.slice(0, pivot).reverse()] : matches;
+
+    return NextResponse.json(
+      {
+        status: "success",
+        season,
+        lastRace: lastRace
+          ? {
+              round: lastRace.round,
+              name: lastRace.raceName,
+              date: lastRace.date,
+              results: (lastRace.Results ?? []).map((res: any) => {
+                const name = `${res.Driver.givenName} ${res.Driver.familyName}`;
+                return {
+                  position: res.position,
+                  name,
+                  code: res.Driver.code ?? "",
+                  constructor: res.Constructor?.name ?? "",
+                  time: res.Time?.time ?? res.status ?? "",
+                  points: res.points,
+                  grid: res.grid,
+                  laps: res.laps,
+                  fastestLap: res.FastestLap?.Time?.time ?? "",
+                  image: headshot(name, ids),
+                };
+              }),
+            }
+          : null,
+        standings: detailedStandings,
+        constructorStandings: teamStandings,
+        matches: ordered,
+      },
+      { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" } },
+    );
   } catch (err) {
     console.error("F1 API Error:", err);
     return NextResponse.json(
-      { status: "error", error: err instanceof Error ? err.message : "Failed to fetch F1 scores", matches: [] },
-      { status: 502 }
+      {
+        status: "error",
+        error: err instanceof Error ? err.message : "Failed to fetch F1 data",
+        matches: [],
+      },
+      { status: 502 },
     );
   }
 }
