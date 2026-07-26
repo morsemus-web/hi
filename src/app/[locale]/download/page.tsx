@@ -4,29 +4,35 @@ import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 
 // Version + release URLs.
+// Desktop and Android ship on their own cadence — Android moved to 0.2.0 for
+// the notification/favourites build, which needed new native modules, while
+// desktop is still on 0.1.0. Keep the two versions separate so bumping one
+// doesn't silently point the other at a file that was never published.
+const DESKTOP_VERSION = "0.1.0";
+const ANDROID_VERSION = "0.2.0";
+
 // Desktop installers live as assets on the corresponding GitHub Release —
-// permanent, versioned, no 200 MB installer in the repo. Bump VERSION and
-// re-tag on the desktop repo to cut a new release; URLs update automatically.
-const VERSION = "0.1.0";
-const GH_RELEASE = `https://github.com/morsemus-web/scoredeck-desktop/releases/download/v${VERSION}`;
+// permanent, versioned, no 200 MB installer in the repo. Bump DESKTOP_VERSION
+// and re-tag on the desktop repo; these URLs update automatically.
+const GH_RELEASE = `https://github.com/morsemus-web/scoredeck-desktop/releases/download/v${DESKTOP_VERSION}`;
 
 // Windows: kept in this repo too as a fallback since /downloads/ works today.
 const WINDOWS_READY = true;
-const WINDOWS_URL   = `/downloads/ScoreDeck-Setup-${VERSION}.exe`;
+const WINDOWS_URL   = `/downloads/ScoreDeck-Setup-${DESKTOP_VERSION}.exe`;
 const WINDOWS_SIZE  = "95 MB";
 
 // Mac + Linux come from the CI matrix (built on native runners).
 const MAC_READY     = true;
-const MAC_URL       = `${GH_RELEASE}/ScoreDeck-${VERSION}-universal.dmg`;
+const MAC_URL       = `${GH_RELEASE}/ScoreDeck-${DESKTOP_VERSION}-universal.dmg`;
 
 const LINUX_APPIMAGE_READY = true;
-const LINUX_APPIMAGE_URL   = `${GH_RELEASE}/ScoreDeck-${VERSION}-x86_64.AppImage`;
+const LINUX_APPIMAGE_URL   = `${GH_RELEASE}/ScoreDeck-${DESKTOP_VERSION}-x86_64.AppImage`;
 const LINUX_DEB_READY      = true;
-const LINUX_DEB_URL        = `${GH_RELEASE}/ScoreDeck-${VERSION}-amd64.deb`;
+const LINUX_DEB_URL        = `${GH_RELEASE}/ScoreDeck-${DESKTOP_VERSION}-amd64.deb`;
 
 // Android APK: built via EAS, hosted from this repo at public/downloads/.
 const ANDROID_READY = true;
-const ANDROID_URL   = `/downloads/ScoreDeck-${VERSION}.apk`;
+const ANDROID_URL   = `/downloads/ScoreDeck-${ANDROID_VERSION}.apk`;
 
 function Section({
   eyebrow,
@@ -136,7 +142,7 @@ export default function DownloadPage() {
               cta={WINDOWS_READY ? "Download .exe" : "Coming soon"}
               ctaHref={WINDOWS_READY ? WINDOWS_URL : undefined}
               disabled={!WINDOWS_READY}
-              note={`v${VERSION} · x64`}
+              note={`v${DESKTOP_VERSION} · x64`}
             />
             <Section
               eyebrow="macOS"
@@ -145,7 +151,7 @@ export default function DownloadPage() {
               cta={MAC_READY ? "Download .dmg" : "Coming soon"}
               ctaHref={MAC_READY ? MAC_URL : undefined}
               disabled={!MAC_READY}
-              note={MAC_READY ? `v${VERSION} · Intel + Apple Silicon` : "In final testing"}
+              note={MAC_READY ? `v${DESKTOP_VERSION} · Intel + Apple Silicon` : "In final testing"}
             />
             <Section
               eyebrow="Linux"
@@ -173,7 +179,7 @@ export default function DownloadPage() {
               disabled={!LINUX_APPIMAGE_READY && !LINUX_DEB_READY}
               note={
                 LINUX_APPIMAGE_READY || LINUX_DEB_READY
-                  ? `v${VERSION} · x64`
+                  ? `v${DESKTOP_VERSION} · x64`
                   : "In final testing"
               }
             />
@@ -185,11 +191,11 @@ export default function DownloadPage() {
             <Section
               eyebrow="Android · Free"
               title="ScoreDeck for Android"
-              desc="Free to install, requires a free ScoreDeck account. Ad-supported. Direct .apk — no Play Store. First month is ad-free as a trial."
+              desc="Free to install, requires a free ScoreDeck account. Ad-supported. Direct .apk — no Play Store. First month is ad-free as a trial. Live score alerts for the teams you follow."
               cta={ANDROID_READY ? "Download .apk" : "Coming soon"}
               ctaHref={ANDROID_READY ? ANDROID_URL : undefined}
               disabled={!ANDROID_READY}
-              note={ANDROID_READY ? `v${VERSION} · sideload` : "In final testing"}
+              note={ANDROID_READY ? `v${ANDROID_VERSION} · sideload` : "In final testing"}
             />
             <div className="glass-card rounded-2xl p-8 md:p-10 flex flex-col gap-4">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-accent">
