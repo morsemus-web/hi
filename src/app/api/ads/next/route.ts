@@ -45,6 +45,22 @@ function matches(c: Campaign, ctx: {
   return true;
 }
 
+// House ad. Until paid campaigns are booked, every slot on every surface
+// serves this rather than going blank — an empty ad slot tells an advertiser
+// nothing about the inventory. Text-only, so it needs no hosted creative.
+// campaignId 0 is reserved for it and is ignored by the events table.
+const HOUSE_AD = {
+  campaignId: 0,
+  creativeUrl: "",
+  headline: "The sanctuary in the dunes of Ras Al Khaimah",
+  subline: "Powered by RakOasis",
+  // The desktop widget's inline slot is 60x24px — the full headline cannot fit,
+  // so it gets a short form instead of clipped text.
+  short: "RakOasis",
+  landingUrl: "https://rakoasis.com",
+  ttl: 120,
+};
+
 function weightedPick(pool: Campaign[]): Campaign | null {
   if (!pool.length) return null;
   const total = pool.reduce((s, c) => s + Math.max(0, c.weight), 0);
@@ -79,7 +95,10 @@ export async function GET(request: NextRequest) {
     const picked = weightedPick(pool);
 
     if (!picked) {
-      return NextResponse.json({ status: "no_fill" }, { status: 200 });
+      return NextResponse.json(
+        { status: "ok", ...HOUSE_AD, variant, house: true },
+        { headers: { "Cache-Control": "no-store" } }
+      );
     }
 
     return NextResponse.json(
@@ -87,17 +106,22 @@ export async function GET(request: NextRequest) {
         status: "ok",
         campaignId: picked.id,
         creativeUrl: picked.creative_url,
+        headline: "",
+        subline: "",
+        short: "",
         landingUrl: picked.landing_url,
         variant: picked.variant,
+        house: false,
         ttl: 60,
       },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (err) {
     console.error("ads/next error:", err);
+    // A broken campaigns table shouldn't blank the ad slot either.
     return NextResponse.json(
-      { status: "error", error: err instanceof Error ? err.message : "Failed to pick ad" },
-      { status: 500 }
+      { status: "ok", ...HOUSE_AD, variant: "passive", house: true },
+      { headers: { "Cache-Control": "no-store" } }
     );
   }
 }
