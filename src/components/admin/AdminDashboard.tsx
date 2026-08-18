@@ -106,7 +106,12 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         const cRes = await fetch("/api/cricket");
         const cData = await cRes.json();
         if (cData.status === "success" && Array.isArray(cData.matches)) {
-          const liveC = cData.matches.filter((m: any) => m.status_text && (m.status_text.toLowerCase().includes("ov") || m.status_text.toLowerCase().includes("need")));
+          const liveC = cData.matches.filter((m: any) => {
+            const t = (m.status_text || "").toLowerCase();
+            const isCompleted = t.includes("won") || t.includes("beat") || t.includes("draw") || t.includes("tied") || t.includes("completed") || t.includes("abandoned");
+            const isUpcoming = t.includes("starts at") || t.includes("starts in") || t.includes("preview") || t.includes("upcoming");
+            return !isCompleted && !isUpcoming;
+          });
           const cMocks = liveC.map((m: any) => ({
             id: m.id,
             title: m.title,
