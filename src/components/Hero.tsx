@@ -54,21 +54,24 @@ function VideoPlayer({
   );
 }
 
-function useCountUp(target: number | null, duration = 3000) {
+function useCountUp(target: number | null, duration = 3000, maxDiff = 2500) {
   const [displayed, setDisplayed] = useState(0);
   useEffect(() => {
     if (target === null) return;
+    const startVal = Math.max(0, target - maxDiff);
+    const diff = target - startVal;
+    setDisplayed(startVal);
     const start = performance.now();
     let raf: number;
     const step = (now: number) => {
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.round(eased * target));
+      setDisplayed(Math.round(startVal + eased * diff));
       if (progress < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
+  }, [target, duration, maxDiff]);
   return displayed;
 }
 
