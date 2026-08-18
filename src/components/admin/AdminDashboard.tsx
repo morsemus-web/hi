@@ -63,6 +63,86 @@ const MOCK_MEMBERS = [
   { id: "SD-910", name: "Oliver Smith", email: "osmith.sports@gmail.com", region: "UK", session: "Last active: 1d ago", status: "Offline", tier: "Quarterly" },
 ];
 
+function getCricketMatchAudience(title: string, status: string): number {
+  const t = (title + " " + status).toLowerCase();
+  
+  // Tier 1: Major Internationals & Premier Franchise Leagues (IPL, World Cup, IND vs PAK, etc.)
+  if (
+    t.includes("ipl") || 
+    t.includes("indian premier league") || 
+    t.includes("world cup") || 
+    t.includes("india vs") || 
+    t.includes("vs india") || 
+    t.includes("ashes") || 
+    t.includes("australia vs england") || 
+    t.includes("pakistan vs india")
+  ) {
+    return 650 + Math.floor(Math.random() * 950); // 650 - 1,600 viewers
+  }
+  
+  // Tier 2: Established Leagues & Full-Member Series (BBL, PSL, CPL, SA20, Hundred, AUS, ENG, SA, etc.)
+  if (
+    t.includes("bbl") || 
+    t.includes("psl") || 
+    t.includes("cpl") || 
+    t.includes("sa20") || 
+    t.includes("the hundred") || 
+    t.includes("blast") || 
+    t.includes("england") || 
+    t.includes("australia") || 
+    t.includes("south africa") || 
+    t.includes("new zealand") || 
+    t.includes("pakistan") || 
+    t.includes("west indies") || 
+    t.includes("sri lanka") || 
+    t.includes("bangladesh") || 
+    t.includes("afghanistan")
+  ) {
+    return 140 + Math.floor(Math.random() * 260); // 140 - 400 viewers
+  }
+
+  // Tier 3: Smaller State/Regional/Domestic/Associate Leagues (TNPL, ECS, KPL, local leagues)
+  return 14 + Math.floor(Math.random() * 55); // 14 - 69 viewers
+}
+
+function getSoccerMatchAudience(title: string, leagueName: string = ""): number {
+  const t = (title + " " + leagueName).toLowerCase();
+  
+  // Tier 1: Top European Leagues & Champions League (UCL, Premier League, La Liga, Real Madrid, etc.)
+  if (
+    t.includes("champions league") || 
+    t.includes("premier league") || 
+    t.includes("la liga") || 
+    t.includes("real madrid") || 
+    t.includes("barcelona") || 
+    t.includes("manchester") || 
+    t.includes("arsenal") || 
+    t.includes("liverpool") || 
+    t.includes("bayern") || 
+    t.includes("psg")
+  ) {
+    return 700 + Math.floor(Math.random() * 1100); // 700 - 1,800 viewers
+  }
+
+  // Tier 2: Major Secondary Leagues (Serie A, Bundesliga, MLS, Saudi Pro League, Europa League)
+  if (
+    t.includes("serie a") || 
+    t.includes("bundesliga") || 
+    t.includes("ligue 1") || 
+    t.includes("europa") || 
+    t.includes("mls") || 
+    t.includes("saudi") || 
+    t.includes("inter miami") || 
+    t.includes("al hilal") || 
+    t.includes("al nassr")
+  ) {
+    return 180 + Math.floor(Math.random() * 320); // 180 - 500 viewers
+  }
+
+  // Tier 3: Lower divisions, local cups, friendlies, reserve matches
+  return 12 + Math.floor(Math.random() * 45); // 12 - 57 viewers
+}
+
 /* ========================================================
    MAIN EXECUTIVE DASHBOARD COMPONENT
    ======================================================== */
@@ -83,15 +163,17 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Real-time smooth fluctuation animation loop
   useEffect(() => {
     const interval = setInterval(() => {
-      setBaseBrowsingUsers(prev => getFluctuatingUsers(2850, 25, prev));
+      setBaseBrowsingUsers(prev => getFluctuatingUsers(2850, 20, prev));
 
       setCricketMatches(matches => matches.map(m => {
         if (Math.random() > 0.4) return m;
-        return { ...m, viewers: Math.max(50, m.viewers + Math.floor(Math.random() * 20) - 10) };
+        const delta = m.viewers > 500 ? Math.floor(Math.random() * 30) - 15 : (m.viewers > 100 ? Math.floor(Math.random() * 12) - 6 : Math.floor(Math.random() * 4) - 2);
+        return { ...m, viewers: Math.max(5, m.viewers + delta) };
       }));
       setSoccerMatches(matches => matches.map(m => {
         if (Math.random() > 0.4) return m;
-        return { ...m, viewers: Math.max(50, m.viewers + Math.floor(Math.random() * 30) - 15) };
+        const delta = m.viewers > 500 ? Math.floor(Math.random() * 30) - 15 : (m.viewers > 100 ? Math.floor(Math.random() * 12) - 6 : Math.floor(Math.random() * 4) - 2);
+        return { ...m, viewers: Math.max(5, m.viewers + delta) };
       }));
     }, 8000);
 
@@ -117,7 +199,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             title: m.title,
             score: m.score,
             status: m.status_text,
-            viewers: 280 + Math.floor(Math.random() * 450)
+            viewers: getCricketMatchAudience(m.title, m.status_text)
           }));
           setCricketMatches(cMocks);
         }
@@ -136,7 +218,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               title: `${m.home_team} vs ${m.away_team}`,
               score: `${m.home_score} - ${m.away_score}`,
               status: m.time,
-              viewers: 350 + Math.floor(Math.random() * 550)
+              viewers: getSoccerMatchAudience(`${m.home_team} vs ${m.away_team}`, l.league_name || "")
             })));
           });
           setSoccerMatches(liveS);
@@ -737,7 +819,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </div>
                   <div className="flex items-center gap-4 md:text-right shrink-0">
                     <div className="hidden md:block w-24 h-1 bg-neutral-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-400" style={{ width: `${Math.min(100, (match.viewers / 100000) * 100)}%` }} />
+                      <div className="h-full bg-emerald-400" style={{ width: `${Math.min(100, Math.max(5, (match.viewers / 1200) * 100))}%` }} />
                     </div>
                     <div className="w-20 text-right">
                       <div className="text-lg font-bold font-mono text-white transition-all duration-300">
@@ -761,7 +843,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </div>
                   <div className="flex items-center gap-4 md:text-right shrink-0">
                     <div className="hidden md:block w-24 h-1 bg-neutral-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-cyan-400" style={{ width: `${Math.min(100, (match.viewers / 150000) * 100)}%` }} />
+                      <div className="h-full bg-cyan-400" style={{ width: `${Math.min(100, Math.max(5, (match.viewers / 1500) * 100))}%` }} />
                     </div>
                     <div className="w-20 text-right">
                       <div className="text-lg font-bold font-mono text-white transition-all duration-300">
