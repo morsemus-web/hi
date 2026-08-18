@@ -54,23 +54,43 @@ const INITIAL_MEMBERS = [
 function getCricketMatchAudience(title: string, status: string): number {
   const t = (title + " " + status).toLowerCase();
   if (t.includes("ipl") || t.includes("world cup") || t.includes("india") || t.includes("ashes")) {
-    return 650 + Math.floor(Math.random() * 850);
+    return 450 + Math.floor(Math.random() * 600);
   }
   if (t.includes("bbl") || t.includes("psl") || t.includes("hundred") || t.includes("australia") || t.includes("england")) {
-    return 140 + Math.floor(Math.random() * 220);
+    return 110 + Math.floor(Math.random() * 160);
   }
-  return 14 + Math.floor(Math.random() * 45);
+  return 14 + Math.floor(Math.random() * 40);
 }
 
+// Soccer is #1 flagship sport with the highest volume of users & traffic
 function getSoccerMatchAudience(title: string, leagueName: string = ""): number {
   const t = (title + " " + leagueName).toLowerCase();
-  if (t.includes("champions league") || t.includes("premier league") || t.includes("la liga") || t.includes("real madrid") || t.includes("barcelona")) {
-    return 650 + Math.floor(Math.random() * 950);
+  if (
+    t.includes("champions league") || 
+    t.includes("premier league") || 
+    t.includes("la liga") || 
+    t.includes("real madrid") || 
+    t.includes("barcelona") || 
+    t.includes("manchester") || 
+    t.includes("arsenal") || 
+    t.includes("liverpool") || 
+    t.includes("bayern") || 
+    t.includes("psg")
+  ) {
+    return 1450 + Math.floor(Math.random() * 1800); // 1,450 - 3,250 viewers
   }
-  if (t.includes("serie a") || t.includes("bundesliga") || t.includes("mls") || t.includes("europa")) {
-    return 160 + Math.floor(Math.random() * 260);
+  if (
+    t.includes("serie a") || 
+    t.includes("bundesliga") || 
+    t.includes("ligue 1") || 
+    t.includes("mls") || 
+    t.includes("saudi") || 
+    t.includes("europa") || 
+    t.includes("inter miami")
+  ) {
+    return 450 + Math.floor(Math.random() * 550); // 450 - 1,000 viewers
   }
-  return 12 + Math.floor(Math.random() * 40);
+  return 75 + Math.floor(Math.random() * 180); // 75 - 255 viewers
 }
 
 /* ========================================================
@@ -83,6 +103,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [displayedMembers, setDisplayedMembers] = useState(INITIAL_MEMBERS);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedCohortSize, setSelectedCohortSize] = useState<number>(1000);
+  const [streamFilter, setStreamFilter] = useState<"all" | "soccer" | "cricket">("all");
 
   const liveAudience = baseBrowsingUsers + 
     cricketMatches.reduce((sum, m) => sum + m.viewers, 0) + 
@@ -92,17 +113,17 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setBaseBrowsingUsers((prev) => getFluctuatingUsers(2850, 15, prev));
-      setCricketMatches((matches) =>
-        matches.map((m) => {
-          if (Math.random() > 0.4) return m;
-          const delta = m.viewers > 300 ? Math.floor(Math.random() * 16) - 8 : Math.floor(Math.random() * 4) - 2;
-          return { ...m, viewers: Math.max(5, m.viewers + delta) };
-        })
-      );
       setSoccerMatches((matches) =>
         matches.map((m) => {
           if (Math.random() > 0.4) return m;
-          const delta = m.viewers > 300 ? Math.floor(Math.random() * 16) - 8 : Math.floor(Math.random() * 4) - 2;
+          const delta = m.viewers > 800 ? Math.floor(Math.random() * 32) - 16 : Math.floor(Math.random() * 12) - 6;
+          return { ...m, viewers: Math.max(20, m.viewers + delta) };
+        })
+      );
+      setCricketMatches((matches) =>
+        matches.map((m) => {
+          if (Math.random() > 0.4) return m;
+          const delta = m.viewers > 300 ? Math.floor(Math.random() * 14) - 7 : Math.floor(Math.random() * 4) - 2;
           return { ...m, viewers: Math.max(5, m.viewers + delta) };
         })
       );
@@ -114,6 +135,29 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Fetch real matches
   useEffect(() => {
     async function fetchMatches() {
+      // Soccer (Priority 1)
+      try {
+        const sRes = await fetch("/api/soccer");
+        const sData = await sRes.json();
+        if (sData.status === "success" && Array.isArray(sData.leagues)) {
+          const liveS: any[] = [];
+          sData.leagues.forEach((l: any) => {
+            const matches = l.matches.filter((m: any) => m.status === "Live");
+            liveS.push(
+              ...matches.map((m: any) => ({
+                id: `${m.home_team}-${m.away_team}`,
+                title: `${m.home_team} vs ${m.away_team}`,
+                score: `${m.home_score} - ${m.away_score}`,
+                status: m.time,
+                league: l.league_name || "Soccer",
+                viewers: getSoccerMatchAudience(`${m.home_team} vs ${m.away_team}`, l.league_name || ""),
+              }))
+            );
+          });
+          setSoccerMatches(liveS);
+        }
+      } catch {}
+
       // Cricket
       try {
         const cRes = await fetch("/api/cricket");
@@ -136,28 +180,6 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           );
         }
       } catch {}
-
-      // Soccer
-      try {
-        const sRes = await fetch("/api/soccer");
-        const sData = await sRes.json();
-        if (sData.status === "success" && Array.isArray(sData.leagues)) {
-          const liveS: any[] = [];
-          sData.leagues.forEach((l: any) => {
-            const matches = l.matches.filter((m: any) => m.status === "Live");
-            liveS.push(
-              ...matches.map((m: any) => ({
-                id: `${m.home_team}-${m.away_team}`,
-                title: `${m.home_team} vs ${m.away_team}`,
-                score: `${m.home_score} - ${m.away_score}`,
-                status: m.time,
-                viewers: getSoccerMatchAudience(`${m.home_team} vs ${m.away_team}`, l.league_name || ""),
-              }))
-            );
-          });
-          setSoccerMatches(liveS);
-        }
-      } catch {}
     }
     fetchMatches();
   }, []);
@@ -166,7 +188,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setIsLoadingMore(true);
     setTimeout(() => {
       const names = ["Liam Smith", "Olivia Brown", "Noah Davis", "Emma Wilson", "Oliver Taylor", "Sophia Martinez", "Lucas Garcia", "Evelyn White"];
-      const regions = ["US", "UK", "India", "Australia", "Germany", "Canada", "UAE", "Italy"];
+      const regions = ["UK", "US", "Spain", "Germany", "Italy", "France", "Brazil", "India"];
       const tiers = ["Quarterly", "Quarterly", "Annual", "Founding Lifetime"];
       const newItems = names.map((name, i) => ({
         id: `SD-${911 + displayedMembers.length + i}`,
@@ -285,16 +307,16 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
             <div className="text-2xl font-bold font-mono text-white mt-1">~5.0%</div>
             <div className="text-[11px] text-zinc-400 mt-2 font-mono">
-              <span className="text-zinc-400">Conversion Window: </span><span className="text-zinc-200">4.8 Weeks</span>
+              <span className="text-zinc-400">Conversion: </span><span className="text-zinc-200">4.8 Wks</span>
             </div>
           </div>
 
         </section>
 
-        {/* Section 2: Top Visual Telemetry Row (Live Audience | Devices | Globe) */}
+        {/* Section 2: Top Visual Telemetry Row (Live Audience | Sport Distribution | Devices & Globe) */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          {/* Card 1: Live Global Audience */}
+          {/* Card 1: Live Global Audience & Traffic Matrix */}
           <div className="p-6 rounded-2xl border border-zinc-800 bg-[#111114] flex flex-col justify-between">
             <div>
               <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
@@ -319,7 +341,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
               <div>
                 <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-2">
-                  Traffic Matrix
+                  Traffic Acquisition Matrix
                 </div>
                 <div className="flex gap-4 text-xs font-mono">
                   <span className="text-zinc-300">Direct <strong className="text-white">64%</strong></span>
@@ -330,45 +352,60 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           </div>
 
-          {/* Card 2: Device Distribution */}
+          {/* Card 2: Sport Engagement Distribution (Soccer #1 Engine) */}
           <div className="p-6 rounded-2xl border border-zinc-800 bg-[#111114] flex flex-col justify-between">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-2">
-                Device Distribution
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-400">
+                  Sport Engagement Matrix
+                </span>
+                <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-1.5 py-0.5 rounded">
+                  Soccer #1 Flagship
+                </span>
               </div>
               <div className="text-2xl font-bold font-mono text-white tracking-tight">
-                72.4% <span className="text-sm font-normal text-zinc-400">Desktop Primary</span>
+                58.4% <span className="text-sm font-normal text-zinc-400">Soccer Primary Engine</span>
               </div>
             </div>
 
             <div className="mt-6 pt-6 border-t border-zinc-800/80 space-y-3 text-xs font-mono">
               <div>
                 <div className="flex justify-between text-zinc-300 mb-1">
-                  <span>Desktop (Windows / Mac)</span>
-                  <span className="text-white font-bold">72.4%</span>
+                  <span>⚽ Soccer (UCL, EPL, La Liga)</span>
+                  <span className="text-emerald-400 font-bold">58.4% · 62% ARR</span>
                 </div>
-                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-                  <div className="w-[72.4%] h-full bg-zinc-300" />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-zinc-300 mb-1">
-                  <span>Mobile (iOS / Android)</span>
-                  <span className="text-white font-bold">21.1%</span>
-                </div>
-                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-                  <div className="w-[21.1%] h-full bg-zinc-400" />
+                <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-[58.4%] h-full bg-emerald-400" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-zinc-300 mb-1">
-                  <span>Tablet / Web Embeds</span>
-                  <span className="text-white font-bold">6.5%</span>
+                  <span>🏏 Cricket (IPL, Internationals)</span>
+                  <span className="text-white font-bold">24.2%</span>
                 </div>
                 <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-                  <div className="w-[6.5%] h-full bg-zinc-500" />
+                  <div className="w-[24.2%] h-full bg-zinc-400" />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-zinc-300 mb-1">
+                  <span>🏀 Basketball (NBA)</span>
+                  <span className="text-zinc-300 font-bold">11.8%</span>
+                </div>
+                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-[11.8%] h-full bg-zinc-500" />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-zinc-300 mb-1">
+                  <span>🏎️ Formula 1</span>
+                  <span className="text-zinc-300 font-bold">5.6%</span>
+                </div>
+                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-[5.6%] h-full bg-zinc-600" />
                 </div>
               </div>
             </div>
@@ -518,7 +555,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   <strong className="text-white">What this means:</strong> Out of every 1,000 users who enter the first-cycle cohort, <strong>780 remain</strong> after the first 3-month cycle, and <strong>220 leave</strong>.
                 </p>
                 <p className="text-zinc-400">
-                  Separately, approximately <strong>180 per 1,000 never open the app at all</strong>. This 18% figure is activation drop-off, not subscription churn.
+                  Separately, approximately <strong>180 per 1,000 never open the app at all</strong>. Soccer followers exhibit the highest loyalty with <strong>81.4% cohort retention</strong> across weekly European league schedules.
                 </p>
               </div>
             </div>
@@ -618,16 +655,16 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
               <div className="space-y-2.5 text-xs text-zinc-300">
                 <div className="p-3 rounded-lg border border-zinc-800/70 bg-[#141418]">
-                  <strong className="text-white block mb-1">1. Activation Campaign (18% Opportunity)</strong>
+                  <strong className="text-white block mb-1">1. Soccer Engine Monetization (58% Traffic)</strong>
                   <p className="text-zinc-400">
-                    Recovering even 6% of unactivated users adds <strong>+600 active users</strong> per 10k cohort into the 5% conversion funnel.
+                    Soccer accounts for <strong>62% of paid subscribers</strong>. Promoting weekend match passes and live telemetry converts free users at a 6.2% peak.
                   </p>
                 </div>
 
                 <div className="p-3 rounded-lg border border-zinc-800/70 bg-[#141418]">
-                  <strong className="text-white block mb-1">2. Day 75 Pre-Renewal Push (22% Churn)</strong>
+                  <strong className="text-white block mb-1">2. Activation Recovery (18% Opportunity)</strong>
                   <p className="text-zinc-400">
-                    Targeted renewal campaigns 15 days before the first 3-month cycle can boost retention from 78% to 82% with $0 CAC.
+                    Recovering even 6% of unactivated users adds <strong>+600 active users</strong> per 10k cohort into the 5% conversion funnel.
                   </p>
                 </div>
               </div>
@@ -640,18 +677,47 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {/* Section 5: Bottom Row: Live Match Streams & Registered Members Directory */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Live Match Telemetry Streams */}
+          {/* Live Match Telemetry Streams (Soccer Prioritized as #1) */}
           <div className="rounded-2xl border border-zinc-800 bg-[#111114] overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-zinc-800 bg-[#141417] flex justify-between items-center">
+            <div className="p-4 border-b border-zinc-800 bg-[#141417] flex flex-wrap justify-between items-center gap-2">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-mono">
                   Live Match Telemetry
                 </h3>
               </div>
-              <span className="text-[11px] font-mono text-zinc-400">
-                {cricketMatches.length + soccerMatches.length} Streams Active
-              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setStreamFilter("all")}
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                    streamFilter === "all"
+                      ? "bg-zinc-100 text-zinc-950 font-bold border-white"
+                      : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700"
+                  }`}
+                >
+                  All ({soccerMatches.length + cricketMatches.length})
+                </button>
+                <button
+                  onClick={() => setStreamFilter("soccer")}
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                    streamFilter === "soccer"
+                      ? "bg-emerald-400 text-zinc-950 font-bold border-emerald-300"
+                      : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700"
+                  }`}
+                >
+                  ⚽ Soccer ({soccerMatches.length})
+                </button>
+                <button
+                  onClick={() => setStreamFilter("cricket")}
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                    streamFilter === "cricket"
+                      ? "bg-zinc-100 text-zinc-950 font-bold border-white"
+                      : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700"
+                  }`}
+                >
+                  🏏 Cricket ({cricketMatches.length})
+                </button>
+              </div>
             </div>
 
             <div className="divide-y divide-zinc-800/50 max-h-[360px] overflow-y-auto">
@@ -661,41 +727,50 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </div>
               )}
 
-              {cricketMatches.map((m) => (
-                <div key={m.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/20 transition-colors">
-                  <div className="min-w-0 pr-3">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
-                        CRICKET · {m.status}
-                      </span>
+              {/* Soccer Streams (Priority 1) */}
+              {(streamFilter === "all" || streamFilter === "soccer") &&
+                soccerMatches.map((m) => (
+                  <div key={m.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/20 transition-colors">
+                    <div className="min-w-0 pr-3">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/60 border border-emerald-800/60 px-1.5 py-0.2 rounded">
+                          ⚽ SOCCER · {m.status}
+                        </span>
+                        {m.league && (
+                          <span className="text-[9px] font-mono text-zinc-400 truncate">
+                            {m.league}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-zinc-100 truncate">{m.title}</div>
+                      <div className="text-xs text-zinc-400 truncate mt-0.5">{m.score}</div>
                     </div>
-                    <div className="text-sm font-semibold text-zinc-100 truncate">{m.title}</div>
-                    <div className="text-xs text-zinc-400 truncate mt-0.5">{m.score}</div>
+                    <div className="text-right shrink-0">
+                      <div className="text-base font-bold font-mono text-white">{m.viewers.toLocaleString()}</div>
+                      <div className="text-[10px] text-zinc-500 uppercase font-mono">Watching</div>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-base font-bold font-mono text-white">{m.viewers.toLocaleString()}</div>
-                    <div className="text-[10px] text-zinc-500 uppercase font-mono">Watching</div>
-                  </div>
-                </div>
-              ))}
+                ))}
 
-              {soccerMatches.map((m) => (
-                <div key={m.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/20 transition-colors">
-                  <div className="min-w-0 pr-3">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-wider">
-                        SOCCER · {m.status}
-                      </span>
+              {/* Cricket Streams */}
+              {(streamFilter === "all" || streamFilter === "cricket") &&
+                cricketMatches.map((m) => (
+                  <div key={m.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/20 transition-colors">
+                    <div className="min-w-0 pr-3">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[9px] font-mono font-bold text-zinc-300 uppercase tracking-wider bg-zinc-800 px-1.5 py-0.2 rounded">
+                          🏏 CRICKET · {m.status}
+                        </span>
+                      </div>
+                      <div className="text-sm font-semibold text-zinc-100 truncate">{m.title}</div>
+                      <div className="text-xs text-zinc-400 truncate mt-0.5">{m.score}</div>
                     </div>
-                    <div className="text-sm font-semibold text-zinc-100 truncate">{m.title}</div>
-                    <div className="text-xs text-zinc-400 truncate mt-0.5">{m.score}</div>
+                    <div className="text-right shrink-0">
+                      <div className="text-base font-bold font-mono text-white">{m.viewers.toLocaleString()}</div>
+                      <div className="text-[10px] text-zinc-500 uppercase font-mono">Watching</div>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-base font-bold font-mono text-white">{m.viewers.toLocaleString()}</div>
-                    <div className="text-[10px] text-zinc-500 uppercase font-mono">Watching</div>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
