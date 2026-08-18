@@ -289,9 +289,20 @@ function TeamRow({
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3 min-w-0">
         {logo ? (
-          <img src={logo} alt={name} className="w-8 h-8 object-contain drop-shadow-md shrink-0" />
+          <img
+            src={logo}
+            alt={name}
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.onerror = null;
+              target.src = "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/nba.png";
+            }}
+            className="w-8 h-8 object-contain drop-shadow-md shrink-0"
+          />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-overlay-2 shrink-0" />
+          <div className="w-8 h-8 rounded-full bg-overlay-2 flex items-center justify-center font-bold text-xs text-text-muted shrink-0">
+            {name.charAt(0)}
+          </div>
         )}
         <div className="min-w-0">
           <span className={`font-semibold text-lg truncate block ${won ? "" : "text-text-dim"}`}>

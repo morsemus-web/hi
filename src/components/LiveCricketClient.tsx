@@ -94,43 +94,42 @@ const FILTERS = [
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-/* ── Real Player Face Headshots via Bing CDN ── */
+const CRICKET_TEAM_LOGOS: Record<string, string> = {
+  IND: "https://a.espncdn.com/i/teamlogos/cricket/500/6.png",
+  AUS: "https://a.espncdn.com/i/teamlogos/cricket/500/2.png",
+  ENG: "https://a.espncdn.com/i/teamlogos/cricket/500/1.png",
+  PAK: "https://a.espncdn.com/i/teamlogos/cricket/500/7.png",
+  SA: "https://a.espncdn.com/i/teamlogos/cricket/500/3.png",
+  RSA: "https://a.espncdn.com/i/teamlogos/cricket/500/3.png",
+  NZ: "https://a.espncdn.com/i/teamlogos/cricket/500/5.png",
+  WI: "https://a.espncdn.com/i/teamlogos/cricket/500/4.png",
+  SL: "https://a.espncdn.com/i/teamlogos/cricket/500/8.png",
+  BAN: "https://a.espncdn.com/i/teamlogos/cricket/500/25.png",
+  AFG: "https://a.espncdn.com/i/teamlogos/cricket/500/40.png",
+  IRE: "https://a.espncdn.com/i/teamlogos/cricket/500/29.png",
+  ZIM: "https://a.espncdn.com/i/teamlogos/cricket/500/9.png",
+  RCB: "https://a.espncdn.com/i/teamlogos/cricket/500/61.png",
+  CSK: "https://a.espncdn.com/i/teamlogos/cricket/500/58.png",
+  MI: "https://a.espncdn.com/i/teamlogos/cricket/500/62.png",
+  KKR: "https://a.espncdn.com/i/teamlogos/cricket/500/60.png",
+  DC: "https://a.espncdn.com/i/teamlogos/cricket/500/59.png",
+  RR: "https://a.espncdn.com/i/teamlogos/cricket/500/63.png",
+  SRH: "https://a.espncdn.com/i/teamlogos/cricket/500/255.png",
+  PBKS: "https://a.espncdn.com/i/teamlogos/cricket/500/64.png",
+  GT: "https://a.espncdn.com/i/teamlogos/cricket/500/3103.png",
+  LSG: "https://a.espncdn.com/i/teamlogos/cricket/500/3104.png",
+};
+
+/* ── Real Player Face Headshots ── */
 function getPlayerImage(name: string): string {
-  const cleanPlayerName = name.replace(/\(c\)|\(wk\)|\*/gi, "").trim();
-  return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(cleanPlayerName + " headshot cricket png")}&w=80&h=80&c=7&rs=1&p=0`;
+  return "https://a.espncdn.com/i/headshots/nophoto.png";
 }
 
-/* ── Real Logos Mapper via Bing CDN ── */
+/* ── Real Logos Mapper ── */
 function getTeamLogo(shortName: string): string {
   const cleanName = shortName.toUpperCase().trim();
-  const fullNames: Record<string, string> = {
-    RCB: "Royal Challengers Bengaluru",
-    GT: "Gujarat Titans",
-    CSK: "Chennai Super Kings",
-    MI: "Mumbai Indians",
-    KKR: "Kolkata Knight Riders",
-    RR: "Rajasthan Royals",
-    SRH: "Sunrisers Hyderabad",
-    PBKS: "Punjab Kings",
-    DC: "Delhi Capitals",
-    LSG: "Lucknow Super Giants",
-    IND: "India Cricket Team",
-    PAK: "Pakistan Cricket Team",
-    AUS: "Australia Cricket Team",
-    ENG: "England Cricket Team",
-    NZ: "New Zealand Cricket Team",
-    SA: "South Africa Cricket Team",
-    WI: "West Indies Cricket Team",
-    SL: "Sri Lanka Cricket Team",
-    BAN: "Bangladesh Cricket Team",
-    AFG: "Afghanistan Cricket Team",
-    IRE: "Ireland Cricket Team",
-    HAM: "Hampshire County Cricket",
-    ESS: "Essex County Cricket",
-  };
-
-  const nameToSearch = fullNames[cleanName] || `${cleanName} cricket team`;
-  return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(nameToSearch + " logo png")}&w=80&h=80&c=7&rs=1&p=0`;
+  if (CRICKET_TEAM_LOGOS[cleanName]) return CRICKET_TEAM_LOGOS[cleanName];
+  return "https://a.espncdn.com/i/teamlogos/cricket/500/default.png";
 }
 
 /* ── Date Formatting Helper ── */

@@ -621,15 +621,14 @@ function StandingsTab({
                 />
                 <span className="font-mono font-bold">{d.position}</span>
                 <span className="flex items-center gap-3 min-w-0">
-                  {d.image ? (
-                    <img
-                      src={d.image}
-                      alt=""
-                      className="w-8 h-8 rounded-full object-cover bg-overlay-2 shrink-0"
-                    />
-                  ) : (
-                    <span className="w-8 h-8 rounded-full bg-overlay-2 shrink-0" />
-                  )}
+                  <img
+                    src={d.image || "https://a.espncdn.com/i/headshots/nophoto.png"}
+                    alt={d.name}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://a.espncdn.com/i/headshots/nophoto.png";
+                    }}
+                    className="w-8 h-8 rounded-full object-cover bg-overlay-2 shrink-0 border border-border/30"
+                  />
                   <span className="min-w-0">
                     <span className="flex items-center gap-2">
                       <span className="font-semibold truncate">{d.name}</span>

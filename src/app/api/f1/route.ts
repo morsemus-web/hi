@@ -83,10 +83,39 @@ function driverIdMap(event: any): Record<string, string> {
   return map;
 }
 
+const STATIC_F1_DRIVER_IDS: Record<string, string> = {
+  "verstappen": "4665",
+  "hamilton": "868",
+  "leclerc": "4763",
+  "norris": "4795",
+  "piastri": "4836",
+  "russell": "4794",
+  "sainz": "4764",
+  "alonso": "870",
+  "perez": "4463",
+  "tsunoda": "4828",
+  "albon": "4796",
+  "gasly": "4765",
+  "ocon": "4766",
+  "stroll": "4767",
+  "hulkenberg": "872",
+  "magnussen": "4553",
+  "bottas": "4666",
+  "zhou": "4837",
+  "ricciardo": "4552",
+  "lawson": "4838",
+  "bearman": "4840",
+  "antonelli": "4841",
+  "doohan": "4842",
+  "colapinto": "4843",
+  "hadjar": "4844",
+  "bortoleto": "4845"
+};
+
 function headshot(name: string, ids: Record<string, string>): string {
-  const surname = name.split(/\s+/).pop()?.toLowerCase();
-  const id = ids[name.toLowerCase()] || (surname ? ids[`~${surname}`] : "");
-  return id ? `https://a.espncdn.com/i/headshots/rpm/players/full/${id}.png` : "";
+  const surname = name.split(/\s+/).pop()?.toLowerCase() || "";
+  const id = ids[name.toLowerCase()] || (surname ? ids[`~${surname}`] : "") || STATIC_F1_DRIVER_IDS[surname] || STATIC_F1_DRIVER_IDS[name.toLowerCase()];
+  return id ? `https://a.espncdn.com/i/headshots/rpm/players/full/${id}.png` : "https://a.espncdn.com/i/headshots/nophoto.png";
 }
 
 export async function GET() {

@@ -49,6 +49,13 @@ function espnDate(input?: string | null): string | null {
   ).padStart(2, "0")}`;
 }
 
+function getNbaLogo(abbr: string, defaultLogo: string): string {
+  if (defaultLogo) return defaultLogo;
+  const clean = (abbr || "").toLowerCase();
+  if (clean) return `https://a.espncdn.com/i/teamlogos/nba/500/${clean}.png`;
+  return "";
+}
+
 function mapEspnEvent(event: any): Match | null {
   const comp = event?.competitions?.[0];
   if (!comp) return null;
@@ -76,15 +83,18 @@ function mapEspnEvent(event: any): Match | null {
     });
   });
 
+  const team1Abbr = away.team?.abbreviation ?? "";
+  const team2Abbr = home.team?.abbreviation ?? "";
+
   return {
     id: String(event.id),
     title: event.name ?? `${away.team?.displayName} at ${home.team?.displayName}`,
-    team1: away.team?.abbreviation ?? "",
-    team2: home.team?.abbreviation ?? "",
+    team1: team1Abbr,
+    team2: team2Abbr,
     team1Full: away.team?.displayName ?? "",
     team2Full: home.team?.displayName ?? "",
-    team1Logo: away.team?.logo ?? "",
-    team2Logo: home.team?.logo ?? "",
+    team1Logo: getNbaLogo(team1Abbr, away.team?.logo ?? ""),
+    team2Logo: getNbaLogo(team2Abbr, home.team?.logo ?? ""),
     team1Score: awayScore,
     team2Score: homeScore,
     team1Record: away.records?.[0]?.summary ?? "",
@@ -152,8 +162,8 @@ async function fetchBalldontlie(date: string): Promise<Match[]> {
       team2: home?.abbreviation ?? "",
       team1Full: away?.full_name ?? "",
       team2Full: home?.full_name ?? "",
-      team1Logo: "",
-      team2Logo: "",
+      team1Logo: getNbaLogo(away?.abbreviation ?? "", ""),
+      team2Logo: getNbaLogo(home?.abbreviation ?? "", ""),
       team1Score: String(event.visitor_team_score ?? ""),
       team2Score: String(event.home_team_score ?? ""),
       team1Record: "",
