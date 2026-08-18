@@ -67,15 +67,15 @@ const MOCK_MEMBERS = [
    MAIN EXECUTIVE DASHBOARD COMPONENT
    ======================================================== */
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
-  // Base active users targeted to 124,779 base
-  const [baseBrowsingUsers, setBaseBrowsingUsers] = useState(124779);
+  // Base live browsing audience (concurrent online users)
+  const [baseBrowsingUsers, setBaseBrowsingUsers] = useState(2850);
   const [cricketMatches, setCricketMatches] = useState<any[]>([]);
   const [soccerMatches, setSoccerMatches] = useState<any[]>([]);
 
   // Interactive Cohort Simulator State
   const [selectedCohortSize, setSelectedCohortSize] = useState<number>(1000);
 
-  // Live active audience calculation
+  // Live active concurrent audience calculation
   const activeUsers = baseBrowsingUsers + 
     cricketMatches.reduce((sum, m) => sum + m.viewers, 0) + 
     soccerMatches.reduce((sum, m) => sum + m.viewers, 0);
@@ -83,15 +83,15 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Real-time smooth fluctuation animation loop
   useEffect(() => {
     const interval = setInterval(() => {
-      setBaseBrowsingUsers(prev => getFluctuatingUsers(124779, 45, prev));
+      setBaseBrowsingUsers(prev => getFluctuatingUsers(2850, 25, prev));
 
       setCricketMatches(matches => matches.map(m => {
         if (Math.random() > 0.4) return m;
-        return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 80) - 25) };
+        return { ...m, viewers: Math.max(50, m.viewers + Math.floor(Math.random() * 20) - 10) };
       }));
       setSoccerMatches(matches => matches.map(m => {
         if (Math.random() > 0.4) return m;
-        return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 120) - 40) };
+        return { ...m, viewers: Math.max(50, m.viewers + Math.floor(Math.random() * 30) - 15) };
       }));
     }, 8000);
 
@@ -117,7 +117,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             title: m.title,
             score: m.score,
             status: m.status_text,
-            viewers: 25000 + Math.floor(Math.random() * 55000)
+            viewers: 280 + Math.floor(Math.random() * 450)
           }));
           setCricketMatches(cMocks);
         }
@@ -136,7 +136,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               title: `${m.home_team} vs ${m.away_team}`,
               score: `${m.home_score} - ${m.away_score}`,
               status: m.time,
-              viewers: 45000 + Math.floor(Math.random() * 80000)
+              viewers: 350 + Math.floor(Math.random() * 550)
             })));
           });
           setSoccerMatches(liveS);
