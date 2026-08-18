@@ -852,6 +852,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               >
                 {isLoadingMore ? "Loading Directory..." : "Load More Members..."}
               </button>
+            </div>
+          </div>
         </section>
 
       </main>
