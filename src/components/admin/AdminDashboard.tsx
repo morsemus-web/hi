@@ -51,54 +51,54 @@ function getRegionBadge(region: string) {
 }
 
 const MOCK_MEMBERS = [
-  { id: "SD-901", name: "Aryan Sharma", email: "aryan.s@gmail.com", region: "India", session: "4h 12m", status: "Online" },
-  { id: "SD-902", name: "James Wilson", email: "j.wilson92@hotmail.com", region: "UK", session: "1d 5h", status: "Online" },
-  { id: "SD-903", name: "David Chen", email: "dchen.sports@yahoo.com", region: "Australia", session: "Last active: 2h ago", status: "Offline" },
-  { id: "SD-904", name: "Rahul Desai", email: "rahuld88@gmail.com", region: "India", session: "6h 45m", status: "Online" },
-  { id: "SD-905", name: "Sarah Jenkins", email: "s.jenkins.tx@gmail.com", region: "US", session: "11h 20m", status: "Online" },
-  { id: "SD-906", name: "Ahmed Al-Fayed", email: "ahmed.alf@outlook.com", region: "UAE", session: "Last active: 5h ago", status: "Offline" },
-  { id: "SD-907", name: "Marcus Rossi", email: "mrossi1999@gmail.com", region: "Italy", session: "2d 4h", status: "Online" },
-  { id: "SD-908", name: "Priya Patel", email: "priya.p.90@yahoo.com", region: "India", session: "8h 30m", status: "Online" },
-  { id: "SD-909", name: "Liam O'Connor", email: "liam.oconnor.ire@gmail.com", region: "Ireland", session: "5h 15m", status: "Online" },
-  { id: "SD-910", name: "Oliver Smith", email: "osmith.sports@gmail.com", region: "UK", session: "Last active: 1d ago", status: "Offline" },
+  { id: "SD-901", name: "Aryan Sharma", email: "aryan.s@gmail.com", region: "India", session: "4h 12m", status: "Online", tier: "Quarterly" },
+  { id: "SD-902", name: "James Wilson", email: "j.wilson92@hotmail.com", region: "UK", session: "1d 5h", status: "Online", tier: "Annual" },
+  { id: "SD-903", name: "David Chen", email: "dchen.sports@yahoo.com", region: "Australia", session: "Last active: 2h ago", status: "Offline", tier: "Founding Lifetime" },
+  { id: "SD-904", name: "Rahul Desai", email: "rahuld88@gmail.com", region: "India", session: "6h 45m", status: "Online", tier: "Quarterly" },
+  { id: "SD-905", name: "Sarah Jenkins", email: "s.jenkins.tx@gmail.com", region: "US", session: "11h 20m", status: "Online", tier: "Quarterly" },
+  { id: "SD-906", name: "Ahmed Al-Fayed", email: "ahmed.alf@outlook.com", region: "UAE", session: "Last active: 5h ago", status: "Offline", tier: "Annual" },
+  { id: "SD-907", name: "Marcus Rossi", email: "mrossi1999@gmail.com", region: "Italy", session: "2d 4h", status: "Online", tier: "Quarterly" },
+  { id: "SD-908", name: "Priya Patel", email: "priya.p.90@yahoo.com", region: "India", session: "8h 30m", status: "Online", tier: "Founding Lifetime" },
+  { id: "SD-909", name: "Liam O'Connor", email: "liam.oconnor.ire@gmail.com", region: "Ireland", session: "5h 15m", status: "Online", tier: "Quarterly" },
+  { id: "SD-910", name: "Oliver Smith", email: "osmith.sports@gmail.com", region: "UK", session: "Last active: 1d ago", status: "Offline", tier: "Quarterly" },
 ];
 
 /* ========================================================
-   MAIN COMPONENT
+   MAIN EXECUTIVE DASHBOARD COMPONENT
    ======================================================== */
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
-  const [baseBrowsingUsers, setBaseBrowsingUsers] = useState(2450);
+  // Base active users targeted to 124,779 base
+  const [baseBrowsingUsers, setBaseBrowsingUsers] = useState(124779);
   const [cricketMatches, setCricketMatches] = useState<any[]>([]);
   const [soccerMatches, setSoccerMatches] = useState<any[]>([]);
 
-  // Cohort Simulator State
+  // Interactive Cohort Simulator State
   const [selectedCohortSize, setSelectedCohortSize] = useState<number>(1000);
 
-  // Calculate total active users based on live match viewers + base browsing users
+  // Live active audience calculation
   const activeUsers = baseBrowsingUsers + 
     cricketMatches.reduce((sum, m) => sum + m.viewers, 0) + 
     soccerMatches.reduce((sum, m) => sum + m.viewers, 0);
 
-  // Real-time animation loop
+  // Real-time smooth fluctuation animation loop
   useEffect(() => {
     const interval = setInterval(() => {
-      // Fluctuate the base browsing users slightly and smoothly
-      setBaseBrowsingUsers(prev => getFluctuatingUsers(2450, 15, prev));
+      setBaseBrowsingUsers(prev => getFluctuatingUsers(124779, 45, prev));
 
       setCricketMatches(matches => matches.map(m => {
-        if (Math.random() > 0.4) return m; // Updates less frequently
+        if (Math.random() > 0.4) return m;
         return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 80) - 25) };
       }));
       setSoccerMatches(matches => matches.map(m => {
         if (Math.random() > 0.4) return m;
         return { ...m, viewers: Math.max(0, m.viewers + Math.floor(Math.random() * 120) - 40) };
       }));
-    }, 8000); // 8 seconds instead of 2.5s for realistic slow polling
+    }, 8000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch real matches and assign mock viewers
+  // Fetch live matches
   useEffect(() => {
     async function fetchRealMatches() {
       // Cricket
@@ -141,7 +141,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     fetchRealMatches();
   }, []);
 
-  // Members Table State
+  // Members Directory State
   const [displayedMembers, setDisplayedMembers] = useState([...MOCK_MEMBERS]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -152,8 +152,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson"];
       const regions = ["US East", "US West", "UK", "India", "Australia", "Brazil", "Germany", "Japan", "South Africa", "Canada"];
       const domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "protonmail.com"];
-      
-      const newMembers = Array.from({ length: 40 }).map((_, i) => {
+      const tiers = ["Quarterly", "Quarterly", "Quarterly", "Annual", "Founding Lifetime"];
+
+      const newMembers = Array.from({ length: 30 }).map((_, i) => {
         const first = firstNames[Math.floor(Math.random() * firstNames.length)];
         const last = lastNames[Math.floor(Math.random() * lastNames.length)];
         const isOnline = Math.random() > 0.3;
@@ -166,7 +167,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           email: `${first.toLowerCase()}.${last.toLowerCase()}@${domains[Math.floor(Math.random() * domains.length)]}`,
           region: regions[Math.floor(Math.random() * regions.length)],
           session: isOnline ? `${sessionHours > 0 ? `${sessionHours}h ` : ''}${sessionMins}m` : `Last active: ${Math.floor(Math.random() * 5) + 1}d ago`,
-          status: isOnline ? "Online" : "Offline"
+          status: isOnline ? "Online" : "Offline",
+          tier: tiers[Math.floor(Math.random() * tiers.length)]
         };
       });
       
@@ -178,226 +180,279 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Cohort math calculation
   const retainedCohort = Math.round(selectedCohortSize * 0.78);
   const churnedCohort = Math.round(selectedCohortSize * 0.22);
+  const quarterlyRevenueRetained = retainedCohort * 15;
 
   return (
-    // FORCED DARK MODE CONTAINER: bg-neutral-950, text-white
-    <div className="min-h-screen font-sans bg-neutral-950 text-neutral-200">
-      <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-800 pb-6">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-              Scoredeck Platform
-            </h1>
-            <p className="text-neutral-400 text-sm mt-1 uppercase tracking-widest font-mono">Live Telemetry & Retention Intelligence</p>
+    <div className="min-h-screen font-sans bg-[#09090b] text-neutral-200 antialiased selection:bg-emerald-500/30">
+      
+      {/* Top Fixed Executive Header */}
+      <header className="sticky top-0 z-40 bg-[#09090b]/90 backdrop-blur-md border-b border-neutral-800/80 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-black text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+              SD
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white font-mono">
+                  SCOREDECK EXECUTIVE COMMAND CENTER
+                </h1>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  $1M ARR SUITE
+                </span>
+              </div>
+              <p className="text-neutral-400 text-xs mt-0.5 font-mono">Real-Time SaaS Revenue, Cohort Retention & Telemetry Matrix</p>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium hover:bg-neutral-800 hover:text-white transition-colors">
+
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-[11px] font-mono text-neutral-400">
+              <span className="text-neutral-500">SYSTEM TIME:</span>
+              <span className="text-white font-bold">2026-08-18 UTC</span>
+            </div>
+            <Link 
+              href="/" 
+              className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-xs font-mono text-neutral-300 hover:bg-neutral-800 hover:text-white transition-all shadow-sm"
+            >
               Exit to Site
             </Link>
             <button 
               onClick={onLogout}
-              className="px-4 py-2 bg-red-950/40 text-red-400 border border-red-900/50 rounded-lg text-sm font-medium hover:bg-red-900/40 transition-colors"
+              className="px-4 py-2 bg-rose-950/40 text-rose-400 border border-rose-900/50 rounded-lg text-xs font-mono font-bold hover:bg-rose-900/50 transition-all shadow-sm"
             >
               End Session
             </button>
           </div>
         </div>
+      </header>
 
-        {/* Executive KPI Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <main className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
+        
+        {/* Executive KPI Cards Header Grid */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           
-          {/* First-Cycle Retention */}
-          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">First-Cycle Retention</span>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono font-bold">3-MONTH CYCLE</span>
+          {/* Card 1: Modeled ARR */}
+          <div className="bg-[#0c0c0e] p-6 rounded-2xl border border-emerald-500/30 relative overflow-hidden group hover:border-emerald-500/60 transition-all shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Modeled ARR</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold border border-emerald-500/30">+24.8% YoY</span>
             </div>
-            <div className="text-4xl font-bold font-mono text-emerald-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]">
-              78%
+            <div className="text-3xl font-bold font-mono text-emerald-400 tracking-tight mb-1 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
+              $152,727
             </div>
-            <p className="text-xs text-neutral-400">780 of 1,000 subscribers renew after first 3-month cycle</p>
+            <div className="flex justify-between items-center text-[10px] text-neutral-400 font-mono pt-2 border-t border-neutral-800/80">
+              <span>MRR: <strong className="text-white">$12,727</strong></span>
+              <span>Run-Rate</span>
+            </div>
           </div>
 
-          {/* First-Cycle Churn */}
-          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-rose-500/40 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all" />
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">First-Cycle Churn</span>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 font-mono font-bold">RENEWAL LEAKAGE</span>
+          {/* Card 2: Active User Base */}
+          <div className="bg-[#0c0c0e] p-6 rounded-2xl border border-cyan-500/30 relative overflow-hidden group hover:border-cyan-500/60 transition-all shadow-[0_0_30px_rgba(6,182,212,0.05)]">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all pointer-events-none" />
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Active User Base</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono font-bold border border-cyan-500/30">ORGANIC</span>
             </div>
-            <div className="text-4xl font-bold font-mono text-rose-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(244,63,94,0.3)]">
-              22%
+            <div className="text-3xl font-bold font-mono text-cyan-400 tracking-tight mb-1 drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
+              124,779
             </div>
-            <p className="text-xs text-neutral-400">220 of 1,000 subscribers drop off at 1st renewal ($15/qtr)</p>
+            <div className="flex justify-between items-center text-[10px] font-mono pt-2 border-t border-neutral-800/80">
+              <span className="text-cyan-300 font-semibold">82% Activated</span>
+              <span className="text-rose-400 font-medium">18% Unactivated</span>
+            </div>
           </div>
 
-          {/* Activation Rate */}
-          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-blue-500/40 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all" />
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Activation Rate</span>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono font-bold">OPENED APP</span>
+          {/* Card 3: First-Cycle Retention */}
+          <div className="bg-[#0c0c0e] p-6 rounded-2xl border border-violet-500/30 relative overflow-hidden group hover:border-violet-500/60 transition-all shadow-[0_0_30px_rgba(139,92,246,0.05)]">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all pointer-events-none" />
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">1st-Cycle Retention</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 font-mono font-bold border border-violet-500/30">3-MO LOGO</span>
             </div>
-            <div className="text-4xl font-bold font-mono text-blue-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(96,165,250,0.3)]">
-              82%
+            <div className="text-3xl font-bold font-mono text-violet-400 tracking-tight mb-1 drop-shadow-[0_0_12px_rgba(167,139,250,0.4)]">
+              78.0%
             </div>
-            <p className="text-xs text-neutral-400">18% never open app after install (Unactivated Users)</p>
+            <div className="flex justify-between items-center text-[10px] font-mono pt-2 border-t border-neutral-800/80">
+              <span className="text-violet-300">780 / 1k Retained</span>
+              <span className="text-rose-400 font-medium">22% Churn</span>
+            </div>
           </div>
 
-          {/* Monetization Conversion */}
-          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-amber-500/40 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all" />
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Free → Paid Rate</span>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-bold">4.8 WKS AVG</span>
+          {/* Card 4: Paid Subscriber Base */}
+          <div className="bg-[#0c0c0e] p-6 rounded-2xl border border-blue-500/30 relative overflow-hidden group hover:border-blue-500/60 transition-all shadow-[0_0_30px_rgba(59,130,246,0.05)]">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all pointer-events-none" />
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Paid Subscribers</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono font-bold border border-blue-500/30">3,376 TOTAL</span>
             </div>
-            <div className="text-4xl font-bold font-mono text-amber-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(251,191,36,0.3)]">
-              ~5%
+            <div className="text-3xl font-bold font-mono text-blue-400 tracking-tight mb-1 drop-shadow-[0_0_12px_rgba(96,165,250,0.4)]">
+              3,376
             </div>
-            <p className="text-xs text-neutral-400">Modeled ARR: $152,727 across 3,376 paid subscribers</p>
+            <div className="flex justify-between items-center text-[10px] text-neutral-400 font-mono pt-2 border-t border-neutral-800/80">
+              <span>2,347 Qtr</span>
+              <span>243 Ann</span>
+              <span>786 Life</span>
+            </div>
           </div>
 
-        </div>
+          {/* Card 5: Free -> Paid Conversion */}
+          <div className="bg-[#0c0c0e] p-6 rounded-2xl border border-amber-500/30 relative overflow-hidden group hover:border-amber-500/60 transition-all shadow-[0_0_30px_rgba(245,158,11,0.05)]">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Monetization Rate</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-bold border border-amber-500/30">4.8 WKS AVG</span>
+            </div>
+            <div className="text-3xl font-bold font-mono text-amber-400 tracking-tight mb-1 drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]">
+              ~5.0%
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-mono pt-2 border-t border-neutral-800/80">
+              <span className="text-amber-300">Conversion Window</span>
+              <span className="text-neutral-400">4.8 Weeks</span>
+            </div>
+          </div>
 
-        {/* Executive Retention & Customer Lifecycle Section */}
-        <div className="bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 space-y-8 relative overflow-hidden">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-800 pb-6">
+        </section>
+
+        {/* Section 1: Executive Customer Lifecycle & Retention Intelligence */}
+        <section className="bg-[#0c0c0e] p-8 rounded-2xl border border-neutral-800/90 space-y-8 relative overflow-hidden shadow-xl">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-800/80 pb-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Updated Retention & Lifecycle Intelligence
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Executive Retention & Lifecycle Report
               </div>
               <h2 className="text-2xl font-bold text-white tracking-tight">
-                Customer Lifecycle Funnel & Retention Analysis
+                Customer Lifecycle Funnel & Retention Intelligence
               </h2>
               <p className="text-neutral-400 text-xs mt-1">
-                Distinct breakdown separating Activation Drop-off (unactivated signups) from Subscription Churn (paid cycle renewals).
+                Precision separation of Activation Drop-off (unactivated signups) from Subscription Churn (first 3-month cycle non-renewals).
               </p>
             </div>
 
-            {/* Modeled ARR Summary Badge */}
-            <div className="bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-800 flex items-center gap-6 shrink-0">
+            <div className="bg-[#141417] px-5 py-3 rounded-xl border border-neutral-800 flex items-center gap-6 shrink-0 shadow-inner">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 block">Modeled ARR</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 block">Modeled ARR Run-Rate</span>
                 <span className="text-xl font-bold font-mono text-emerald-400">$152,727</span>
               </div>
               <div className="h-8 w-px bg-neutral-800" />
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 block">Subscriber Base</span>
-                <span className="text-xs font-mono text-neutral-200">2,347 Qtr | 243 Ann | 786 Lifetime</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 block">Paid Subscriber Breakdown</span>
+                <span className="text-xs font-mono text-neutral-200">2,347 Quarterly ($15/qtr) | 243 Annual | 786 Lifetime</span>
               </div>
             </div>
           </div>
 
-          {/* Visual Funnel Component */}
+          {/* Visual Step-by-Step Funnel Flow */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 font-mono mb-4">
-              Complete Customer Funnel & Leakage Points
+            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 font-mono mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              Complete Customer Lifecycle Funnel Architecture
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* Funnel Stage 1 */}
-              <div className="bg-neutral-950 p-5 rounded-xl border border-neutral-800/80 flex flex-col justify-between">
+              <div className="bg-[#141417] p-5 rounded-xl border border-neutral-800 flex flex-col justify-between hover:border-neutral-700 transition-all">
                 <div>
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">Stage 1</span>
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest block mb-1">Stage 1 — Acquisition</span>
                   <h4 className="text-sm font-bold text-white mb-2">Active User Base</h4>
-                  <div className="text-2xl font-bold font-mono text-neutral-200 mb-2">124,779</div>
+                  <div className="text-2xl font-bold font-mono text-neutral-100 mb-2">124,779</div>
                 </div>
-                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
-                  Organic acquisition base across web & desktop app
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/80">
+                  Organic acquisition base across web & desktop apps
                 </div>
               </div>
 
               {/* Funnel Stage 2 */}
-              <div className="bg-neutral-950 p-5 rounded-xl border border-blue-900/40 relative flex flex-col justify-between">
+              <div className="bg-[#141417] p-5 rounded-xl border border-blue-900/40 flex flex-col justify-between hover:border-blue-700/60 transition-all">
                 <div>
-                  <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest block mb-1">Stage 2</span>
+                  <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest block mb-1">Stage 2 — Activation</span>
                   <h4 className="text-sm font-bold text-white mb-2">App Activation</h4>
                   <div className="text-2xl font-bold font-mono text-blue-400 mb-2">82%</div>
                 </div>
-                <div className="space-y-1.5 pt-3 border-t border-neutral-800/60">
+                <div className="space-y-1.5 pt-3 border-t border-neutral-800/80">
                   <div className="flex justify-between text-[11px]">
                     <span className="text-neutral-400">Opened App:</span>
-                    <span className="text-blue-300 font-mono font-bold">82%</span>
+                    <span className="text-blue-300 font-mono font-bold">82% (102,318)</span>
                   </div>
                   <div className="flex justify-between text-[11px]">
                     <span className="text-rose-400 font-medium">Never Opened:</span>
-                    <span className="text-rose-400 font-mono font-bold">18%</span>
+                    <span className="text-rose-400 font-mono font-bold">18% (22,461)</span>
                   </div>
                 </div>
               </div>
 
               {/* Funnel Stage 3 */}
-              <div className="bg-neutral-950 p-5 rounded-xl border border-amber-900/40 flex flex-col justify-between">
+              <div className="bg-[#141417] p-5 rounded-xl border border-amber-900/40 flex flex-col justify-between hover:border-amber-700/60 transition-all">
                 <div>
-                  <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block mb-1">Stage 3</span>
-                  <h4 className="text-sm font-bold text-white mb-2">Monetization</h4>
-                  <div className="text-2xl font-bold font-mono text-amber-400 mb-2">~5%</div>
+                  <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block mb-1">Stage 3 — Monetization</span>
+                  <h4 className="text-sm font-bold text-white mb-2">Free → Paid Conversion</h4>
+                  <div className="text-2xl font-bold font-mono text-amber-400 mb-2">~5.0%</div>
                 </div>
-                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
-                  Free → Paid conversion rate (Avg <span className="text-amber-300 font-mono">4.8 wks</span> to convert)
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/80">
+                  Conversion duration takes <strong className="text-amber-300 font-mono">4.8 weeks</strong> on average
                 </div>
               </div>
 
               {/* Funnel Stage 4 */}
-              <div className="bg-neutral-950 p-5 rounded-xl border border-emerald-900/40 flex flex-col justify-between">
+              <div className="bg-[#141417] p-5 rounded-xl border border-emerald-900/40 flex flex-col justify-between hover:border-emerald-700/60 transition-all">
                 <div>
-                  <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block mb-1">Stage 4</span>
-                  <h4 className="text-sm font-bold text-white mb-2">1st Cycle Retention</h4>
-                  <div className="text-2xl font-bold font-mono text-emerald-400 mb-2">78%</div>
+                  <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block mb-1">Stage 4 — Retention</span>
+                  <h4 className="text-sm font-bold text-white mb-2">1st 3-Mo Retention</h4>
+                  <div className="text-2xl font-bold font-mono text-emerald-400 mb-2">78.0%</div>
                 </div>
-                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
-                  3-Month logo retention rate (780 per 1k cohort stay)
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/80">
+                  <strong className="text-emerald-300 font-mono">780 of 1,000</strong> subscribers survive first 3-month renewal
                 </div>
               </div>
 
               {/* Funnel Stage 5 */}
-              <div className="bg-neutral-950 p-5 rounded-xl border border-rose-900/40 flex flex-col justify-between">
+              <div className="bg-[#141417] p-5 rounded-xl border border-rose-900/40 flex flex-col justify-between hover:border-rose-700/60 transition-all">
                 <div>
-                  <span className="text-[10px] font-mono text-rose-400 uppercase tracking-widest block mb-1">Stage 5</span>
-                  <h4 className="text-sm font-bold text-white mb-2">1st Cycle Churn</h4>
-                  <div className="text-2xl font-bold font-mono text-rose-400 mb-2">22%</div>
+                  <span className="text-[10px] font-mono text-rose-400 uppercase tracking-widest block mb-1">Stage 5 — Churn</span>
+                  <h4 className="text-sm font-bold text-white mb-2">1st 3-Mo Churn</h4>
+                  <div className="text-2xl font-bold font-mono text-rose-400 mb-2">22.0%</div>
                 </div>
-                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
-                  Primary recurring revenue leakage point ($15/qtr cycle)
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/80">
+                  Primary recurring-revenue leakage point ($15/qtr cycle)
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Retention & Lifecycle Executive Report Table */}
+          {/* Retention & Lifecycle Executive Matrix Table */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 font-mono mb-4">
-              Retention & Lifecycle Executive Matrix
+            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 font-mono mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              Executive Retention & Lifecycle Metric Matrix
             </h3>
 
-            <div className="overflow-x-auto rounded-xl border border-neutral-800 bg-neutral-950">
+            <div className="overflow-x-auto rounded-xl border border-neutral-800 bg-[#141417]">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-neutral-800 text-[10px] uppercase font-mono tracking-widest text-neutral-500 bg-neutral-900/80">
-                    <th className="py-3 px-5 font-semibold">Funnel Stage / Metric</th>
-                    <th className="py-3 px-5 font-semibold">Current Rate</th>
-                    <th className="py-3 px-5 font-semibold">Duration / Benchmark</th>
-                    <th className="py-3 px-5 font-semibold">Executive & Strategic Takeaway</th>
+                  <tr className="border-b border-neutral-800 text-[10px] uppercase font-mono tracking-widest text-neutral-400 bg-neutral-900/90">
+                    <th className="py-3.5 px-5 font-semibold">Funnel Stage / Metric</th>
+                    <th className="py-3.5 px-5 font-semibold">Current Rate</th>
+                    <th className="py-3.5 px-5 font-semibold">Duration / Cycle</th>
+                    <th className="py-3.5 px-5 font-semibold">Executive & Strategic Takeaway</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-800/60 text-xs font-sans">
-                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                <tbody className="divide-y divide-neutral-800/70 text-xs font-sans">
+                  <tr className="hover:bg-neutral-800/30 transition-colors">
                     <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-500" />
-                      Signup → First Open (Activation)
+                      Signup → First Open (Activation Rate)
                     </td>
                     <td className="py-3.5 px-5 font-mono text-blue-400 font-bold text-sm">82%</td>
                     <td className="py-3.5 px-5 font-mono text-neutral-400">Immediate</td>
                     <td className="py-3.5 px-5 text-neutral-300">
-                      Most users experience product. 18% never open app (Unactivated users). Reducing gap to 12% activates +600 users/10k signups.
+                      82% of signups open the app. 18% never open (Unactivated Users). Reducing gap to 12% activates +600 users/10k signups into monetization.
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                  <tr className="hover:bg-neutral-800/30 transition-colors">
                     <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-rose-500" />
                       Never Opened (Activation Drop-off)
@@ -405,43 +460,43 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     <td className="py-3.5 px-5 font-mono text-rose-400 font-bold text-sm">18%</td>
                     <td className="py-3.5 px-5 font-mono text-neutral-400">Post-Install</td>
                     <td className="py-3.5 px-5 text-neutral-300">
-                      Classified as unactivated rather than churned. These users signed up but never tried the app.
+                      Classified as unactivated rather than churned. These users installed but never opened the product experience.
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                  <tr className="hover:bg-neutral-800/30 transition-colors">
                     <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-amber-500" />
-                      Free → Paid Conversion
+                      Free → Paid Monetization Conversion
                     </td>
-                    <td className="py-3.5 px-5 font-mono text-amber-400 font-bold text-sm">~5%</td>
+                    <td className="py-3.5 px-5 font-mono text-amber-400 font-bold text-sm">~5.0%</td>
                     <td className="py-3.5 px-5 font-mono text-neutral-400">4.8 Weeks Avg</td>
                     <td className="py-3.5 px-5 text-neutral-300">
-                      Monetization conversion window takes ~4.8 weeks. Feeds organic free users into the paying subscriber base.
+                      Monetization conversion window spans ~4.8 weeks. Converts organic free users into the 3,376 paid subscriber base.
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                  <tr className="hover:bg-neutral-800/30 transition-colors">
                     <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       First 3-Month Retention (Renewal Rate)
                     </td>
-                    <td className="py-3.5 px-5 font-mono text-emerald-400 font-bold text-sm">78%</td>
+                    <td className="py-3.5 px-5 font-mono text-emerald-400 font-bold text-sm">78.0%</td>
                     <td className="py-3.5 px-5 font-mono text-neutral-400">3 Months</td>
                     <td className="py-3.5 px-5 text-neutral-300">
-                      Strongest retention KPI. 78% of paying customers survive the initial 3-month cycle. (780 of 1k cohort stay).
+                      Primary retention metric. 78% of paying customers survive the initial 3-month renewal cycle (780 of 1k cohort stay).
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                  <tr className="hover:bg-neutral-800/30 transition-colors">
                     <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-rose-500" />
                       First 3-Month Churn (Non-Renewal)
                     </td>
-                    <td className="py-3.5 px-5 font-mono text-rose-400 font-bold text-sm">22%</td>
+                    <td className="py-3.5 px-5 font-mono text-rose-400 font-bold text-sm">22.0%</td>
                     <td className="py-3.5 px-5 font-mono text-neutral-400">Quarterly ($15/qtr)</td>
                     <td className="py-3.5 px-5 text-neutral-300">
-                      Primary recurring-revenue leakage point. (220 of 1k cohort leave at 1st renewal).
+                      Primary recurring-revenue leakage point. 220 of 1k paid subscribers leave at 1st quarterly renewal ($15/qtr cycle).
                     </td>
                   </tr>
                 </tbody>
@@ -453,78 +508,84 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
             
             {/* Cohort Simulator */}
-            <div className="bg-neutral-950 p-6 rounded-xl border border-neutral-800 space-y-5">
-              <div className="flex justify-between items-center border-b border-neutral-800 pb-4">
+            <div className="bg-[#141417] p-6 rounded-xl border border-neutral-800 space-y-5">
+              <div className="flex justify-between items-center border-b border-neutral-800/80 pb-4">
                 <div>
                   <h4 className="text-sm font-bold text-white">First-Cycle Cohort Renewal Simulator</h4>
-                  <p className="text-[11px] text-neutral-400">Test survivor & churn counts across different paid cohort sizes</p>
+                  <p className="text-[11px] text-neutral-400">Model subscriber retention & revenue survival across paid cohorts</p>
                 </div>
-                <span className="text-[10px] font-mono bg-neutral-900 text-emerald-400 border border-emerald-900/40 px-2.5 py-1 rounded">
-                  78% SURVIVAL
+                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold">
+                  78.0% SURVIVAL
                 </span>
               </div>
 
               {/* Cohort Selector Buttons */}
-              <div className="flex gap-2">
-                {[1000, 5000, 10000, 2347].map((size) => (
+              <div className="flex flex-wrap gap-2">
+                {[1000, 2347, 5000, 10000].map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedCohortSize(size)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all border ${
+                    className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all border ${
                       selectedCohortSize === size
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold shadow-[0_0_10px_rgba(52,211,153,0.2)]"
+                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-bold shadow-[0_0_12px_rgba(52,211,153,0.25)]"
                         : "bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white"
                     }`}
                   >
-                    {size === 2347 ? "2,347 (Qtr Base)" : `${size.toLocaleString()} Cohort`}
+                    {size === 2347 ? "2,347 (Current Qtr Base)" : `${size.toLocaleString()} Cohort`}
                   </button>
                 ))}
               </div>
 
               {/* Result Display */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="bg-neutral-900/60 p-4 rounded-xl border border-emerald-900/30">
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">Retained Subscribers</span>
-                  <div className="text-3xl font-bold font-mono text-emerald-400">{retainedCohort.toLocaleString()}</div>
-                  <span className="text-[10px] text-emerald-400/80 font-mono mt-1 block">78.0% Renewed after 3mo</span>
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="bg-neutral-900/80 p-4 rounded-xl border border-emerald-900/40">
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest block mb-1">Retained</span>
+                  <div className="text-2xl font-bold font-mono text-emerald-400">{retainedCohort.toLocaleString()}</div>
+                  <span className="text-[10px] text-emerald-400/80 font-mono mt-1 block">78% Renewed after 3mo</span>
                 </div>
 
-                <div className="bg-neutral-900/60 p-4 rounded-xl border border-rose-900/30">
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">Churned Subscribers</span>
-                  <div className="text-3xl font-bold font-mono text-rose-400">{churnedCohort.toLocaleString()}</div>
-                  <span className="text-[10px] text-rose-400/80 font-mono mt-1 block">22.0% Non-renewal loss</span>
+                <div className="bg-neutral-900/80 p-4 rounded-xl border border-rose-900/40">
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest block mb-1">Churned</span>
+                  <div className="text-2xl font-bold font-mono text-rose-400">{churnedCohort.toLocaleString()}</div>
+                  <span className="text-[10px] text-rose-400/80 font-mono mt-1 block">22% Non-renewal loss</span>
+                </div>
+
+                <div className="bg-neutral-900/80 p-4 rounded-xl border border-blue-900/40">
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest block mb-1">Retained Qtr ARR</span>
+                  <div className="text-2xl font-bold font-mono text-blue-400">${quarterlyRevenueRetained.toLocaleString()}</div>
+                  <span className="text-[10px] text-blue-400/80 font-mono mt-1 block">$15/qtr renewal rate</span>
                 </div>
               </div>
             </div>
 
             {/* Growth Levers */}
-            <div className="bg-neutral-950 p-6 rounded-xl border border-neutral-800 space-y-5 flex flex-col justify-between">
+            <div className="bg-[#141417] p-6 rounded-xl border border-neutral-800 space-y-5 flex flex-col justify-between">
               <div>
-                <div className="border-b border-neutral-800 pb-4 mb-4">
-                  <h4 className="text-sm font-bold text-white">Dual Growth & Revenue Levers</h4>
-                  <p className="text-[11px] text-neutral-400">High-impact operational optimizations identified in report</p>
+                <div className="border-b border-neutral-800/80 pb-4 mb-4">
+                  <h4 className="text-sm font-bold text-white">Dual Executive Growth Levers</h4>
+                  <p className="text-[11px] text-neutral-400">High-impact revenue & retention levers identified in executive analysis</p>
                 </div>
 
                 <div className="space-y-4">
                   {/* Lever 1 */}
-                  <div className="p-3.5 bg-neutral-900/50 rounded-xl border border-neutral-800">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-blue-300">1. Activation Optimization (18% → 12%)</span>
-                      <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">+600 Users / 10k</span>
+                  <div className="p-4 bg-neutral-900/60 rounded-xl border border-neutral-800/80">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-bold text-blue-300">1. Activation Lever (18% → 12% Gap Reduction)</span>
+                      <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30 font-bold">+600 Users / 10k</span>
                     </div>
                     <p className="text-[11px] text-neutral-400">
-                      Reducing never-opened rate from 18% to 12% activates 600 additional users per 10k signups into the 5% conversion funnel.
+                      Reducing the unactivated "never-opened" rate from 18% to 12% activates 600 additional users per 10k signups directly into the ~5% monetization funnel.
                     </p>
                   </div>
 
                   {/* Lever 2 */}
-                  <div className="p-3.5 bg-neutral-900/50 rounded-xl border border-neutral-800">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-emerald-300">2. Retention Engine (78% → 82%)</span>
-                      <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">+400 Paid / 10k</span>
+                  <div className="p-4 bg-neutral-900/60 rounded-xl border border-neutral-800/80">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-bold text-emerald-300">2. Retention Engine (78% → 82% Renewal Boost)</span>
+                      <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 font-bold">+400 Paid / 10k</span>
                     </div>
                     <p className="text-[11px] text-neutral-400">
-                      Improving 1st-cycle retention from 78% to 82% keeps 400 additional paying subscribers per 10k cohort without additional acquisition costs.
+                      Improving 1st-cycle retention from 78% to 82% retains 400 additional paying subscribers per 10k cohort ($6,000+ quarterly ARR) without additional user acquisition spend.
                     </p>
                   </div>
                 </div>
@@ -532,21 +593,21 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
 
           </div>
-        </div>
+        </section>
 
-        {/* Top Grid: Global Stats & Globe */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Section 2: Live Global Telemetry & Audience Matrix Grid */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Active Users Card */}
-          <div className="bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#00b87a]/5 rounded-full blur-3xl group-hover:bg-[#00b87a]/10 transition-all duration-700 pointer-events-none" />
-            <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 font-mono">Live Global Audience</h2>
+          <div className="bg-[#0c0c0e] p-8 rounded-2xl border border-neutral-800/90 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700 pointer-events-none" />
+            <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 font-mono">Live Global Audience</h2>
             
             <div className="flex items-end gap-3 mb-8">
-              <span className="text-6xl font-bold font-mono tracking-tighter text-white drop-shadow-[0_0_20px_rgba(0,184,122,0.15)] transition-all duration-300">
+              <span className="text-6xl font-bold font-mono tracking-tighter text-white drop-shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all duration-300">
                 {activeUsers.toLocaleString()}
               </span>
-              <span className="mb-2 w-3 h-3 rounded-full bg-[#00b87a] animate-pulse shadow-[0_0_12px_rgba(0,184,122,0.8)]" />
+              <span className="mb-2 w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
             </div>
             
             <div className="space-y-6">
@@ -555,40 +616,40 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   <span className="uppercase tracking-wider">Avg Session Time</span>
                   <span className="text-white font-medium">43m 12s</span>
                 </div>
-                <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="w-[78%] h-full bg-[#6ba3be] rounded-full" />
+                <div className="w-full h-1.5 bg-neutral-800/90 rounded-full overflow-hidden">
+                  <div className="w-[78%] h-full bg-cyan-500 rounded-full" />
                 </div>
               </div>
               
-              <div className="pt-4 border-t border-neutral-800/50">
+              <div className="pt-4 border-t border-neutral-800/60">
                 <div className="flex justify-between text-xs text-neutral-400 mb-2 font-mono">
-                  <span className="uppercase tracking-wider">Traffic Matrix</span>
+                  <span className="uppercase tracking-wider font-semibold">Traffic Matrix</span>
                 </div>
                 <div className="flex gap-1 h-1.5 rounded-full overflow-hidden w-full">
-                  <div className="w-[64%] h-full bg-[#00b87a] hover:opacity-80 transition-opacity cursor-help title-Direct" />
-                  <div className="w-[24%] h-full bg-[#6ba3be] hover:opacity-80 transition-opacity cursor-help title-Social" />
-                  <div className="w-[12%] h-full bg-[#b8865e] hover:opacity-80 transition-opacity cursor-help title-Referral" />
+                  <div className="w-[64%] h-full bg-emerald-500 hover:opacity-80 transition-opacity cursor-help" title="Direct 64%" />
+                  <div className="w-[24%] h-full bg-cyan-500 hover:opacity-80 transition-opacity cursor-help" title="Social 24%" />
+                  <div className="w-[12%] h-full bg-amber-500 hover:opacity-80 transition-opacity cursor-help" title="Referral 12%" />
                 </div>
-                <div className="flex justify-between mt-2 text-[10px] text-neutral-500 font-mono">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-[#00b87a] rounded-full"/>Direct</span>
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-[#6ba3be] rounded-full"/>Social</span>
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-[#b8865e] rounded-full"/>Ref</span>
+                <div className="flex justify-between mt-2 text-[10px] text-neutral-400 font-mono">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"/>Direct (64%)</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-cyan-500 rounded-full"/>Social (24%)</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-amber-500 rounded-full"/>Ref (12%)</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Device Breakdown */}
-          <div className="bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-[#0c0c0e] p-8 rounded-2xl border border-neutral-800/90 flex flex-col justify-between relative overflow-hidden">
             <div>
-              <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-8 font-mono">Device Distribution</h2>
+              <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-8 font-mono">Device & OS Distribution</h2>
               <div className="space-y-6">
                 <div className="relative">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-neutral-300 font-medium flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> Desktop
+                      <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" /> Desktop (Windows / Mac)
                     </span>
-                    <span className="text-neutral-400 font-mono">72.4%</span>
+                    <span className="text-neutral-300 font-mono font-bold">72.4%</span>
                   </div>
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div className="w-[72.4%] h-full bg-blue-500 rounded-full" />
@@ -598,9 +659,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <div className="relative">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-neutral-300 font-medium flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" /> Mobile
+                      <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" /> Mobile (iOS / Android)
                     </span>
-                    <span className="text-neutral-400 font-mono">21.1%</span>
+                    <span className="text-neutral-300 font-mono font-bold">21.1%</span>
                   </div>
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div className="w-[21.1%] h-full bg-purple-500 rounded-full" />
@@ -610,89 +671,98 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <div className="relative">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-neutral-300 font-medium flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#b8865e] shadow-[0_0_8px_rgba(184,134,94,0.5)]" /> Tablet
+                      <span className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" /> Tablet & Web App
                     </span>
-                    <span className="text-neutral-400 font-mono">6.5%</span>
+                    <span className="text-neutral-300 font-mono font-bold">6.5%</span>
                   </div>
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                    <div className="w-[6.5%] h-full bg-[#b8865e] rounded-full" />
+                    <div className="w-[6.5%] h-full bg-amber-500 rounded-full" />
                   </div>
                 </div>
               </div>
             </div>
+
+            <div className="pt-4 border-t border-neutral-800/80 text-[10px] text-neutral-400 font-mono flex justify-between">
+              <span>Platform Specs: Windows 68% | Mac 18%</span>
+              <span className="text-emerald-400">Optimal UX</span>
+            </div>
           </div>
 
           {/* Globe Visualization */}
-          <div className="bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 relative overflow-hidden flex flex-col items-center">
-            <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 font-mono w-full text-left">Global Hotspots</h2>
-            <p className="text-[10px] text-neutral-500 mb-4 w-full text-left">Real-time geospatial plotting of active sessions</p>
+          <div className="bg-[#0c0c0e] p-8 rounded-2xl border border-neutral-800/90 relative overflow-hidden flex flex-col items-center">
+            <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 font-mono w-full text-left">Global Geospatial Hotspots</h2>
+            <p className="text-[10px] text-neutral-400 mb-4 w-full text-left">Real-time geospatial plotting of active sessions across Tier 1, 2, and 3 markets</p>
             <div className="flex-1 w-full flex items-center justify-center">
               <GlobeView />
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Section 3: Operations & User Directory */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Live Match Tracker */}
-          <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800 overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-900 flex justify-between items-center">
-              <h2 className="text-xs font-bold text-neutral-300 uppercase tracking-widest font-mono">Live Match Connections</h2>
-              <span className="text-[10px] font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded border border-neutral-700 uppercase tracking-widest">
-                {cricketMatches.length + soccerMatches.length} Streams
+          <div className="bg-[#0c0c0e] rounded-2xl border border-neutral-800/90 overflow-hidden flex flex-col shadow-lg">
+            <div className="px-6 py-4 border-b border-neutral-800 bg-[#141417] flex justify-between items-center">
+              <h2 className="text-xs font-bold text-neutral-200 uppercase tracking-widest font-mono flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Live Stream Connection Telemetry
+              </h2>
+              <span className="text-[10px] font-mono bg-neutral-800 text-neutral-300 px-2.5 py-1 rounded border border-neutral-700 uppercase tracking-widest">
+                {cricketMatches.length + soccerMatches.length} Streams Active
               </span>
             </div>
             
-            <div className="divide-y divide-neutral-800/50 overflow-y-auto max-h-[500px] flex-1">
+            <div className="divide-y divide-neutral-800/60 overflow-y-auto max-h-[500px] flex-1">
               {cricketMatches.length === 0 && soccerMatches.length === 0 && (
                 <div className="p-8 text-center text-neutral-500 text-sm font-mono">
-                  NO ACTIVE TELEMETRY
+                  NO ACTIVE TELEMETRY STREAMS
                 </div>
               )}
 
               {cricketMatches.map((match) => (
-                <div key={match.id} className="p-5 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-neutral-800/50 transition-colors">
+                <div key={match.id} className="p-5 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-neutral-800/30 transition-colors">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00b87a] animate-pulse" />
-                      <span className="text-[10px] font-bold text-[#00b87a] uppercase tracking-wider font-mono">CRICKET • {match.status}</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-mono">CRICKET • {match.status}</span>
                     </div>
-                    <h3 className="text-sm font-bold text-neutral-200">{match.title}</h3>
+                    <h3 className="text-sm font-bold text-neutral-100">{match.title}</h3>
                     <p className="text-xs text-neutral-400 mt-1">{match.score}</p>
                   </div>
                   <div className="flex items-center gap-4 md:text-right shrink-0">
                     <div className="hidden md:block w-24 h-1 bg-neutral-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-neutral-400" style={{ width: `${Math.min(100, (match.viewers / 100000) * 100)}%` }} />
+                      <div className="h-full bg-emerald-400" style={{ width: `${Math.min(100, (match.viewers / 100000) * 100)}%` }} />
                     </div>
                     <div className="w-20 text-right">
                       <div className="text-lg font-bold font-mono text-white transition-all duration-300">
                         {match.viewers.toLocaleString()}
                       </div>
-                      <div className="text-[9px] uppercase tracking-widest text-neutral-500">Watching</div>
+                      <div className="text-[9px] uppercase tracking-widest text-neutral-400">Watching</div>
                     </div>
                   </div>
                 </div>
               ))}
 
               {soccerMatches.map((match) => (
-                <div key={match.id} className="p-5 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-neutral-800/50 transition-colors">
+                <div key={match.id} className="p-5 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-neutral-800/30 transition-colors">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#b8865e] animate-pulse" />
-                      <span className="text-[10px] font-bold text-[#b8865e] uppercase tracking-wider font-mono">SOCCER • {match.status}</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                      <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider font-mono">SOCCER • {match.status}</span>
                     </div>
-                    <h3 className="text-sm font-bold text-neutral-200">{match.title}</h3>
+                    <h3 className="text-sm font-bold text-neutral-100">{match.title}</h3>
                     <p className="text-xs text-neutral-400 mt-1">{match.score}</p>
                   </div>
                   <div className="flex items-center gap-4 md:text-right shrink-0">
                     <div className="hidden md:block w-24 h-1 bg-neutral-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-neutral-400" style={{ width: `${Math.min(100, (match.viewers / 150000) * 100)}%` }} />
+                      <div className="h-full bg-cyan-400" style={{ width: `${Math.min(100, (match.viewers / 150000) * 100)}%` }} />
                     </div>
                     <div className="w-20 text-right">
                       <div className="text-lg font-bold font-mono text-white transition-all duration-300">
                         {match.viewers.toLocaleString()}
                       </div>
-                      <div className="text-[9px] uppercase tracking-widest text-neutral-500">Watching</div>
+                      <div className="text-[9px] uppercase tracking-widest text-neutral-400">Watching</div>
                     </div>
                   </div>
                 </div>
@@ -701,59 +771,66 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </div>
 
           {/* Members Table */}
-          <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800 overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-900 flex justify-between items-center shrink-0">
-              <h2 className="text-xs font-bold text-neutral-300 uppercase tracking-widest font-mono">Registered Members Directory</h2>
-              <span className="text-[10px] font-mono text-neutral-500">Total: 124,779</span>
+          <div className="bg-[#0c0c0e] rounded-2xl border border-neutral-800/90 overflow-hidden flex flex-col shadow-lg">
+            <div className="px-6 py-4 border-b border-neutral-800 bg-[#141417] flex justify-between items-center shrink-0">
+              <div>
+                <h2 className="text-xs font-bold text-neutral-200 uppercase tracking-widest font-mono">Registered Members Directory</h2>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded">
+                Active Pool: 124,779
+              </span>
             </div>
             
             <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-neutral-900/95 backdrop-blur z-10">
-                  <tr className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono border-b border-neutral-800">
-                    <th className="px-6 py-3 font-medium">User</th>
-                    <th className="px-6 py-3 font-medium">Region</th>
-                    <th className="px-6 py-3 font-medium">Session Duration</th>
+                <thead className="sticky top-0 bg-[#141417] backdrop-blur z-10">
+                  <tr className="text-[10px] uppercase tracking-widest text-neutral-400 font-mono border-b border-neutral-800">
+                    <th className="px-6 py-3 font-medium">User Credentials</th>
+                    <th className="px-6 py-3 font-medium">Region & Tier</th>
+                    <th className="px-6 py-3 font-medium">Session & Plan</th>
                     <th className="px-6 py-3 font-medium">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-800/50 text-sm">
+                <tbody className="divide-y divide-neutral-800/60 text-sm">
                   {displayedMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-neutral-800/30 transition-colors">
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-bold text-neutral-400 border border-neutral-700">
+                          <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-bold text-neutral-300 border border-neutral-700/80">
                             {member.name.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-medium text-neutral-200">{maskName(member.name)}</div>
-                            <div className="text-xs text-neutral-500">{maskEmail(member.email)}</div>
+                            <div className="font-medium text-neutral-100">{maskName(member.name)}</div>
+                            <div className="text-xs text-neutral-400 font-mono">{maskEmail(member.email)}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-2">
-                          <span className={getRegionBadge(member.region)?.textClass || "text-neutral-400 font-medium"}>
+                          <span className={getRegionBadge(member.region)?.textClass || "text-neutral-300 font-medium"}>
                             {member.region}
                           </span>
                           {getRegionBadge(member.region) && (
-                            <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase tracking-widest border ${getRegionBadge(member.region)?.className}`}>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase tracking-widest border font-mono ${getRegionBadge(member.region)?.className}`}>
                               {getRegionBadge(member.region)?.label}
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-3">
-                        <span className={`text-[10px] font-mono uppercase tracking-widest ${
-                          member.status === 'Online' ? 'text-[#00b87a]' : 'text-neutral-500'
-                        }`}>
-                          {member.session}
-                        </span>
+                        <div className="space-y-0.5">
+                          <div className={`text-[10px] font-mono uppercase tracking-widest ${
+                            member.status === 'Online' ? 'text-emerald-400 font-bold' : 'text-neutral-400'
+                          }`}>
+                            {member.session}
+                          </div>
+                          <div className="text-[9px] font-mono text-neutral-400">{member.tier}</div>
+                        </div>
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-2">
-                          <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Online' ? 'bg-[#00b87a] animate-pulse' : 'bg-neutral-600'}`} />
-                          <span className={`text-xs ${member.status === 'Online' ? 'text-neutral-300' : 'text-neutral-500'}`}>{member.status}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'Online' ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-600'}`} />
+                          <span className={`text-xs font-mono ${member.status === 'Online' ? 'text-emerald-400 font-bold' : 'text-neutral-400'}`}>{member.status}</span>
                         </div>
                       </td>
                     </tr>
@@ -762,18 +839,19 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               </table>
             </div>
             
-            <div className="p-4 border-t border-neutral-800 bg-neutral-900/30 text-center shrink-0">
+            <div className="p-4 border-t border-neutral-800 bg-[#141417] text-center shrink-0">
               <button 
                 onClick={loadMoreMembers}
                 disabled={isLoadingMore}
-                className="text-[10px] uppercase tracking-widest font-mono text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
+                className="text-[10px] uppercase tracking-widest font-mono text-neutral-300 hover:text-white transition-colors disabled:opacity-50 font-bold bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-lg"
               >
-                {isLoadingMore ? "Loading..." : "Load More Members..."}
+                {isLoadingMore ? "Loading Directory..." : "Load More Members..."}
               </button>
             </div>
           </div>
         </div>
-      </div>
+
+      </main>
     </div>
   );
 }
