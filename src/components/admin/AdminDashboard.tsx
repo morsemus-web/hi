@@ -71,6 +71,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [cricketMatches, setCricketMatches] = useState<any[]>([]);
   const [soccerMatches, setSoccerMatches] = useState<any[]>([]);
 
+  // Cohort Simulator State
+  const [selectedCohortSize, setSelectedCohortSize] = useState<number>(1000);
+
   // Calculate total active users based on live match viewers + base browsing users
   const activeUsers = baseBrowsingUsers + 
     cricketMatches.reduce((sum, m) => sum + m.viewers, 0) + 
@@ -172,10 +175,14 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     }, 600);
   };
 
+  // Cohort math calculation
+  const retainedCohort = Math.round(selectedCohortSize * 0.78);
+  const churnedCohort = Math.round(selectedCohortSize * 0.22);
+
   return (
     // FORCED DARK MODE CONTAINER: bg-neutral-950, text-white
     <div className="min-h-screen font-sans bg-neutral-950 text-neutral-200">
-      <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+      <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-800 pb-6">
@@ -183,7 +190,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
               Scoredeck Platform
             </h1>
-            <p className="text-neutral-400 text-sm mt-1 uppercase tracking-widest font-mono">Live Telemetry & Audience Matrix</p>
+            <p className="text-neutral-400 text-sm mt-1 uppercase tracking-widest font-mono">Live Telemetry & Retention Intelligence</p>
           </div>
           <div className="flex gap-4">
             <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium hover:bg-neutral-800 hover:text-white transition-colors">
@@ -195,6 +202,335 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             >
               End Session
             </button>
+          </div>
+        </div>
+
+        {/* Executive KPI Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          {/* First-Cycle Retention */}
+          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">First-Cycle Retention</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono font-bold">3-MONTH CYCLE</span>
+            </div>
+            <div className="text-4xl font-bold font-mono text-emerald-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]">
+              78%
+            </div>
+            <p className="text-xs text-neutral-400">780 of 1,000 subscribers renew after first 3-month cycle</p>
+          </div>
+
+          {/* First-Cycle Churn */}
+          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-rose-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all" />
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">First-Cycle Churn</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 font-mono font-bold">RENEWAL LEAKAGE</span>
+            </div>
+            <div className="text-4xl font-bold font-mono text-rose-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(244,63,94,0.3)]">
+              22%
+            </div>
+            <p className="text-xs text-neutral-400">220 of 1,000 subscribers drop off at 1st renewal ($15/qtr)</p>
+          </div>
+
+          {/* Activation Rate */}
+          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-blue-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all" />
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Activation Rate</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono font-bold">OPENED APP</span>
+            </div>
+            <div className="text-4xl font-bold font-mono text-blue-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(96,165,250,0.3)]">
+              82%
+            </div>
+            <p className="text-xs text-neutral-400">18% never open app after install (Unactivated Users)</p>
+          </div>
+
+          {/* Monetization Conversion */}
+          <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800 relative overflow-hidden group hover:border-amber-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all" />
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono">Free → Paid Rate</span>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-bold">4.8 WKS AVG</span>
+            </div>
+            <div className="text-4xl font-bold font-mono text-amber-400 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(251,191,36,0.3)]">
+              ~5%
+            </div>
+            <p className="text-xs text-neutral-400">Modeled ARR: $152,727 across 3,376 paid subscribers</p>
+          </div>
+
+        </div>
+
+        {/* Executive Retention & Customer Lifecycle Section */}
+        <div className="bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 space-y-8 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-800 pb-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Updated Retention & Lifecycle Intelligence
+              </div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">
+                Customer Lifecycle Funnel & Retention Analysis
+              </h2>
+              <p className="text-neutral-400 text-xs mt-1">
+                Distinct breakdown separating Activation Drop-off (unactivated signups) from Subscription Churn (paid cycle renewals).
+              </p>
+            </div>
+
+            {/* Modeled ARR Summary Badge */}
+            <div className="bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-800 flex items-center gap-6 shrink-0">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 block">Modeled ARR</span>
+                <span className="text-xl font-bold font-mono text-emerald-400">$152,727</span>
+              </div>
+              <div className="h-8 w-px bg-neutral-800" />
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 block">Subscriber Base</span>
+                <span className="text-xs font-mono text-neutral-200">2,347 Qtr | 243 Ann | 786 Lifetime</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Funnel Component */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 font-mono mb-4">
+              Complete Customer Funnel & Leakage Points
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {/* Funnel Stage 1 */}
+              <div className="bg-neutral-950 p-5 rounded-xl border border-neutral-800/80 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">Stage 1</span>
+                  <h4 className="text-sm font-bold text-white mb-2">Active User Base</h4>
+                  <div className="text-2xl font-bold font-mono text-neutral-200 mb-2">124,779</div>
+                </div>
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
+                  Organic acquisition base across web & desktop app
+                </div>
+              </div>
+
+              {/* Funnel Stage 2 */}
+              <div className="bg-neutral-950 p-5 rounded-xl border border-blue-900/40 relative flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest block mb-1">Stage 2</span>
+                  <h4 className="text-sm font-bold text-white mb-2">App Activation</h4>
+                  <div className="text-2xl font-bold font-mono text-blue-400 mb-2">82%</div>
+                </div>
+                <div className="space-y-1.5 pt-3 border-t border-neutral-800/60">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-neutral-400">Opened App:</span>
+                    <span className="text-blue-300 font-mono font-bold">82%</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-rose-400 font-medium">Never Opened:</span>
+                    <span className="text-rose-400 font-mono font-bold">18%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Funnel Stage 3 */}
+              <div className="bg-neutral-950 p-5 rounded-xl border border-amber-900/40 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block mb-1">Stage 3</span>
+                  <h4 className="text-sm font-bold text-white mb-2">Monetization</h4>
+                  <div className="text-2xl font-bold font-mono text-amber-400 mb-2">~5%</div>
+                </div>
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
+                  Free → Paid conversion rate (Avg <span className="text-amber-300 font-mono">4.8 wks</span> to convert)
+                </div>
+              </div>
+
+              {/* Funnel Stage 4 */}
+              <div className="bg-neutral-950 p-5 rounded-xl border border-emerald-900/40 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block mb-1">Stage 4</span>
+                  <h4 className="text-sm font-bold text-white mb-2">1st Cycle Retention</h4>
+                  <div className="text-2xl font-bold font-mono text-emerald-400 mb-2">78%</div>
+                </div>
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
+                  3-Month logo retention rate (780 per 1k cohort stay)
+                </div>
+              </div>
+
+              {/* Funnel Stage 5 */}
+              <div className="bg-neutral-950 p-5 rounded-xl border border-rose-900/40 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-rose-400 uppercase tracking-widest block mb-1">Stage 5</span>
+                  <h4 className="text-sm font-bold text-white mb-2">1st Cycle Churn</h4>
+                  <div className="text-2xl font-bold font-mono text-rose-400 mb-2">22%</div>
+                </div>
+                <div className="text-[11px] text-neutral-400 pt-3 border-t border-neutral-800/60">
+                  Primary recurring revenue leakage point ($15/qtr cycle)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Retention & Lifecycle Executive Report Table */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 font-mono mb-4">
+              Retention & Lifecycle Executive Matrix
+            </h3>
+
+            <div className="overflow-x-auto rounded-xl border border-neutral-800 bg-neutral-950">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-800 text-[10px] uppercase font-mono tracking-widest text-neutral-500 bg-neutral-900/80">
+                    <th className="py-3 px-5 font-semibold">Funnel Stage / Metric</th>
+                    <th className="py-3 px-5 font-semibold">Current Rate</th>
+                    <th className="py-3 px-5 font-semibold">Duration / Benchmark</th>
+                    <th className="py-3 px-5 font-semibold">Executive & Strategic Takeaway</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-800/60 text-xs font-sans">
+                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                    <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Signup → First Open (Activation)
+                    </td>
+                    <td className="py-3.5 px-5 font-mono text-blue-400 font-bold text-sm">82%</td>
+                    <td className="py-3.5 px-5 font-mono text-neutral-400">Immediate</td>
+                    <td className="py-3.5 px-5 text-neutral-300">
+                      Most users experience product. 18% never open app (Unactivated users). Reducing gap to 12% activates +600 users/10k signups.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                    <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      Never Opened (Activation Drop-off)
+                    </td>
+                    <td className="py-3.5 px-5 font-mono text-rose-400 font-bold text-sm">18%</td>
+                    <td className="py-3.5 px-5 font-mono text-neutral-400">Post-Install</td>
+                    <td className="py-3.5 px-5 text-neutral-300">
+                      Classified as unactivated rather than churned. These users signed up but never tried the app.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                    <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      Free → Paid Conversion
+                    </td>
+                    <td className="py-3.5 px-5 font-mono text-amber-400 font-bold text-sm">~5%</td>
+                    <td className="py-3.5 px-5 font-mono text-neutral-400">4.8 Weeks Avg</td>
+                    <td className="py-3.5 px-5 text-neutral-300">
+                      Monetization conversion window takes ~4.8 weeks. Feeds organic free users into the paying subscriber base.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                    <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      First 3-Month Retention (Renewal Rate)
+                    </td>
+                    <td className="py-3.5 px-5 font-mono text-emerald-400 font-bold text-sm">78%</td>
+                    <td className="py-3.5 px-5 font-mono text-neutral-400">3 Months</td>
+                    <td className="py-3.5 px-5 text-neutral-300">
+                      Strongest retention KPI. 78% of paying customers survive the initial 3-month cycle. (780 of 1k cohort stay).
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-neutral-900/40 transition-colors">
+                    <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      First 3-Month Churn (Non-Renewal)
+                    </td>
+                    <td className="py-3.5 px-5 font-mono text-rose-400 font-bold text-sm">22%</td>
+                    <td className="py-3.5 px-5 font-mono text-neutral-400">Quarterly ($15/qtr)</td>
+                    <td className="py-3.5 px-5 text-neutral-300">
+                      Primary recurring-revenue leakage point. (220 of 1k cohort leave at 1st renewal).
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Interactive Cohort Simulator & Growth Levers */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+            
+            {/* Cohort Simulator */}
+            <div className="bg-neutral-950 p-6 rounded-xl border border-neutral-800 space-y-5">
+              <div className="flex justify-between items-center border-b border-neutral-800 pb-4">
+                <div>
+                  <h4 className="text-sm font-bold text-white">First-Cycle Cohort Renewal Simulator</h4>
+                  <p className="text-[11px] text-neutral-400">Test survivor & churn counts across different paid cohort sizes</p>
+                </div>
+                <span className="text-[10px] font-mono bg-neutral-900 text-emerald-400 border border-emerald-900/40 px-2.5 py-1 rounded">
+                  78% SURVIVAL
+                </span>
+              </div>
+
+              {/* Cohort Selector Buttons */}
+              <div className="flex gap-2">
+                {[1000, 5000, 10000, 2347].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedCohortSize(size)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all border ${
+                      selectedCohortSize === size
+                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold shadow-[0_0_10px_rgba(52,211,153,0.2)]"
+                        : "bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white"
+                    }`}
+                  >
+                    {size === 2347 ? "2,347 (Qtr Base)" : `${size.toLocaleString()} Cohort`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Result Display */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="bg-neutral-900/60 p-4 rounded-xl border border-emerald-900/30">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">Retained Subscribers</span>
+                  <div className="text-3xl font-bold font-mono text-emerald-400">{retainedCohort.toLocaleString()}</div>
+                  <span className="text-[10px] text-emerald-400/80 font-mono mt-1 block">78.0% Renewed after 3mo</span>
+                </div>
+
+                <div className="bg-neutral-900/60 p-4 rounded-xl border border-rose-900/30">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">Churned Subscribers</span>
+                  <div className="text-3xl font-bold font-mono text-rose-400">{churnedCohort.toLocaleString()}</div>
+                  <span className="text-[10px] text-rose-400/80 font-mono mt-1 block">22.0% Non-renewal loss</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Growth Levers */}
+            <div className="bg-neutral-950 p-6 rounded-xl border border-neutral-800 space-y-5 flex flex-col justify-between">
+              <div>
+                <div className="border-b border-neutral-800 pb-4 mb-4">
+                  <h4 className="text-sm font-bold text-white">Dual Growth & Revenue Levers</h4>
+                  <p className="text-[11px] text-neutral-400">High-impact operational optimizations identified in report</p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Lever 1 */}
+                  <div className="p-3.5 bg-neutral-900/50 rounded-xl border border-neutral-800">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-bold text-blue-300">1. Activation Optimization (18% → 12%)</span>
+                      <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">+600 Users / 10k</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400">
+                      Reducing never-opened rate from 18% to 12% activates 600 additional users per 10k signups into the 5% conversion funnel.
+                    </p>
+                  </div>
+
+                  {/* Lever 2 */}
+                  <div className="p-3.5 bg-neutral-900/50 rounded-xl border border-neutral-800">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-bold text-emerald-300">2. Retention Engine (78% → 82%)</span>
+                      <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">+400 Paid / 10k</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400">
+                      Improving 1st-cycle retention from 78% to 82% keeps 400 additional paying subscribers per 10k cohort without additional acquisition costs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -368,7 +704,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800 overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-900 flex justify-between items-center shrink-0">
               <h2 className="text-xs font-bold text-neutral-300 uppercase tracking-widest font-mono">Registered Members Directory</h2>
-              <span className="text-[10px] font-mono text-neutral-500">Total: 122,374</span>
+              <span className="text-[10px] font-mono text-neutral-500">Total: 124,779</span>
             </div>
             
             <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
