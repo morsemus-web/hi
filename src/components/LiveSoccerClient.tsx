@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "@/i18n/navigation";
+import HouseAdView from "./HouseAdView";
 
 /* ── Types ── */
 interface MatchData {
@@ -417,6 +418,13 @@ export default function LiveSoccerClient() {
                     />
                   ))}
                 </div>
+
+                {/* Inline House Ad Banner */}
+                {leagueBlock === filteredLeagues[0] && (
+                  <div className="pt-4">
+                    <HouseAdView variant="inline" sport="football" campaignIndex={0} />
+                  </div>
+                )}
               </div>
             ))}
           </div>

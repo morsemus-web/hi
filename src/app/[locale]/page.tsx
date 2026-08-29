@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Problem from "@/components/Problem";
 import Solution from "@/components/Solution";
+import PlatformDisplayPreviews from "@/components/PlatformDisplayPreviews";
 import Features from "@/components/Features";
 import Commentary from "@/components/Commentary";
 import LatestNews from "@/components/LatestNews";
@@ -71,6 +72,7 @@ export default function Home() {
       <Hero />
       <Problem />
       <Solution />
+      <PlatformDisplayPreviews />
       <Features />
       <Commentary />
       <LiveTracker />

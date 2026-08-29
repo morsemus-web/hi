@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { evaluateCricketMatchState } from "@/lib/cricketEngine";
+import HouseAdView from "./HouseAdView";
 
 /* ── Types ── */
 interface MatchBatsman {
@@ -795,6 +796,13 @@ export default function LiveCricketClient() {
                     </div>
                   ))}
                 </div>
+
+                {/* Inline House Ad */}
+                {leagueKey === filteredGroupedKeys[0] && (
+                  <div className="pt-6">
+                    <HouseAdView variant="inline" sport="cricket" campaignIndex={1} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
