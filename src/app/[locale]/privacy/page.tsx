@@ -36,10 +36,13 @@ export default async function Privacy() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">1. Information We Collect</h2>
             <p className="mb-3">
-              <strong className="text-text-primary/80">Account Information:</strong> When you join our waitlist or purchase early access, we collect your email address and payment information (processed securely by Dodo Payments).
+              <strong className="text-text-primary/80">Account Information:</strong> When you join our waitlist or purchase early access, we collect your email address. Payments are processed by Stripe or Dodo Payments; we receive confirmation of the payment and the amount, never your card details.
             </p>
             <p className="mb-3">
-              <strong className="text-text-primary/80">Usage Data:</strong> We collect anonymous usage analytics to improve the app, including feature usage patterns and crash reports. No personal browsing data is tracked.
+              <strong className="text-text-primary/80">Usage Data:</strong> The website, desktop app and Android app send anonymous usage events: when the app is opened, a periodic signal while it is in use, and which sport or league you open. Each device is identified only by a random ID generated on that device. We record the app version and your approximate country (derived from your connection, not stored as an IP address). This data is not linked to your account or email. The website does not send these events if your browser has Do Not Track enabled. In the EU, EEA, UK and Switzerland they are only collected if you agree in the consent prompt (website) or turn on "Share anonymous usage statistics" (desktop and Android apps). You can turn this off at any time in the apps' settings.
+            </p>
+            <p className="mb-3">
+              <strong className="text-text-primary/80">Advertising:</strong> Free users see ads. Ads from our direct sponsors are served by us and we only record whether an ad was shown or clicked. When no sponsor ad is available, the website shows ads from Google AdSense and the Android app shows ads from Google AdMob. Google may use cookies (website) or your device&apos;s advertising ID (Android) to show and measure ads, under Google&apos;s own privacy policy. Where required by law, you are asked for consent first and can choose non-personalised ads. Subscribers with an active ad-free plan see no ads.
             </p>
             <p>
               <strong className="text-text-primary/80">Sports Preferences:</strong> Your selected teams, leagues, and notification preferences are stored locally on your device and synced to your account for a personalized experience.
@@ -60,14 +63,14 @@ export default async function Privacy() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">3. Data Storage & Security</h2>
             <p>
-              Your data is stored securely using Supabase (hosted on AWS). All data transmission is encrypted via TLS. Payment information is processed by Dodo Payments and is never stored on our servers. We do not sell, trade, or share your personal data with third parties.
+              Your data is stored securely using Supabase (hosted on AWS). All data transmission is encrypted via TLS. Card details are handled by Stripe or Dodo Payments and never reach our servers. We do not sell your personal data. We share data only with the service providers needed to run ScoreDeck (Supabase for storage, Stripe and Dodo Payments for payments, Resend for email, Vercel for hosting) and, for advertising and analytics, with Google as described above.
             </p>
           </section>
 
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">4. Desktop Application</h2>
             <p>
-              ScoreDeck runs as a lightweight desktop application. It does not monitor your screen, keystrokes, or browser activity. The app only communicates with our servers to fetch live sports data and sync your preferences.
+              ScoreDeck runs as a lightweight desktop application. It does not monitor your screen, keystrokes, or browser activity. The app only communicates with our servers to fetch live sports data, sync your preferences, show sponsor messages, and send the anonymous usage events described above.
             </p>
           </section>
 
@@ -87,7 +90,7 @@ export default async function Privacy() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">6. Cookies</h2>
             <p>
-              Our website does not use any cookies. We use Google Analytics for anonymous usage statistics, which operates without cookies. The desktop app does not use cookies either.
+              The website uses cookies and similar storage for sign-in, for Google Analytics (visit statistics) and for Google AdSense (advertising). Visitors in the EU, EEA, UK and Switzerland are asked for consent before non-essential cookies are used. Our own anonymous usage statistics use a random ID in your browser&apos;s local storage, not a cookie. The desktop and Android apps do not use cookies; the Android app may use the advertising ID for Google AdMob as described above.
             </p>
           </section>
 
@@ -112,7 +115,7 @@ export default async function Privacy() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">9. Contact</h2>
             <p>
-              Questions about this policy? Reach us at{" "}
+              ScoreDeck is operated by Orbytech IT Solutions L.L.C, Dubai, United Arab Emirates, which is responsible for your personal data. Questions about this policy? Reach us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">
                 hello@tryscoredeck.pro
               </a>

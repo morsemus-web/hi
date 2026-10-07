@@ -1,25 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
 export default function ThanksPage() {
   const t = useTranslations("Thanks");
-  useEffect(() => {
-    // Extract email from URL params if Dodo passes it
-    const params = new URLSearchParams(window.location.search);
-    const email = params.get("email");
-    const paymentId = params.get("payment_id");
-
-    if (email) {
-      fetch("/api/backers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, payment_id: paymentId }),
-      }).catch(() => {});
-    }
-  }, []);
+  // Backers and access are recorded by the payment webhook, not this page.
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 bg-bg">

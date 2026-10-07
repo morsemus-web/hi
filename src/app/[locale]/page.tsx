@@ -2,7 +2,6 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Problem from "@/components/Problem";
 import Solution from "@/components/Solution";
-import PlatformDisplayPreviews from "@/components/PlatformDisplayPreviews";
 import Features from "@/components/Features";
 import Commentary from "@/components/Commentary";
 import LatestNews from "@/components/LatestNews";
@@ -36,10 +35,10 @@ const faqJsonLd = {
     },
     {
       "@type": "Question",
-      name: "Is the Founding User $29 price really a one-time payment?",
+      name: "Can I cancel my Pro subscription anytime?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes! For the first 1,000 users, the $29 Founding Access is a lifetime license. You will never pay a monthly or annual subscription fee, and you'll get all future updates and sports added to the platform.",
+        text: "Yes. ScoreDeck Pro is billed every 3 months ($15) or yearly ($49) and renews automatically until you cancel. Cancel anytime from your account page and you keep Pro until the end of the period you've already paid for. The free version stays free.",
       },
     },
     {
@@ -72,7 +71,6 @@ export default function Home() {
       <Hero />
       <Problem />
       <Solution />
-      <PlatformDisplayPreviews />
       <Features />
       <Commentary />
       <LiveTracker />

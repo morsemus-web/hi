@@ -9,6 +9,7 @@ export interface Profile {
   email: string;
   ads_free_until: string | null;
   dodo_customer_id: string | null;
+  stripe_customer_id?: string | null;
   tier: string;
 }
 

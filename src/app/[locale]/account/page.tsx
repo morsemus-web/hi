@@ -24,6 +24,18 @@ export default function AccountPage() {
   const { user, profile, loading, adsFree } = useUser();
   const router = useRouter();
 
+  async function manageBilling() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const res = await fetch("/api/stripe/portal", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    const body = await res.json();
+    if (res.ok && body.url) window.location.href = body.url;
+    else alert(body.error || "Could not open billing.");
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     router.push("/");
@@ -62,7 +74,7 @@ export default function AccountPage() {
         <div className="border-t border-border pt-6 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase tracking-[0.12em] text-text-muted">
-              Mobile ad-free
+              Ad-free
             </span>
             <span
               className={`text-xs font-mono px-2 py-1 rounded ${
@@ -97,6 +109,14 @@ export default function AccountPage() {
           >
             Download apps
           </Link>
+          {profile?.stripe_customer_id && (
+            <button
+              onClick={manageBilling}
+              className="w-full py-3 border border-border text-[11px] font-medium uppercase tracking-[0.12em] rounded-md hover:border-text-muted transition-colors"
+            >
+              Manage subscription
+            </button>
+          )}
           <button
             onClick={signOut}
             className="w-full py-3 border border-border text-[11px] font-medium uppercase tracking-[0.12em] rounded-md hover:border-text-muted transition-colors"

@@ -40,12 +40,12 @@ export const HOUSE_CAMPAIGNS: HouseCampaign[] = [
   },
   {
     id: 3,
-    tag: "FOUNDING ACCESS",
-    headline: "Lock in Lifetime Founding Access for just $29",
-    subline: "One-time payment forever. Never pay monthly fees, all future sports & updates included.",
-    ctaText: "Claim $29 Lifetime Pass",
+    tag: "SCOREDECK PRO",
+    headline: "Go Pro: every sport, no ads",
+    subline: "From $5/month, billed quarterly. Cancel anytime.",
+    ctaText: "See Pro plans",
     ctaHref: "/#pricing",
-    badge: "Limited to 1,000 Users",
+    badge: "Ad-free",
     icon: "⚡",
     accentColor: "amber",
   },
@@ -89,41 +89,14 @@ export default function HouseAdView({
     }
   }, [campaignIndex]);
 
-  // Log impression to /api/ads/event
-  useEffect(() => {
-    try {
-      fetch("/api/ads/event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campaignId: campaign.id,
-          type: "impression",
-          sport: sport || "general",
-        }),
-      }).catch(() => {});
-    } catch {}
-  }, [campaign.id, sport]);
-
-  const handleClick = () => {
-    try {
-      fetch("/api/ads/event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campaignId: campaign.id,
-          type: "click",
-          sport: sport || "general",
-        }),
-      }).catch(() => {});
-    } catch {}
-  };
+  // House ads promote ScoreDeck itself; they are not paid campaigns, so
+  // nothing is logged to ad_events (see AdUnit for sponsor tracking).
 
   /* ── Pill Variant (for floating overlays, menu bars, widgets) ── */
   if (variant === "pill") {
     return (
       <Link
         href={campaign.ctaHref}
-        onClick={handleClick}
         className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 text-[10px] font-mono text-zinc-300 hover:text-white transition-all backdrop-blur ${className}`}
       >
         <span>{campaign.icon}</span>
@@ -166,8 +139,7 @@ export default function HouseAdView({
 
         <Link
           href={campaign.ctaHref}
-          onClick={handleClick}
-          className="shrink-0 w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold font-mono tracking-tight transition-all shadow-sm"
+            className="shrink-0 w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold font-mono tracking-tight transition-all shadow-sm"
         >
           {campaign.ctaText} →
         </Link>
@@ -206,7 +178,6 @@ export default function HouseAdView({
 
       <Link
         href={campaign.ctaHref}
-        onClick={handleClick}
         className="shrink-0 w-full md:w-auto text-center px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold font-mono tracking-tight transition-all shadow-lg hover:shadow-emerald-500/20"
       >
         {campaign.ctaText} →

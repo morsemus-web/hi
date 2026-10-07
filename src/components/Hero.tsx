@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import CheckoutButton from "./CheckoutButton";
 
 function VideoPlayer({
   videoRef,
@@ -54,58 +53,12 @@ function VideoPlayer({
   );
 }
 
-function useCountUp(target: number | null, duration = 3000, maxDiff = 2500) {
-  const [displayed, setDisplayed] = useState(0);
-  useEffect(() => {
-    if (target === null) return;
-    const startVal = Math.max(0, target - maxDiff);
-    const diff = target - startVal;
-    setDisplayed(startVal);
-    const start = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.round(startVal + eased * diff));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration, maxDiff]);
-  return displayed;
-}
-
 export default function Hero() {
   const t = useTranslations("Hero");
-  const [backerCount, setBackerCount] = useState<number | null>(null);
-  const [remaining, setRemaining] = useState<number | null>(null);
-  const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mobileVideoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const displayedBackers = useCountUp(backerCount);
-  const displayedWaitlist = useCountUp(waitlistCount);
-  const displayedRemaining = useCountUp(remaining);
-
-  useEffect(() => {
-    // 4 sports live is a product fact, not fetched
-    setRemaining(4);
-    // Active users = real waitlist count from the server (which already
-    // includes the pre-launch baseline). Fallback to the whitepaper number
-    // if the API is down so the hero never renders "0 active users".
-    fetch("/api/waitlist")
-      .then((r) => r.json())
-      .then((d) => {
-        const count = typeof d?.count === "number" ? d.count : 124779;
-        setBackerCount(count);
-        setWaitlistCount(count);
-      })
-      .catch(() => {
-        setBackerCount(124779);
-        setWaitlistCount(124779);
-      });
-  }, []);
 
   function playDesktop() {
     if (videoRef.current) {
@@ -179,12 +132,7 @@ export default function Hero() {
             {t("startingAt")}
           </span>
           <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedBackers.toLocaleString()}</span>
-            <span>{t("backed")}</span>
-          </span>
-
-          <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2">
-            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">{displayedRemaining.toLocaleString()}</span>
+            <span className="text-accent/60 font-mono text-sm sm:text-[10px]">4</span>
             <span>{t("spotsLeft")}</span>
           </span>
         </div>

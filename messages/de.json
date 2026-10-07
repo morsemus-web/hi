@@ -145,8 +145,6 @@
     "proAnnualF2": "Unbegrenzte Live-Spiele",
     "proAnnualF3": "Prioritärer Support",
     "proAnnualF4": "Alles in Pro Monatlich",
-    "afterLaunch": "Gründerzugang",
-    "seePostLaunch": "Limitierte Gründerangebote ansehen",
     "popular": "Beliebt"
   },
   "SocialProof": {
@@ -168,8 +166,7 @@
     "join": "Beitreten",
     "loading": "...",
     "success": "Du bist auf der Liste. Wir melden uns.",
-    "noSpam": "Kein Spam. Jederzeit abmelden.",
-    "getEarlyAccess": "Frühzugang — $29 Lebenslang"
+    "noSpam": "Kein Spam. Jederzeit abmelden."
   },
   "FAQ": {
     "sectionLabel": "FAQ",
@@ -178,8 +175,8 @@
     "a1": "ScoreDeck bietet derzeit Live-Berichterstattung für Cricket, Fußball, Basketball und Formel 1. Wir arbeiten auch an der Unterstützung von NFL, Tennis, MMA und Hockey.",
     "q2": "Wie funktioniert das \"Desktop-Overlay\" eigentlich?",
     "a2": "Anders als ein Browser-Tab ist ScoreDeck eine leichtgewichtige Anwendung, die direkt auf deinem Desktop sitzt. Sie verwendet einen \"Stealth-Modus\" und einstellbare Transparenz, damit du den Spielstand im Auge behalten kannst.",
-    "q3": "Ist der $29 Preis als \"Gründungsnutzer\" wirklich eine Einmalzahlung?",
-    "a3": "Ja! Für die ersten 1.000 Nutzer ist der $29 Gründerzugang eine lebenslange Lizenz. Du wirst nie eine monatliche oder jährliche Gebühr zahlen.",
+    "q3": "Kann ich mein Pro-Abo jederzeit kündigen?",
+    "a3": "Ja. ScoreDeck Pro wird alle 3 Monate (15 $) oder jährlich (49 $) abgerechnet und verlängert sich automatisch, bis du kündigst. Du kannst jederzeit in deinem Konto kündigen und behältst Pro bis zum Ende des bereits bezahlten Zeitraums. Die kostenlose Version bleibt kostenlos.",
     "q4": "Funktioniert der Live-Kommentar im Hintergrund?",
     "a4": "Absolut. Du kannst den Live-Audiokommentar auf Englisch, Hindi, Spanisch oder Deutsch einschalten. So kannst du dem Spielfluss zuhören, während du pendelst oder dich auf Aufgaben konzentrierst.",
     "q5": "Kann ich mehrere Spiele oder Sportarten gleichzeitig verfolgen?",
@@ -206,7 +203,7 @@
     "emailTitle": "E-Mail",
     "emailSubtitle": "Am besten für allgemeine Fragen und Support",
     "refundsTitle": "Rückerstattungen",
-    "refundsSubtitle": "Der Gründerzugang hat eine 14-tägige Rückerstattungsrichtlinie. Schreib uns einfach mit deinen Zahlungsdetails.",
+    "refundsSubtitle": "Bezahlte Pläne haben eine 14-tägige Rückerstattungsfrist. Schreib uns einfach mit deinen Zahlungsdetails.",
     "requestRefund": "Rückerstattung anfordern",
     "bugsTitle": "Fehlerberichte & Feature-Wünsche",
     "bugsSubtitle": "Einen Fehler gefunden oder eine Idee? Lass es uns wissen — wir lesen jede Nachricht.",
@@ -225,8 +222,8 @@
   },
   "Thanks": {
     "headline": "Du bist ein {highlight}!",
-    "highlight": "lebenslanger Unterstützer",
-    "description": "Danke für deine Unterstützung von ScoreDeck. Dein $29 lebenslanger Zugang ist bestätigt. Du erhältst jedes zukünftige Update, jede neue Sportart und ein Early-Backer-Badge — für immer.",
+    "highlight": "Pro-Abonnent",
+    "description": "Danke für dein ScoreDeck-Abo. Dein Pro-Plan ist aktiv: keine Werbung und alle Sportarten freigeschaltet. Du kannst ihn jederzeit in deinem Konto verwalten oder kündigen.",
     "emailNote": "Wir senden dir einen Download-Link, sobald ScoreDeck bereit ist. Prüfe deine E-Mail für eine Bestätigung.",
     "backToHome": "Zurück zur Startseite"
   },
@@ -252,7 +249,7 @@
     "privacyTitle": "Datenschutzerklärung",
     "privacyDescription": "ScoreDeck Datenschutzerklärung — Erfahre, wie wir deine Daten sammeln, verwenden und schützen.",
     "termsTitle": "Nutzungsbedingungen",
-    "termsDescription": "ScoreDeck Nutzungsbedingungen — Gründerzugang-Preise, Rückerstattungsrichtlinie und akzeptable Nutzung.",
+    "termsDescription": "ScoreDeck Nutzungsbedingungen – Abopläne, Abrechnung, Rückerstattung, zulässige Nutzung und geistiges Eigentum.",
     "thanksTitle": "Danke",
     "newsTitle": "Sportnachrichten — Cricket, Fußball, NBA & F1 Updates",
     "newsDescription": "Neueste Sportnachrichten, Analysen und Spielvorschauen für Cricket, Fußball, NBA Basketball und Formel 1."

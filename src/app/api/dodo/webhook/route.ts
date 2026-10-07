@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto";
+import { Webhook } from "standardwebhooks";
+import { recordBacker } from "@/lib/backers";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,22 +17,48 @@ function newExpiry(existing: string | null): string {
   return new Date(from + 365 * 24 * 60 * 60 * 1000).toISOString();
 }
 
-function verifySignature(rawBody: string, signature: string | null): boolean {
-  if (!WEBHOOK_SECRET) return true;
-  if (!signature) return false;
-  const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
+// Dodo signs webhooks with the Standard Webhooks scheme (webhook-id,
+// webhook-timestamp, webhook-signature). Without a secret nothing is
+// accepted, so an unconfigured deployment cannot be used to grant ad-free.
+function verifySignature(rawBody: string, req: Request): boolean {
+  if (!WEBHOOK_SECRET) {
+    console.error("DODO_WEBHOOK_SECRET is not set; rejecting webhook");
+    return false;
+  }
   try {
-    return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(signature));
+    new Webhook(WEBHOOK_SECRET).verify(rawBody, {
+      "webhook-id": req.headers.get("webhook-id") ?? "",
+      "webhook-timestamp": req.headers.get("webhook-timestamp") ?? "",
+      "webhook-signature": req.headers.get("webhook-signature") ?? "",
+    });
+    return true;
   } catch {
     return false;
   }
 }
 
+// Every handled event goes into the payments ledger for revenue reporting.
+// The unique (provider, event_type, provider_payment_id) index makes retries harmless.
+async function recordPayment(type: string, data: any, email: string | undefined, productId: string | undefined) {
+  const { error } = await supabaseAdmin.from("payments").upsert(
+    {
+      provider: "dodo",
+      event_type: type,
+      provider_payment_id: data?.payment_id ?? data?.subscription_id ?? data?.id ?? null,
+      email: email ?? null,
+      product_id: productId ?? null,
+      amount_minor: typeof data?.total_amount === "number" ? data.total_amount : null,
+      currency: data?.currency ?? null,
+    },
+    { onConflict: "provider,event_type,provider_payment_id", ignoreDuplicates: true }
+  );
+  if (error) console.error("payments ledger insert failed:", error.message);
+}
+
 export async function POST(req: Request) {
   try {
     const raw = await req.text();
-    const sig = req.headers.get("webhook-signature") || req.headers.get("x-dodo-signature");
-    if (!verifySignature(raw, sig)) {
+    if (!verifySignature(raw, req)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
@@ -41,22 +68,32 @@ export async function POST(req: Request) {
 
     const productId: string | undefined =
       data?.product_id ?? data?.product?.id ?? data?.product_cart?.[0]?.product_id;
+    const email: string | undefined =
+      data?.customer?.email ?? data?.customer_email ?? data?.email;
+
+    // Record revenue for every product (web and mobile subscriptions)
+    // before the mobile-only ad-free handling below.
+    const handled =
+      type === "payment.succeeded" ||
+      type === "subscription.active" ||
+      type === "subscription.created" ||
+      type === "subscription.renewed";
+    if (handled) await recordPayment(type, data, email, productId);
+    if (type === "payment.succeeded" && email) {
+      await recordBacker(email, data?.payment_id ?? null).catch((err) =>
+        console.error("recordBacker failed:", err)
+      );
+    }
+
     if (MOBILE_PRODUCT_ID && productId && productId !== MOBILE_PRODUCT_ID) {
       return NextResponse.json({ status: "ignored", reason: "wrong product" });
     }
 
-    const email: string | undefined =
-      data?.customer?.email ?? data?.customer_email ?? data?.email;
     if (!email) {
       return NextResponse.json({ status: "ignored", reason: "no email" });
     }
 
-    if (
-      type === "payment.succeeded" ||
-      type === "subscription.active" ||
-      type === "subscription.created" ||
-      type === "subscription.renewed"
-    ) {
+    if (handled) {
       const { data: profile } = await supabaseAdmin
         .from("profiles")
         .select("id, ads_free_until")

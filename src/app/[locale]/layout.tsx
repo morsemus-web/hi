@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemeProvider from "@/components/ThemeProvider";
+import UsageTracker from "@/components/UsageTracker";
 import { routing } from "@/i18n/routing";
 
 type Props = {
@@ -109,14 +110,11 @@ const jsonLd = {
       applicationCategory: "SportsApplication",
       description:
         "A lightweight desktop overlay for live sports scores — Cricket, Football, Basketball, and Formula 1. Real-time updates without breaking focus.",
-      offers: {
-        "@type": "Offer",
-        price: "29.00",
-        priceCurrency: "USD",
-        name: "Founding Access — Lifetime",
-        availability: "https://schema.org/LimitedAvailability",
-        url: "https://chaddhafateh.gumroad.com/l/tgdwsy?wanted=true",
-      },
+      offers: [
+        { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD", url: "https://tryscoredeck.pro/download" },
+        { "@type": "Offer", name: "Pro — quarterly", price: "15.00", priceCurrency: "USD", url: "https://tryscoredeck.pro/#pricing" },
+        { "@type": "Offer", name: "Pro — annual", price: "49.00", priceCurrency: "USD", url: "https://tryscoredeck.pro/#pricing" },
+      ],
       featureList: [
         "Live Cricket scores with ball-by-ball updates",
         "Real-time Football scores with goals and xG",
@@ -191,15 +189,18 @@ export default async function LocaleLayout({ children, params }: Props) {
             });
           `}
         </Script>
-        <Script
-          src="https://js.dodopayments.com/v1/checkout.js"
-          strategy="beforeInteractive"
-        />
+        {process.env.NEXT_PUBLIC_CHECKOUT_PROVIDER !== "stripe" && (
+          <Script
+            src="https://js.dodopayments.com/v1/checkout.js"
+            strategy="beforeInteractive"
+          />
+        )}
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>{children}</ThemeProvider>
         </NextIntlClientProvider>
+        <UsageTracker />
         <Analytics />
         <SpeedInsights />
       </body>

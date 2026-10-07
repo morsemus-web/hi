@@ -81,7 +81,7 @@ export default function Pricing() {
               ))}
             </ul>
             <CheckoutButton 
-              productId={process.env.NEXT_PUBLIC_DODO_MONTHLY_ID}
+              plan="quarterly"
               className="w-full py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors duration-200 cursor-pointer rounded-md"
             >
               {t("getStarted")}
@@ -114,7 +114,7 @@ export default function Pricing() {
               ))}
             </ul>
             <CheckoutButton 
-              productId={process.env.NEXT_PUBLIC_DODO_ANNUAL_ID}
+              plan="annual"
               className="w-full py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-bg bg-accent hover:bg-accent/90 transition-colors duration-200 cursor-pointer rounded-md"
             >
               {t("getStarted")}
@@ -122,12 +122,6 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Optional Founding Access Info */}
-        <div className="mt-16 text-center">
-            <p className="text-[10px] font-mono font-light text-text-muted/40 uppercase tracking-[0.2em]">
-                {t("afterLaunch")} • {t("seePostLaunch")}
-            </p>
-        </div>
       </div>
     </section>
   );

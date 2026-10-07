@@ -145,8 +145,6 @@
     "proAnnualF2": "Partidos en vivo ilimitados",
     "proAnnualF3": "Soporte prioritario",
     "proAnnualF4": "Todo en Pro mensual",
-    "afterLaunch": "Acceso fundador",
-    "seePostLaunch": "Ver ofertas de fundador por tiempo limitado",
     "popular": "Popular"
   },
   "SocialProof": {
@@ -168,8 +166,7 @@
     "join": "Unirse",
     "loading": "...",
     "success": "Estás en la lista. Te contactaremos pronto.",
-    "noSpam": "Sin spam. Cancela cuando quieras.",
-    "getEarlyAccess": "Acceso anticipado — $29 de por vida"
+    "noSpam": "Sin spam. Cancela cuando quieras."
   },
   "FAQ": {
     "sectionLabel": "Preguntas frecuentes",
@@ -178,8 +175,8 @@
     "a1": "ScoreDeck actualmente ofrece cobertura en vivo para Cricket, Fútbol, Baloncesto y Fórmula 1. También estamos trabajando en agregar soporte para NFL, Tenis, MMA y Hockey próximamente.",
     "q2": "¿Cómo funciona realmente la \"superposición de escritorio\"?",
     "a2": "A diferencia de una pestaña del navegador, ScoreDeck es una aplicación ligera que se sitúa directamente en tu escritorio, normalmente fijada sobre tu barra de tareas. Usa un \"modo sigiloso\" y opacidad ajustable para que puedas vigilar el marcador mientras trabajas en herramientas como VS Code, Excel o durante videollamadas sin cambiar de ventana.",
-    "q3": "¿El precio de $29 de \"Usuario Fundador\" es realmente un pago único?",
-    "a3": "¡Sí! Para los primeros 1.000 usuarios, el Acceso Fundador de $29 es una licencia de por vida. Nunca pagarás una suscripción mensual o anual, y obtendrás todas las actualizaciones futuras y deportes añadidos a la plataforma.",
+    "q3": "¿Puedo cancelar mi suscripción Pro en cualquier momento?",
+    "a3": "Sí. ScoreDeck Pro se factura cada 3 meses (15 $) o anualmente (49 $) y se renueva automáticamente hasta que la canceles. Puedes cancelarla en cualquier momento desde tu cuenta y conservarás Pro hasta el final del periodo que ya has pagado. La versión gratuita sigue siendo gratuita.",
     "q4": "¿Funcionan los comentarios en vivo en segundo plano?",
     "a4": "Absolutamente. Puedes activar los comentarios de audio en vivo en inglés, hindi, español o alemán. Esto te permite escuchar el flujo del partido mientras viajas o te concentras en tareas que requieren toda tu atención visual.",
     "q5": "¿Puedo seguir varios partidos o deportes al mismo tiempo?",
@@ -206,7 +203,7 @@
     "emailTitle": "Correo electrónico",
     "emailSubtitle": "Mejor para preguntas generales y soporte",
     "refundsTitle": "Reembolsos",
-    "refundsSubtitle": "El Acceso Fundador incluye una política de reembolso de 14 días. Solo envíanos un correo con tus datos de pago.",
+    "refundsSubtitle": "Los planes de pago incluyen una política de reembolso de 14 días. Escríbenos con los datos de tu pago.",
     "requestRefund": "Solicitar un reembolso",
     "bugsTitle": "Reportes de errores y solicitudes",
     "bugsSubtitle": "¿Encontraste un error o tienes una idea? Cuéntanos — leemos cada mensaje.",
@@ -225,8 +222,8 @@
   },
   "Thanks": {
     "headline": "¡Eres un {highlight}!",
-    "highlight": "patrocinador de por vida",
-    "description": "Gracias por respaldar ScoreDeck. Tu acceso de por vida de $29 está confirmado. Recibirás cada actualización futura, cada nuevo deporte y una insignia de patrocinador temprano — para siempre.",
+    "highlight": "suscriptor Pro",
+    "description": "Gracias por suscribirte a ScoreDeck. Tu plan Pro está activo: sin anuncios y con todos los deportes desbloqueados. Puedes gestionarlo o cancelarlo en cualquier momento desde tu cuenta.",
     "emailNote": "Te enviaremos un enlace de descarga tan pronto como ScoreDeck esté listo. Revisa tu correo para una confirmación.",
     "backToHome": "Volver al inicio"
   },
@@ -252,7 +249,7 @@
     "privacyTitle": "Política de privacidad",
     "privacyDescription": "Política de privacidad de ScoreDeck — Aprende cómo recopilamos, usamos y protegemos tus datos.",
     "termsTitle": "Términos de servicio",
-    "termsDescription": "Términos de servicio de ScoreDeck — Precios de Acceso Fundador, política de reembolso y uso aceptable.",
+    "termsDescription": "Términos de servicio de ScoreDeck: planes de suscripción, facturación, política de reembolso, uso aceptable y propiedad intelectual.",
     "thanksTitle": "Gracias",
     "newsTitle": "Noticias deportivas — Actualizaciones de Cricket, Fútbol, NBA y F1",
     "newsDescription": "Últimas noticias deportivas, análisis y previas de partidos para Cricket, Fútbol, Baloncesto NBA y Fórmula 1."

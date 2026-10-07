@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/usage";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "@/i18n/navigation";
 
@@ -210,7 +211,10 @@ export default function LiveF1Client() {
             {data.matches.map((m) => (
               <button
                 key={m.id}
-                onClick={() => setRaceId(m.id)}
+                onClick={() => {
+                  setRaceId(m.id);
+                  track("match_view", { sport: "F1", league: "Formula 1" });
+                }}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-colors cursor-pointer ${
                   m.id === raceId
                     ? "bg-accent text-bg border-accent"

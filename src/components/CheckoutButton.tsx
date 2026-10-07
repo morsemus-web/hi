@@ -4,46 +4,69 @@ import { useEffect, useState } from "react";
 import { DodoPayments } from "dodopayments-checkout";
 import { supabase } from "@/lib/supabase";
 
+// Starts checkout for a plan through whichever provider is active
+// (NEXT_PUBLIC_CHECKOUT_PROVIDER = "stripe" | "dodo"; default dodo).
+
+type Plan = "quarterly" | "annual";
+
+const PROVIDER = process.env.NEXT_PUBLIC_CHECKOUT_PROVIDER === "stripe" ? "stripe" : "dodo";
+
+const DODO_PRODUCTS: Record<Plan, string | undefined> = {
+  quarterly: process.env.NEXT_PUBLIC_DODO_MONTHLY_ID,
+  annual: process.env.NEXT_PUBLIC_DODO_ANNUAL_ID,
+};
+
 export default function CheckoutButton({
   children,
   className,
-  productId,
+  plan,
 }: {
   children: React.ReactNode;
   className?: string;
-  productId?: string;
+  plan: Plan;
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const available = PROVIDER === "stripe" || !!DODO_PRODUCTS[plan];
 
   useEffect(() => {
-    // Initialize Dodo Payments
-    // We use the environment variable if available, otherwise default to test
-    const mode = (process.env.NEXT_PUBLIC_DODO_MODE as "test" | "live") || "test";
-    DodoPayments.Initialize({ mode });
+    if (PROVIDER === "dodo") {
+      const mode = (process.env.NEXT_PUBLIC_DODO_MODE as "test" | "live") || "test";
+      DodoPayments.Initialize({ mode });
+    }
   }, []);
 
   const handleCheckout = async (e: React.MouseEvent) => {
-    // If no productId is provided, fall back to the default behavior (e.g. scroll to pricing or do nothing)
-    if (!productId) return;
-
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Get user email if logged in
       const { data: { session } } = await supabase.auth.getSession();
-      const email = session?.user?.email;
+
+      if (PROVIDER === "stripe") {
+        // Stripe subscriptions are tied to an account, so sign in first.
+        if (!session) {
+          window.location.href = "/login";
+          return;
+        }
+        const res = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ plan }),
+        });
+        const body = await res.json();
+        if (!res.ok || !body.checkout_url) throw new Error(body.error || "Checkout failed");
+        window.location.href = body.checkout_url;
+        return;
+      }
 
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, email }),
+        body: JSON.stringify({ productId: DODO_PRODUCTS[plan], email: session?.user?.email }),
       });
-
       if (!res.ok) throw new Error("Failed to create checkout session");
-
       const { checkout_url } = await res.json();
-      
+
       if (window.DodoPayments) {
         window.DodoPayments.open({
           url: checkout_url,
@@ -52,10 +75,9 @@ export default function CheckoutButton({
           },
         });
       } else {
-        // Fallback if script didn't load
         window.location.href = checkout_url;
       }
-    } catch (error) {
+    } catch {
       alert("Something went wrong with the checkout. Please try again.");
     } finally {
       setIsLoading(false);
@@ -63,11 +85,7 @@ export default function CheckoutButton({
   };
 
   return (
-    <button
-      onClick={handleCheckout}
-      className={className}
-      disabled={isLoading || !productId}
-    >
+    <button onClick={handleCheckout} className={className} disabled={isLoading || !available}>
       {isLoading ? (
         <span className="flex items-center gap-2">
           <svg className="animate-spin h-4 w-4 text-current" viewBox="0 0 24 24">

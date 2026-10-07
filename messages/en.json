@@ -145,8 +145,6 @@
     "proAnnualF2": "Unlimited live matches",
     "proAnnualF3": "Priority support",
     "proAnnualF4": "Everything in Pro Monthly",
-    "afterLaunch": "Founding Access",
-    "seePostLaunch": "See limited-time founding offers",
     "popular": "Popular"
   },
   "SocialProof": {
@@ -175,8 +173,8 @@
     "a1": "ScoreDeck currently provides live coverage for Cricket, Football, Basketball, and Formula 1. We are also working on adding support for NFL, Tennis, MMA, and Hockey in the near future.",
     "q2": "How does the \"Desktop Overlay\" actually work?",
     "a2": "Unlike a browser tab, ScoreDeck is a lightweight application that sits directly on your desktop, typically pinned above your taskbar. It uses a \"stealth mode\" and adjustable opacity so you can keep an eye on the score while working in tools like VS Code, Excel, or during video meetings without switching windows.",
-    "q3": "Is the \"Founding User\" $29 price really a one-time payment?",
-    "a3": "Yes! For the first 1,000 users, the $29 Founding Access is a lifetime license. You will never pay a monthly or annual subscription fee, and you'll get all future updates and sports added to the platform.",
+    "q3": "Can I cancel my Pro subscription anytime?",
+    "a3": "Yes. ScoreDeck Pro is billed every 3 months ($15) or yearly ($49) and renews automatically until you cancel. Cancel anytime from your account page and you keep Pro until the end of the period you've already paid for. The free version stays free.",
     "q4": "Does the live commentary work in the background?",
     "a4": "Absolutely. You can toggle live audio commentary in English, Hindi, Spanish, or German. This allows you to listen to the match flow while you commute or focus on tasks that require your full visual attention.",
     "q5": "Can I track multiple matches or sports at the same time?",
@@ -203,7 +201,7 @@
     "emailTitle": "Email",
     "emailSubtitle": "Best for general questions and support",
     "refundsTitle": "Refunds",
-    "refundsSubtitle": "Founding Access comes with a 14-day refund policy. Just email us with your payment details.",
+    "refundsSubtitle": "Paid plans come with a 14-day refund policy. Just email us with your payment details.",
     "requestRefund": "Request a refund",
     "bugsTitle": "Bug Reports & Feature Requests",
     "bugsSubtitle": "Found a bug or have an idea for a feature? Let us know — we read every message.",
@@ -222,8 +220,8 @@
   },
   "Thanks": {
     "headline": "You're a {highlight}!",
-    "highlight": "lifetime backer",
-    "description": "Thank you for backing ScoreDeck. Your $29 lifetime access is confirmed. You'll get every future update, every new sport, and an early backer badge — forever.",
+    "highlight": "Pro subscriber",
+    "description": "Thank you for subscribing to ScoreDeck. Your Pro plan is active: no ads, and every sport unlocked. You can manage or cancel it anytime from your account page.",
     "emailNote": "We'll send you a download link as soon as ScoreDeck is ready. Check your email for a confirmation.",
     "backToHome": "Back to Home"
   },
@@ -249,7 +247,7 @@
     "privacyTitle": "Privacy Policy",
     "privacyDescription": "ScoreDeck Privacy Policy — Learn how we collect, use, and protect your data.",
     "termsTitle": "Terms of Service",
-    "termsDescription": "ScoreDeck Terms of Service — Founding Access pricing, refund policy, acceptable use, and intellectual property terms.",
+    "termsDescription": "ScoreDeck Terms of Service — subscription plans, billing, refund policy, acceptable use, and intellectual property terms.",
     "thanksTitle": "Thank You",
     "newsTitle": "Sports News — Cricket, Football, NBA & F1 Updates",
     "newsDescription": "Latest sports news, analysis, and match previews for Cricket, Football, NBA Basketball, and Formula 1."

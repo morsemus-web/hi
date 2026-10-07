@@ -174,9 +174,9 @@ ScoreDeck sits quietly in your system tray, delivering live updates without dema
 
 Unlike mobile notifications that interrupt meetings, or browser tabs that tempt you to scroll, ScoreDeck is designed to be glanced at — not stared at. The toolbar sits at the edge of your screen, showing exactly what you need in a format you can process in under 2 seconds.
 
-## Founding Access
+## Pricing
 
-ScoreDeck is currently available for founding access at $29 — a one-time payment for lifetime access. Limited to the first 1,000 users. Join the waitlist for free, or back the project today to secure your spot.`,
+ScoreDeck is free to use. ScoreDeck Pro removes ads and unlocks every sport, for $15 every 3 months or $49 a year. Cancel anytime.`,
     category: "general",
     author: "ScoreDeck Team",
     publishedAt: "2026-03-08T12:00:00Z",

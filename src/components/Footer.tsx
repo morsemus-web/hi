@@ -14,7 +14,7 @@ export default function Footer() {
         </span>
         <span className="text-text-muted/20">&middot;</span>
         <span className="text-text-muted/30 text-[10px] font-light tracking-wider">
-          &copy; {new Date().getFullYear()}
+          &copy; {new Date().getFullYear()} Orbytech IT Solutions L.L.C
         </span>
       </div>
       <div className="flex gap-6">

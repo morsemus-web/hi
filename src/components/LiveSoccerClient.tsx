@@ -1,8 +1,9 @@
 "use client";
 
+import { track } from "@/lib/usage";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "@/i18n/navigation";
-import HouseAdView from "./HouseAdView";
+import SlotAd from "./SlotAd";
 
 /* ── Types ── */
 interface MatchData {
@@ -414,7 +415,10 @@ export default function LiveSoccerClient() {
                     <MatchCard 
                       key={`${match.home_team}-${match.away_team}-${i}`} 
                       match={match} 
-                      onSelect={(m) => setSelectedMatch(m)}
+                      onSelect={(m) => {
+                        setSelectedMatch(m);
+                        track("match_view", { sport: "Football", league: leagueBlock.league });
+                      }}
                     />
                   ))}
                 </div>
@@ -422,7 +426,7 @@ export default function LiveSoccerClient() {
                 {/* Inline House Ad Banner */}
                 {leagueBlock === filteredLeagues[0] && (
                   <div className="pt-4">
-                    <HouseAdView variant="inline" sport="football" campaignIndex={0} />
+                    <SlotAd sport="football" campaignIndex={0} />
                   </div>
                 )}
               </div>

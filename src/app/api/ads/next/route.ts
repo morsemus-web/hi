@@ -52,12 +52,10 @@ function matches(c: Campaign, ctx: {
 const HOUSE_AD = {
   campaignId: 0,
   creativeUrl: "",
-  headline: "The sanctuary in the dunes of Ras Al Khaimah",
-  subline: "Powered by RakOasis",
-  // The desktop widget's inline slot is 60x24px — the full headline cannot fit,
-  // so it gets a short form instead of clipped text.
-  short: "RakOasis",
-  landingUrl: "https://rakoasis.com",
+  headline: "Try ScoreDeck Pro · Live Sports Telemetry",
+  subline: "SCOREDECK PRO · FROM $5/MONTH · NO ADS",
+  short: "TRY SCOREDECK",
+  landingUrl: "https://tryscoredeck.pro/#pricing",
   ttl: 120,
 };
 

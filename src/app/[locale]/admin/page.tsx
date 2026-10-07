@@ -1,86 +1,81 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 
+// The page only handles sign-in. Whether the signed-in user is an admin is
+// decided by /api/admin/stats on the server (ADMIN_EMAILS); without that,
+// the dashboard receives no data.
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [id, setId] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [session, setSession] = useState<Session | null>(null);
+  const [ready, setReady] = useState(false);
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (localStorage.getItem("scoredeck_admin_auth") === "true") {
-      setIsAuthenticated(true);
-    }
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setReady(true);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const sendLink = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (id === "Admin" && password === "KakaKathal@123") {
-      setIsAuthenticated(true);
-      localStorage.setItem("scoredeck_admin_auth", "true");
-      setError("");
-    } else {
-      setError("Invalid administrative credentials.");
-    }
+    setSending(true);
+    setMessage("");
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/admin`,
+        shouldCreateUser: false,
+      },
+    });
+    setMessage(error ? `Error: ${error.message}` : "Check your email for the sign-in link.");
+    setSending(false);
   };
 
-  if (isAuthenticated) {
-    return <AdminDashboard onLogout={() => {
-      setIsAuthenticated(false);
-      localStorage.removeItem("scoredeck_admin_auth");
-    }} />;
+  if (!ready) return null;
+
+  if (session) {
+    return (
+      <AdminDashboard
+        accessToken={session.access_token}
+        email={session.user.email ?? ""}
+        onLogout={() => supabase.auth.signOut()}
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-bg text-text-primary">
-      <div className="glass-card p-12 rounded-2xl max-w-md w-full relative overflow-hidden shadow-[0_0_50px_rgba(184,134,94,0.05)] border border-sport-football/20">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sport-cricket via-accent to-sport-football" />
-        
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Scoredeck Admin</h1>
-          <p className="text-text-muted text-[10px] uppercase tracking-widest font-mono">Restricted Network Portal</p>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-text-dim uppercase tracking-wider font-mono">Admin ID</label>
-            <input
-              type="text"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              className="w-full px-4 py-3 bg-overlay-5 border border-border rounded-lg focus:outline-none focus:border-sport-cricket/50 focus:ring-1 focus:ring-sport-cricket/50 transition-all font-mono text-sm"
-              placeholder="Enter ID"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-text-dim uppercase tracking-wider font-mono">Passcode</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-overlay-5 border border-border rounded-lg focus:outline-none focus:border-sport-cricket/50 focus:ring-1 focus:ring-sport-cricket/50 transition-all font-mono text-sm tracking-widest"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center font-mono uppercase tracking-wide">
-              {error}
-            </div>
-          )}
-
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0a0a0c] text-zinc-100">
+      <div className="w-full max-w-sm p-8 rounded-xl border border-zinc-800 bg-[#111114]">
+        <h1 className="text-lg font-semibold text-white">ScoreDeck Admin</h1>
+        <p className="text-xs text-zinc-400 mt-1 mb-6">
+          Sign in with an authorised company email.
+        </p>
+        <form onSubmit={sendLink} className="space-y-3">
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@tryscoredeck.pro"
+            className="w-full px-3 py-2.5 text-sm rounded-lg bg-zinc-900 border border-zinc-800 focus:outline-none focus:border-zinc-600"
+          />
           <button
             type="submit"
-            className="w-full py-4 bg-overlay-2 hover:bg-overlay-5 border border-border rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:border-sport-cricket/50 hover:text-sport-cricket mt-4 group"
+            disabled={sending}
+            className="w-full py-2.5 text-sm font-medium rounded-lg bg-zinc-100 text-zinc-900 hover:bg-white disabled:opacity-50"
           >
-            Authenticate <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+            {sending ? "Sending…" : "Send sign-in link"}
           </button>
         </form>
+        {message && <p className="text-xs text-zinc-400 mt-4">{message}</p>}
       </div>
     </div>
   );

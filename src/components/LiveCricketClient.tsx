@@ -1,9 +1,10 @@
 "use client";
 
+import { track } from "@/lib/usage";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { evaluateCricketMatchState } from "@/lib/cricketEngine";
-import HouseAdView from "./HouseAdView";
+import SlotAd from "./SlotAd";
 
 /* ── Types ── */
 interface MatchBatsman {
@@ -770,7 +771,7 @@ export default function LiveCricketClient() {
         {/* Match Grouping Blocks (Matches Football Design Pattern) */}
         {!loading && filtered.length > 0 && (
           <div className="space-y-10">
-            {Object.entries(groupedMatches).map(([leagueName, leagueMatches]) => (
+            {Object.entries(groupedMatches).map(([leagueName, leagueMatches], leagueIdx) => (
               <div key={leagueName} className="space-y-4">
                 {/* League Heading Grouped Header Chevron */}
                 <div className="flex items-center border-b border-border/60 pb-2.5 mb-4 mt-2">
@@ -789,7 +790,10 @@ export default function LiveCricketClient() {
                   {leagueMatches.map((match) => (
                     <div
                       key={match.id}
-                      onClick={() => setSelectedMatch(match)}
+                      onClick={() => {
+                        setSelectedMatch(match);
+                        track("match_view", { sport: "Cricket", league: leagueName });
+                      }}
                       className="cursor-pointer group animate-fade-in"
                     >
                       <MatchCard match={match} details={matchDetailsMap[match.id] || null} />
@@ -798,9 +802,9 @@ export default function LiveCricketClient() {
                 </div>
 
                 {/* Inline House Ad */}
-                {leagueKey === filteredGroupedKeys[0] && (
+                {leagueIdx === 0 && (
                   <div className="pt-6">
-                    <HouseAdView variant="inline" sport="cricket" campaignIndex={1} />
+                    <SlotAd sport="cricket" campaignIndex={1} />
                   </div>
                 )}
               </div>

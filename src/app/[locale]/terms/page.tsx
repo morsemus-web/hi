@@ -48,19 +48,25 @@ export default async function Terms() {
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-text-primary mb-3">3. Founding Access & Pricing</h2>
+            <h2 className="text-base font-semibold text-text-primary mb-3">3. Plans & Billing</h2>
             <p className="mb-3">
-              Founding Access is a one-time payment of $29 that grants lifetime access to ScoreDeck, including all future updates and features. This offer is limited to the first 1,000 users.
+              ScoreDeck is free to use with ads. ScoreDeck Pro removes ads and unlocks every sport and feature. Pro is available as a quarterly subscription (US$15 every 3 months) or an annual subscription (US$49 per year). Taxes are added at checkout where required.
+            </p>
+            <p className="mb-3">
+              Subscriptions renew automatically at the end of each billing period until cancelled. You can cancel at any time from your account page or by contacting us; you keep Pro until the end of the period you have already paid for. Payments are processed by Stripe, or by Dodo Payments for earlier subscribers.
+            </p>
+            <p className="mb-3">
+              We may change prices for future billing periods. We will email you before a price change applies to your subscription, and you can cancel before it takes effect.
             </p>
             <p>
-              The waitlist is free. Waitlisted users will be notified when the app launches and may be offered different pricing at that time.
+              Joining the waitlist is free.
             </p>
           </section>
 
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">4. Refund Policy</h2>
             <p>
-              If you are unsatisfied with ScoreDeck, you may request a full refund within 14 days of purchase. Contact us at{" "}
+              If you are unsatisfied with ScoreDeck, you may request a full refund within 14 days of any payment. Cancelling stops future renewals; refunds for earlier periods are not given after 14 days. Contact us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">
                 hello@tryscoredeck.pro
               </a>{" "}
@@ -101,7 +107,7 @@ export default async function Terms() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">7. Intellectual Property</h2>
             <p>
-              ScoreDeck, its logo, design, and code are the property of ScoreDeck. Sports data displayed within the app and referenced in news articles is sourced from third-party providers and publicly available information, and remains the property of the respective leagues and organizations.
+              ScoreDeck, its logo, design, and code are the property of Orbytech IT Solutions L.L.C. Sports data displayed within the app and referenced in news articles is sourced from third-party providers and publicly available information, and remains the property of the respective leagues and organizations.
             </p>
           </section>
 
@@ -129,7 +135,7 @@ export default async function Terms() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">11. Contact</h2>
             <p>
-              Questions about these terms? Reach us at{" "}
+              ScoreDeck is operated by Orbytech IT Solutions L.L.C, Dubai, United Arab Emirates. Questions about these terms? Reach us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">
                 hello@tryscoredeck.pro
               </a>
