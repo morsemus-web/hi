@@ -115,7 +115,7 @@ export default async function Privacy() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">9. Contact</h2>
             <p>
-              ScoreDeck is operated by Orbytech IT Solutions L.L.C, Dubai, United Arab Emirates, which is responsible for your personal data. Questions about this policy? Reach us at{" "}
+              ScoreDeck is operated by Titan Orbyt Technologies LLC, Dubai, United Arab Emirates, which is responsible for your personal data. Questions about this policy? Reach us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">
                 hello@tryscoredeck.pro
               </a>

@@ -322,7 +322,7 @@ export default function ReportsView({ accessToken }: { accessToken: string }) {
 
       <div className="hidden print:block text-black">
         <h1 className="text-xl font-bold">ScoreDeck report</h1>
-        <p className="text-sm">{from} to {to} (Dubai time) · Orbytech IT Solutions L.L.C</p>
+        <p className="text-sm">{from} to {to} (Dubai time) · Titan Orbyt Technologies LLC</p>
       </div>
 
       {loading && <p className="text-xs font-mono text-zinc-400">Loading report…</p>}

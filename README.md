@@ -1,6 +1,6 @@
 # ScoreDeck — Website & API
 
-ScoreDeck is a live sports score overlay for desktop and Android, built and operated by **Orbytech IT Solutions L.L.C** (Dubai, UAE).
+ScoreDeck is a live sports score overlay for desktop and Android, built and operated by **Titan Orbyt Technologies LLC** (Dubai, UAE).
 
 This repository (`morsemus-web/hi`) is the **website and the backend API** at [tryscoredeck.pro](https://tryscoredeck.pro). The desktop and mobile apps live in [`morsemus-web/scoredeck-desktop`](https://github.com/morsemus-web/scoredeck-desktop) and read all their scores from this API.
 
@@ -39,4 +39,4 @@ npm run dev                         # http://localhost:3000
 
 Next.js 15 (App Router) · React 19 · Tailwind CSS 4 · next-intl (en, ar, hi, es, de) · Supabase (Postgres + auth) · Stripe (Dodo Payments for legacy subscribers) · Google AdSense / AdMob · Resend (email) · Vercel hosting.
 
-© Orbytech IT Solutions L.L.C. All rights reserved.
+© Titan Orbyt Technologies LLC. All rights reserved.

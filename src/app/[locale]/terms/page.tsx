@@ -107,7 +107,7 @@ export default async function Terms() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">7. Intellectual Property</h2>
             <p>
-              ScoreDeck, its logo, design, and code are the property of Orbytech IT Solutions L.L.C. Sports data displayed within the app and referenced in news articles is sourced from third-party providers and publicly available information, and remains the property of the respective leagues and organizations.
+              ScoreDeck, its logo, design, and code are the property of Titan Orbyt Technologies LLC. Sports data displayed within the app and referenced in news articles is sourced from third-party providers and publicly available information, and remains the property of the respective leagues and organizations.
             </p>
           </section>
 
@@ -135,7 +135,7 @@ export default async function Terms() {
           <section>
             <h2 className="text-base font-semibold text-text-primary mb-3">11. Contact</h2>
             <p>
-              ScoreDeck is operated by Orbytech IT Solutions L.L.C, Dubai, United Arab Emirates. Questions about these terms? Reach us at{" "}
+              ScoreDeck is operated by Titan Orbyt Technologies LLC, Dubai, United Arab Emirates. Questions about these terms? Reach us at{" "}
               <a href="mailto:hello@tryscoredeck.pro" className="text-accent hover:underline">
                 hello@tryscoredeck.pro
               </a>

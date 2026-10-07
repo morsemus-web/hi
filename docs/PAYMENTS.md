@@ -46,12 +46,12 @@ POST /api/stripe/webhook
 
 ## Setting up Stripe
 
-1. **Account.** Create it for Orbytech IT Solutions L.L.C and complete business verification.
+1. **Account.** Create it for Titan Orbyt Technologies LLC and complete business verification.
 2. **Products.** Create "ScoreDeck Pro" with two recurring prices: quarterly (every 3 months) and yearly. Put the two `price_…` IDs in `STRIPE_PRICE_QUARTERLY` and `STRIPE_PRICE_ANNUAL`.
 3. **Webhook.** Developers → Webhooks → add endpoint `https://tryscoredeck.pro/api/stripe/webhook` with the events `checkout.session.completed`, `invoice.paid` and `customer.subscription.deleted`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
 4. **Keys.** Put the secret key in `STRIPE_SECRET_KEY`. Use `sk_test_…` on Preview deployments and `sk_live_…` only on Production.
 5. **Customer portal.** Settings → Billing → Customer portal: enable cancellation and invoice history.
-6. **Tax.** Stripe is **not** a merchant of record: Orbytech is the seller and is responsible for VAT and sales tax.
+6. **Tax.** Stripe is **not** a merchant of record: Titan Orbyt is the seller and is responsible for VAT and sales tax.
    - Turn on Stripe Tax, add your UAE VAT registration, and set `STRIPE_AUTOMATIC_TAX=true`.
    - Stripe then collects the customer's address at checkout and adds the right tax.
    - Filing returns is still your (or your accountant's) job.

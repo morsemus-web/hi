@@ -62,5 +62,5 @@ Vercel's **Hobby plan does not allow commercial use**. The project must be on **
 - [ ] Dodo in `live` mode, webhook secret set, one real test purchase refunded
 - [ ] Data providers licensed for commercial use in your target regions (see [DATA_PROVIDERS.md](DATA_PROVIDERS.md))
 - [ ] CORS restricted to your own domains before any licensed data goes live
-- [ ] Terms and privacy pages reviewed by a lawyer (operator: Orbytech IT Solutions L.L.C, Dubai)
+- [ ] Terms and privacy pages reviewed by a lawyer (operator: Titan Orbyt Technologies LLC, Dubai)
 - [ ] No invented or offset numbers anywhere on the site, the apps or the admin dashboard

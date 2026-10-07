@@ -2,7 +2,7 @@
 
 What ScoreDeck collects, where it goes, and how consent works. The public policy is `src/app/[locale]/privacy/page.tsx`. Keep it in sync with this file.
 
-Operator (data controller): **Orbytech IT Solutions L.L.C**, Dubai, UAE.
+Operator (data controller): **Titan Orbyt Technologies LLC**, Dubai, UAE.
 
 ## Data inventory
 
@@ -60,4 +60,4 @@ Suggested answers for the current Android app. Check them again whenever the app
 
 - **UAE PDPL:** anonymous data that can't identify a person is generally outside its scope; account and payment data is in scope. Have a lawyer confirm.
 - **EU/UK:** the ePrivacy rules require consent before storing even an anonymous ID on a device, which is why tracking is off until consent in those regions.
-- **Payments:** with Stripe, Orbytech is the seller of record and handles VAT and sales tax (Stripe Tax helps). Dodo was the merchant of record.
+- **Payments:** with Stripe, Titan Orbyt is the seller of record and handles VAT and sales tax (Stripe Tax helps). Dodo was the merchant of record.

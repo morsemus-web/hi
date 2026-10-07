@@ -49,7 +49,7 @@ If it's empty, those slots show house ads instead.
 
 ## Google AdMob (Android)
 
-1. Create an AdMob account for Orbytech, add the Android app, and create an **adaptive banner** unit.
+1. Create an AdMob account for Titan Orbyt, add the Android app, and create an **adaptive banner** unit.
 2. In `mobile/app.json`:
    - Plugin `react-native-google-mobile-ads` → `androidAppId`: replace Google's **test** ID (`ca-app-pub-3940256099942544~3347511713`) with your real app ID.
    - `extra.admobBannerId`: your banner unit ID.
